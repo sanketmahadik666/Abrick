@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Review - Toilet Review System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <h1>Toilet Review System</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div id="qr-reader-section" class="scanner-container">
+            <div id="qr-reader"></div>
+            <div class="scanner-instructions">
+                <h3>Scan QR Code</h3>
+                <p>Point your camera at the toilet's QR code to begin your review.</p>
+            </div>
+        </div>
+
+        <div id="toiletInfo" class="toilet-info" style="display: none;">
+            <!-- Toilet information will be loaded here -->
+        </div>
+
+        <div id="reviewFormSection" class="section" style="display: none;">
+            <h2>Submit Your Review</h2>
+            <form id="reviewForm">
+                <div class="rating-group">
+                    <label>Overall Rating:</label>
+                    <div class="star-rating">
+                        <input type="radio" name="rating" value="5" id="rating5" required><label for="rating5">★</label>
+                        <input type="radio" name="rating" value="4" id="rating4"><label for="rating4">★</label>
+                        <input type="radio" name="rating" value="3" id="rating3"><label for="rating3">★</label>
+                        <input type="radio" name="rating" value="2" id="rating2"><label for="rating2">★</label>
+                        <input type="radio" name="rating" value="1" id="rating1"><label for="rating1">★</label>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>Cleanliness:</label>
+                    <div class="star-rating">
+                        <input type="radio" name="cleanliness" value="5" id="clean5" required><label for="clean5">★</label>
+                        <input type="radio" name="cleanliness" value="4" id="clean4"><label for="clean4">★</label>
+                        <input type="radio" name="cleanliness" value="3" id="clean3"><label for="clean3">★</label>
+                        <input type="radio" name="cleanliness" value="2" id="clean2"><label for="clean2">★</label>
+                        <input type="radio" name="cleanliness" value="1" id="clean1"><label for="clean1">★</label>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>Maintenance:</label>
+                    <div class="star-rating">
+                        <input type="radio" name="maintenance" value="5" id="maint5" required><label for="maint5">★</label>
+                        <input type="radio" name="maintenance" value="4" id="maint4"><label for="maint4">★</label>
+                        <input type="radio" name="maintenance" value="3" id="maint3"><label for="maint3">★</label>
+                        <input type="radio" name="maintenance" value="2" id="maint2"><label for="maint2">★</label>
+                        <input type="radio" name="maintenance" value="1" id="maint1"><label for="maint1">★</label>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>Accessibility:</label>
+                    <div class="star-rating">
+                        <input type="radio" name="accessibility" value="5" id="access5" required><label for="access5">★</label>
+                        <input type="radio" name="accessibility" value="4" id="access4"><label for="access4">★</label>
+                        <input type="radio" name="accessibility" value="3" id="access3"><label for="access3">★</label>
+                        <input type="radio" name="accessibility" value="2" id="access2"><label for="access2">★</label>
+                        <input type="radio" name="accessibility" value="1" id="access1"><label for="access1">★</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comments">Share your experience:</label>
+                    <textarea id="comments" name="comments" rows="4" required></textarea>
+                </div>
+
+                <button type="submit">Submit Review</button>
+            </form>
+        </div>
+
+        <div id="successMessage" class="section" style="display: none;">
+            <div class="celebration-icon">🎉</div>
+            <h2>Thank you for your review!</h2>
+            <p>Your feedback helps improve facilities for everyone.</p>
+            <div class="action-buttons">
+                <button id="scanNewQR" class="primary-button">Scan Another QR Code</button>
+                <a href="index.html" class="secondary-button">Return Home</a>
+            </div>
+            <div id="confettiContainer"></div>
+        </div>
+    </main>
+
+    <script src="js/review.js"></script>
+</body>
+</html> 

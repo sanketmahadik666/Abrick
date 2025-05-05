@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toilet Review System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .hero-section h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .scanner-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .map-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            border-radius: 10px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .map-error {
+            padding: 1rem;
+            background: #fee;
+            color: #c00;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .map-legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #qr-reader-results {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            padding: 0 1rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: #666;
+        }
+
+        .instructions {
+            margin-top: 1rem;
+        }
+
+        .instructions h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .instructions ol {
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+            color: #555;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toilet-info {
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toilet-info h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .toilet-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        .rating {
+            color: #ffd700;
+        }
+
+        /* Additional map styles */
+        .cluster-icon {
+            background-color: #fff;
+            border-radius: 50%;
+            width: 30px !important;
+            height: 30px !important;
+            line-height: 30px !important;
+            text-align: center;
+            border: 2px solid #333;
+            font-weight: bold;
+        }
+
+        .map-container {
+            position: relative;
+            height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+            background: transparent !important;
+        }
+
+        .leaflet-tile-pane {
+            opacity: 0.8; /* Make map tiles more transparent */
+        }
+
+        .toilet-popup {
+            padding: 15px;
+            max-width: 250px;
+        }
+
+        .toilet-popup h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .toilet-popup p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .toilet-popup .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .toilet-popup .rating-stars {
+            color: #ffd700;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .map-controls button {
+            background: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .map-controls button:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .toilet-marker {
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .toilet-marker:hover {
+            transform: scale(1.2);
+        }
+
+        /* Footer Styles */
+        footer {
+            background: #f8f9fa;
+            padding: 3rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .footer-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .footer-map-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 992px) {
+            .footer-map-container {
+                grid-template-columns: 3fr 1fr;
+            }
+        }
+
+        .map-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            height: 100%;
+        }
+
+        .map-info {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-info h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .map-legend {
+            margin-top: 0;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+        }
+
+        .map-container {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <h1>Toilet Review System</h1>
+            <div class="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="admin.html">Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero-section">
+            <h1>Welcome to Toilet Review System</h1>
+            <p>Help improve public facilities by sharing your experience</p>
+        </div>
+
+        <div class="main-content">
+            <div class="scanner-section">
+                <h2>Scan QR Code</h2>
+                <div id="qr-reader"></div>
+                <div id="qr-reader-results"></div>
+                <div class="instructions">
+                    <h2>How to use:</h2>
+                    <ol>
+                        <li>Allow camera access when prompted</li>
+                        <li>Point your camera at the toilet's QR code</li>
+                        <li>Hold steady until the QR code is scanned</li>
+                        <li>You'll be redirected to submit your review</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Easy to Use</h3>
+                <p>Simply scan the QR code at any registered toilet facility to start your review</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⭐</div>
+                <h3>Rate & Review</h3>
+                <p>Share your experience and rate cleanliness, maintenance, and accessibility</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Help Others</h3>
+                <p>Your feedback helps maintain and improve public toilet facilities</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <h2 class="footer-title">Available Toilets Near You</h2>
+            <div class="footer-map-container">
+                <div class="map-section">
+                    <div id="map-error" class="map-error"></div>
+                    <div class="map-container">
+                        <div id="map"></div>
+                        <div class="map-controls">
+                            <button onclick="map.locate({setView: true, maxZoom: 16})">📍 Find Near Me</button>
+                        </div>
+                        <div id="map-loading" class="map-loading">
+                            <div class="loading-spinner"></div>
+                            <span class="loading-text">Loading nearby toilets...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="map-info">
+                    <h3>Rating Guide</h3>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4caf50"></div>
+                            <span>High Rating (4-5)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffc107"></div>
+                            <span>Medium Rating (3-4)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f44336"></div>
+                            <span>Low Rating (0-3)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #808080"></div>
+                            <span>No Ratings Yet</span>
+                        </div>
+                    </div>
+                    <div class="map-stats" style="margin-top: 2rem;">
+                        <h3>Statistics</h3>
+                        <div id="map-stats-content">
+                            Loading statistics...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Toilet Review System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize map with better default settings
+        const map = L.map('map', {
+            center: [18.5204, 73.8567],
+            zoom: 13,
+            minZoom: 3,
+            maxZoom: 18,
+            zoomControl: true,
+            preferCanvas: true,
+            zoomAnimation: true,
+            markerZoomAnimation: true
+        });
+        
+        const mapLoading = document.getElementById('map-loading');
+        const mapError = document.getElementById('map-error');
+
+        // Create markers layer group with better clustering options
+        const markers = L.markerClusterGroup({
+            chunkedLoading: true,
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: true,
+            zoomToBoundsOnClick: true,
+            animate: true,
+            animateAddingMarkers: true,
+            disableClusteringAtZoom: 16 // Disable clustering at high zoom levels
+        });
+
+        // Add a nicer map style
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '©OpenStreetMap, ©CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 19,
+            updateWhenIdle: true,
+            keepBuffer: 2
+        }).addTo(map);
+
+        // Helper function to get marker color based on rating
+        function getMarkerColor(rating) {
+            if (!rating) return '#808080'; // Grey for no rating
+            if (rating >= 4) return '#4caf50'; // Green for high rating
+            if (rating >= 3) return '#ffc107'; // Yellow for medium rating
+            return '#f44336'; // Red for low rating
+        }
+
+        // Function to create a marker with custom styling
+        function createMarker(toilet) {
+            const marker = L.circleMarker(
+                [toilet.coordinates.latitude, toilet.coordinates.longitude],
+                {
+                    radius: 10,
+                    fillColor: getMarkerColor(toilet.averageRating),
+                    color: '#ffffff',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.9,
+                    className: 'toilet-marker'
+                }
+            );
+
+            // Add hover effect
+            marker.on('mouseover', function() {
+                this.setStyle({
+                    radius: 12,
+                    weight: 4
+                });
+            });
+
+            marker.on('mouseout', function() {
+                this.setStyle({
+                    radius: 10,
+                    weight: 3
+                });
+            });
+
+            return marker;
+        }
+
+        // Function to load and display toilets on the map
+        async function loadToilets() {
+            try {
+                console.log('Starting to load toilets...');
+                mapError.style.display = 'none';
+                mapLoading.style.display = 'flex';
+
+                // Clear existing markers
+                markers.clearLayers();
+
+                // Use the correct API URL
+                const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+                    ? 'http://localhost:3000'  // Development
+                    : '';  // Production (empty string means same origin)
+
+                const response = await fetch(`${API_URL}/api/toilet/map`);
+                console.log('API Response:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch toilets: ${response.status} - ${response.statusText}`);
+                }
+
+                const toilets = await response.json();
+                console.log('Fetched toilets:', toilets);
+
+                if (!toilets || !Array.isArray(toilets) || toilets.length === 0) {
+                    throw new Error('No toilets available in the system yet.');
+                }
+
+                // Update statistics
+                updateMapStats(toilets);
+
+                // Add markers with better styling
+                toilets.forEach(toilet => {
+                    if (!toilet.coordinates?.latitude || !toilet.coordinates?.longitude) {
+                        console.warn('Invalid coordinates for toilet:', toilet);
+                        return;
+                    }
+
+                    const marker = createMarker(toilet);
+                    const popupContent = `
+                        <div class="toilet-popup">
+                            <h3>${toilet.name}</h3>
+                            <p>${toilet.location}</p>
+                            ${toilet.description ? `<p>${toilet.description}</p>` : ''}
+                            <div class="rating">
+                                <span class="rating-stars">${getStarRating(toilet.averageRating)}</span>
+                                <span>(${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No'} / 5)</span>
+                            </div>
+                            <p>Total Reviews: ${toilet.totalReviews || 0}</p>
+                            ${toilet.facilities ? `
+                                <p>Facilities: ${toilet.facilities.map(f => f.replace('_', ' ')).join(', ')}</p>
+                            ` : ''}
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupContent);
+                    markers.addLayer(marker);
+                });
+
+                map.addLayer(markers);
+
+                // Fit bounds with animation
+                if (markers.getLayers().length > 0) {
+                    map.fitBounds(markers.getBounds(), {
+                        padding: [50, 50],
+                        maxZoom: 15,
+                        animate: true,
+                        duration: 1
+                    });
+                } else {
+                    map.setView([18.5204, 73.8567], 13);
+                }
+
+                setTimeout(() => {
+                    mapLoading.style.display = 'none';
+                }, 500);
+
+            } catch (error) {
+                console.error('Error loading toilets:', error);
+                mapError.textContent = `${error.message}. Please make sure the server is running on port 3000.`;
+                mapError.style.display = 'block';
+                mapLoading.style.display = 'none';
+                map.setView([18.5204, 73.8567], 13);
+            }
+        }
+
+        // Helper function to get marker color based on rating
+        function getMarkerColor(rating) {
+            if (!rating) return '#808080'; // Grey for no rating
+            if (rating >= 4) return '#4caf50'; // Green for high rating
+            if (rating >= 3) return '#ffc107'; // Yellow for medium rating
+            return '#f44336'; // Red for low rating
+        }
+
+        // Helper function to create star rating display
+        function getStarRating(rating) {
+            if (!rating) return 'No ratings yet';
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            let stars = '★'.repeat(fullStars);
+            if (halfStar) stars += '½';
+            stars += '☆'.repeat(5 - Math.ceil(rating));
+            return stars;
+        }
+
+        // Load toilets when the map is ready
+        map.whenReady(() => {
+            loadToilets();
+        });
+
+        // Add error handler for tile loading
+        map.on('tileerror', function(e) {
+            console.error('Tile loading error:', e);
+            mapError.textContent = 'Map tiles failed to load. Please check your internet connection.';
+            mapError.style.display = 'block';
+        });
+
+        // QR Scanner initialization
+        function onScanSuccess(decodedText, decodedResult) {
+            html5QrcodeScanner.clear();
+            let id = decodedText;
+            try {
+                const parsed = JSON.parse(decodedText);
+                id = parsed.toiletId || id;
+            } catch (e) {}
+            window.location.href = `/review.html?id=${id}`;
+        }
+
+        function onScanFailure(error) {
+            // Handle scan failure, usually better to ignore it.
+            console.warn(`QR scan error = ${error}`);
+        }
+
+        // Initialize QR Scanner
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            /* verbose= */ false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+        // Update map stats
+        function updateMapStats(toilets) {
+            const statsContent = document.getElementById('map-stats-content');
+            if (!toilets || toilets.length === 0) {
+                statsContent.innerHTML = 'No toilets available';
+                return;
+            }
+
+            const totalToilets = toilets.length;
+            const avgRating = toilets.reduce((sum, t) => sum + (t.averageRating || 0), 0) / totalToilets;
+            const highRated = toilets.filter(t => t.averageRating >= 4).length;
+
+            statsContent.innerHTML = `
+                <p>Total Toilets: ${totalToilets}</p>
+                <p>Average Rating: ${avgRating.toFixed(1)} ⭐</p>
+                <p>High Rated (4+): ${highRated}</p>
+            `;
+        }
+    </script>
+</body>
+</html> 
