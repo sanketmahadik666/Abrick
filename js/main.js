@@ -17,7 +17,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 
 // State
 let currentToiletId = null;
-let token = localStorage.getItem('token');
+let token = localStorage.getItem('adminToken');
 
 // Navigation
 function showSection(section) {
@@ -64,7 +64,7 @@ adminLoginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         if (response.ok) {
             token = data.token;
-            localStorage.setItem('token', token);
+            localStorage.setItem('adminToken', token);
             adminDashboardLink.style.display = 'inline';
             showSection(adminDashboardSection);
             loadDashboard();
@@ -79,7 +79,7 @@ adminLoginForm.addEventListener('submit', async (e) => {
 
 logoutBtn.addEventListener('click', () => {
     token = null;
-    localStorage.removeItem('token');
+    localStorage.removeItem('adminToken');
     adminDashboardLink.style.display = 'none';
     showSection(homeSection);
 });
@@ -136,32 +136,52 @@ addToiletBtn.addEventListener('click', () => {
 viewToiletsBtn.addEventListener('click', loadToilets);
 viewReviewsBtn.addEventListener('click', loadReviews);
 
+// Add debugging utility
+const debug = {
+    log: (message, data) => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] ${message}`, data || '');
+        }
+    },
+    error: (message, error) => {
+        console.error(`[ERROR] ${message}`, error);
+    }
+};
+
+// Update loadToilets with debugging
 async function loadToilets() {
+    debug.log('Loading toilets from API');
     try {
-        const response = await fetch('/api/toilets');
+        const response = await fetch('/api/toilet/map');
         const toilets = await response.json();
-        
-        const dashboardContent = document.getElementById('dashboardContent');
-        dashboardContent.innerHTML = toilets.map(toilet => `
-            <div class="toilet-card">
-                <h3>${toilet.name}</h3>
-                <p>Location: ${toilet.location}</p>
-                <p>Description: ${toilet.description}</p>
-                <p>Average Rating: ${toilet.averageRating.toFixed(1)}</p>
-                <p>Total Reviews: ${toilet.totalReviews}</p>
-                <div class="qr-code-container">
-                    <img src="${toilet.qrCode}" alt="QR Code" class="qr-code">
-                    <a href="${toilet.qrCode}" download class="download-qr">Download QR Code</a>
-                </div>
-                <div class="toilet-actions">
-                    <button onclick="editToilet('${toilet._id}')">Edit</button>
-                    <button onclick="deleteToilet('${toilet._id}')">Delete</button>
-                </div>
-            </div>
-        `).join('');
+
+        if (!response.ok) {
+            throw new Error(toilets.message || 'Failed to load toilets');
+        }
+
+        debug.log('Toilets loaded:', toilets);
+
+        // Clear existing markers
+        markers.forEach(marker => marker.remove());
+        markers = [];
+
+        // Add markers for each toilet
+        toilets.forEach(toilet => {
+            const marker = L.marker([toilet.location.coordinates[1], toilet.location.coordinates[0]])
+                .bindPopup(`
+                    <strong>${toilet.name}</strong><br>
+                    ${toilet.location.address}<br>
+                    Rating: ${toilet.averageRating?.toFixed(1) || 'No ratings'} ⭐
+                `);
+            marker.addTo(map);
+            markers.push(marker);
+        });
+
+        // Update toilet list
+        updateToiletList(toilets);
     } catch (error) {
-        console.error('Error loading toilets:', error);
-        alert('Failed to load toilets. Please try again.');
+        debug.error('Error loading toilets:', error);
+        alert('Failed to load toilets. Please try again later.');
     }
 }
 
@@ -378,7 +398,7 @@ document.getElementById('adminRegisterForm').addEventListener('submit', async (e
         const data = await response.json();
         if (response.ok) {
             token = data.token;
-            localStorage.setItem('token', token);
+            localStorage.setItem('adminToken', token);
             adminDashboardLink.style.display = 'inline';
             showSection(adminDashboardSection);
             loadDashboard();

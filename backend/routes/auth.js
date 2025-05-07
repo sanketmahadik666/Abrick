@@ -9,6 +9,11 @@ router.post('/register', async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Validate input
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
         // Check if user already exists
         let user = await User.findOne({ email });
         if (user) {
@@ -23,6 +28,7 @@ router.post('/register', async (req, res) => {
         });
 
         await user.save();
+        console.log('User saved successfully:', user.email);
 
         // Create token
         const token = jwt.sign(
@@ -40,8 +46,11 @@ router.post('/register', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Registration error:', err);
-        res.status(500).json({ message: 'Error in user registration' });
+        console.error('Registration error details:', err);
+        res.status(500).json({ 
+            message: 'Error in user registration',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 });
 
@@ -49,6 +58,11 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        // Validate input
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
 
         // Check if user exists
         const user = await User.findOne({ email });
@@ -78,8 +92,11 @@ router.post('/login', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Login error:', err);
-        res.status(500).json({ message: 'Error in user login' });
+        console.error('Login error details:', err);
+        res.status(500).json({ 
+            message: 'Error in user login',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 });
 

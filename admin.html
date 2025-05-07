@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -621,11 +623,6 @@
         let map;
         let marker;
         let codeReader = null;
-        const scanToiletBtn = document.getElementById('scanToiletBtn');
-        const scanToiletForm = document.getElementById('scanToiletForm');
-        const scannerVideo = document.getElementById('scanner-video');
-        const scannedData = document.getElementById('scanned-data');
-        const unknownToiletForm = document.getElementById('unknownToiletForm');
 
         // Check if user is already logged in
         const token = localStorage.getItem('adminToken');
@@ -671,10 +668,12 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                if (data.token) {
+                if (data.token && data.user.role === 'admin') {
                     localStorage.setItem('adminToken', data.token);
-                    localStorage.setItem('adminEmail', data.email);
+                    localStorage.setItem('adminEmail', data.user.email);
                     showDashboard();
+                } else {
+                    throw new Error('Unauthorized access. Admin privileges required.');
                 }
             } catch (error) {
                 loginError.textContent = error.message || 'Login failed. Please check your credentials.';
@@ -685,23 +684,30 @@
         // Registration form submission
         document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('registerEmail').value;
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
+            const registerError = document.getElementById('registerError');
 
             try {
                 const data = await makeApiRequest('/api/auth/register', {
                     method: 'POST',
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ 
+                        email, 
+                        password,
+                        role: 'admin' // Explicitly set role to admin
+                    })
                 });
 
                 if (data.token) {
                     localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminEmail', data.user.email);
                     showDashboard();
+                    registerError.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                const registerError = document.getElementById('registerError');
-                registerError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
+                registerError.textContent = error.message || 'Registration failed. Please try again.';
+                registerError.style.display = 'block';
             }
         });
 
@@ -967,25 +973,11 @@
             const reviewList = document.querySelector('.review-list');
             reviewList.innerHTML = '<div class="loading">Loading reviews...</div>';
 
-            const token = localStorage.getItem('adminToken');
-            if (!token) {
-                reviewList.innerHTML = '<div class="error-message">Please log in to view reviews</div>';
-                return;
-            }
-
             try {
                 const [reviews, toilets] = await Promise.all([
-                    makeApiRequest('/api/reviews/all', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }),
+                    makeApiRequest('/api/reviews/all'),
                     makeApiRequest('/api/toilet/map')
                 ]);
-
-                if (!reviews || !Array.isArray(reviews)) {
-                    throw new Error('Invalid reviews data received');
-                }
 
                 allReviews = reviews;
                 allToilets = toilets;
@@ -1002,23 +994,13 @@
                 displayReviews();
             } catch (error) {
                 console.error('Error loading reviews:', error);
-                if (error.message.includes('401') || error.message.includes('403')) {
-                    reviewList.innerHTML = `
-                        <div class="error-message">
-                            Authentication error. Please log in again.
-                            <br><br>
-                            <button class="btn" onclick="window.location.reload()">Log In</button>
-                        </div>
-                    `;
-                } else {
-                    reviewList.innerHTML = `
-                        <div class="error-message">
-                            Error loading reviews: ${error.message}
-                            <br><br>
-                            <button class="btn" onclick="loadReviews()">Try Again</button>
-                        </div>
-                    `;
-                }
+                reviewList.innerHTML = `
+                    <div class="error-message">
+                        Error loading reviews: ${error.message}
+                        <br><br>
+                        <button class="btn" onclick="loadReviews()">Try Again</button>
+                    </div>
+                `;
             }
         }
 

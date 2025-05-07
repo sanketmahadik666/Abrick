@@ -9,10 +9,31 @@ const qrReaderSection = document.getElementById('qr-reader-section');
 let currentToiletId = null;
 let qrScanner = null;
 
+// Add debugging utility
+const debug = {
+    log: (message, data) => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] ${message}`, data || '');
+        }
+    },
+    error: (message, error) => {
+        console.error(`[ERROR] ${message}`, error);
+    }
+};
+
 // Initialize QR Scanner
 function initializeQRScanner() {
+    debug.log('Initializing QR Scanner');
     qrReaderSection.style.display = 'block';
     const html5QrCode = new Html5Qrcode("qr-reader");
+    
+    // Check for camera permissions first
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        debug.error('Camera access not supported');
+        alert("Camera access is not supported in your browser. Please use a modern browser with camera support.");
+        return null;
+    }
+
     html5QrCode.start(
         { facingMode: "environment" },
         {
@@ -20,6 +41,8 @@ function initializeQRScanner() {
             qrbox: { width: 250, height: 250 }
         },
         (decodedText) => {
+            debug.log('QR Code scanned:', decodedText);
+            
             // Stop scanning after successful scan
             html5QrCode.stop();
             
@@ -30,23 +53,45 @@ function initializeQRScanner() {
             try {
                 // Try parsing as JSON first
                 const parsedData = JSON.parse(decodedText);
-                currentToiletId = parsedData.toiletId;
+                if (parsedData && parsedData.toiletId) {
+                    currentToiletId = parsedData.toiletId;
+                    debug.log('Parsed toilet ID from JSON:', currentToiletId);
+                } else {
+                    throw new Error('Invalid QR code format');
+                }
             } catch (e) {
-                // If not JSON, use the raw text as ID
-                currentToiletId = decodedText;
+                debug.error('Error parsing QR code data:', e);
+                // If not JSON or invalid format, try using the raw text as ID
+                if (decodedText && decodedText.trim()) {
+                    currentToiletId = decodedText.trim();
+                    debug.log('Using raw text as toilet ID:', currentToiletId);
+                } else {
+                    throw new Error('Invalid QR code content');
+                }
             }
 
             // Clean the ID - remove any quotes or extra whitespace
             currentToiletId = currentToiletId.replace(/['"]/g, '').trim();
             
+            if (!currentToiletId) {
+                throw new Error('No toilet ID found in QR code');
+            }
+            
             loadToiletInfo(currentToiletId);
         },
         (error) => {
-            // Handle scan error silently
+            // Log scan errors for debugging
+            debug.error('QR Scan error:', error);
         }
     ).catch((err) => {
-        console.error("QR Scanner error:", err);
-        alert("Could not start QR scanner. Please check camera permissions.");
+        debug.error('QR Scanner initialization error:', err);
+        if (err.name === 'NotAllowedError') {
+            alert("Camera access was denied. Please allow camera access to scan QR codes.");
+        } else if (err.name === 'NotFoundError') {
+            alert("No camera found. Please connect a camera to scan QR codes.");
+        } else {
+            alert("Could not start QR scanner. Please check camera permissions and try again.");
+        }
     });
 
     return html5QrCode;
@@ -54,6 +99,7 @@ function initializeQRScanner() {
 
 // Load toilet information
 async function loadToiletInfo(toiletId) {
+    debug.log('Loading toilet info for ID:', toiletId);
     try {
         const response = await fetch(`/api/toilet/${toiletId}`);
         const data = await response.json();
@@ -61,6 +107,8 @@ async function loadToiletInfo(toiletId) {
         if (!response.ok) {
             throw new Error(data.message || 'Failed to load toilet information');
         }
+
+        debug.log('Toilet data loaded:', data);
 
         toiletInfo.innerHTML = `
             <h2>${data.name}</h2>
@@ -76,7 +124,7 @@ async function loadToiletInfo(toiletId) {
         toiletInfo.style.display = 'block';
         reviewFormSection.style.display = 'block';
     } catch (error) {
-        console.error('Error loading toilet info:', error);
+        debug.error('Error loading toilet info:', error);
         alert('Could not load toilet information. Please try scanning again.');
         // Show scanner again if loading fails
         qrReaderSection.style.display = 'block';
@@ -108,17 +156,27 @@ function createConfetti() {
 reviewForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const reviewData = {
-        toiletId: currentToiletId,
-        rating: parseInt(document.querySelector('input[name="rating"]:checked').value),
-        cleanliness: parseInt(document.querySelector('input[name="cleanliness"]:checked').value),
-        maintenance: parseInt(document.querySelector('input[name="maintenance"]:checked').value),
-        accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
-        comment: document.getElementById('comments').value
-    };
+    // Disable form while submitting
+    const submitButton = reviewForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
 
     try {
-        const response = await fetch('/api/review/submit', {
+        const reviewData = {
+            toiletId: currentToiletId,
+            rating: parseInt(document.querySelector('input[name="rating"]:checked').value),
+            cleanliness: parseInt(document.querySelector('input[name="cleanliness"]:checked').value),
+            maintenance: parseInt(document.querySelector('input[name="maintenance"]:checked').value),
+            accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
+            comment: document.getElementById('comments').value
+        };
+
+        // Validate all required fields
+        if (!reviewData.rating || !reviewData.cleanliness || !reviewData.maintenance || !reviewData.accessibility) {
+            throw new Error('Please provide all ratings');
+        }
+
+        const response = await fetch('/api/reviews', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -140,10 +198,13 @@ reviewForm.addEventListener('submit', async (e) => {
         successMessage.style.display = 'block';
         createConfetti();
 
-        // Play celebration sound (optional)
     } catch (error) {
         console.error('Error submitting review:', error);
-        alert('Failed to submit review. Please try again.');
+        alert(error.message || 'Failed to submit review. Please try again.');
+    } finally {
+        // Re-enable form
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit Review';
     }
 });
 
