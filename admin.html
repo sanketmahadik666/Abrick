@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -530,89 +528,64 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
+        // Configure API URL based on environment
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3000'
             : window.location.origin;
 
-        // async function makeApiRequest(endpoint, options = {}) {
-        //     const token = localStorage.getItem('adminToken');
-        //     const defaultHeaders = {
-        //         'Content-Type': 'application/json',
-        //     };
-
-        //     if (token) {
-        //         defaultHeaders['Authorization'] = `Bearer ${token}`;
-        //     }
-
-        //     try {
-        //         console.log(`Making API request to: ${API_URL}${endpoint}`);
-        //         const response = await fetch(`${API_URL}${endpoint}`, {
-        //             ...options,
-        //             headers: {
-        //                 ...defaultHeaders,
-        //                 ...options.headers,
-        //             },
-        //         });
-
-        //         console.log(`Response status: ${response.status}`);
-        //         const data = await response.json();
-        //         console.log('Response data:', data);
-
-        //         if (!response.ok) {
-        //             throw new Error(data.message || 'API request failed');
-        //         }
-
-        //         return data;
-        //     } catch (error) {
-        //         console.error('API request error:', error);
-        //         throw error;
-        //     }
-        // }
-
+        // Add debugging utility
+        const debug = {
+            log: (message, data) => {
+                console.log(`[DEBUG] ${message}`, data || '');
+            },
+            error: (message, error) => {
+                console.error(`[ERROR] ${message}`, error);
+            }
+        };
 
         async function makeApiRequest(endpoint, options = {}) {
-    const token = localStorage.getItem('adminToken');
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-    };
+            const token = localStorage.getItem('adminToken');
+            const defaultHeaders = {
+                'Content-Type': 'application/json',
+            };
 
-    if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
+            if (token) {
+                defaultHeaders['Authorization'] = `Bearer ${token}`;
+            }
 
-    try {
-        console.log(`Making API request to: ${API_URL}${endpoint}`);
-        const response = await fetch(`${API_URL}${endpoint}`, {
-            ...options,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers,
-            },
-        });
+            try {
+                debug.log(`Making API request to: ${API_URL}${endpoint}`);
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        ...defaultHeaders,
+                        ...options.headers,
+                    },
+                });
 
-        console.log(`Response status: ${response.status}`);
+                debug.log(`Response status: ${response.status}`);
 
-        let data;
-        const contentType = response.headers.get('content-type');
+                let data;
+                const contentType = response.headers.get('content-type');
 
-        if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-            console.log('Response data:', data);
-        } else {
-            data = await response.text(); // fallback if not JSON
-            console.log('Response text:', data);
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                    debug.log('Response data:', data);
+                } else {
+                    data = await response.text();
+                    debug.log('Response text:', data);
+                }
+
+                if (!response.ok) {
+                    throw new Error((data && data.message) || data || 'API request failed');
+                }
+
+                return data;
+            } catch (error) {
+                debug.error('API request error:', error);
+                throw error;
+            }
         }
-
-        if (!response.ok) {
-            throw new Error((data && data.message) || data || 'API request failed');
-        }
-
-        return data;
-    } catch (error) {
-        console.error('API request error:', error);
-        throw error;
-    }
-}
 
         const loginForm = document.getElementById('loginForm');
         const adminDashboard = document.getElementById('adminDashboard');
@@ -623,6 +596,7 @@
         let map;
         let marker;
         let codeReader = null;
+        let isProcessingScan = false;
 
         // Check if user is already logged in
         const token = localStorage.getItem('adminToken');
@@ -668,10 +642,18 @@
                     body: JSON.stringify({ email, password })
                 });
 
+               function debug() {
+                let one = 0 ;
+                one ++ ;
+                console.log("if the count gets incresing then it must have get hited");
+               }
+
                 if (data.token && data.user.role === 'admin') {
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('adminEmail', data.user.email);
-                    showDashboard();
+                     console.log(typeof(data)  + "plese come on the console");
+
+                    showDashboard().apply(debug());
                 } else {
                     throw new Error('Unauthorized access. Admin privileges required.');
                 }
@@ -689,12 +671,12 @@
             const registerError = document.getElementById('registerError');
 
             try {
-                const data = await makeApiRequest('/api/auth/register', {
+                const data = await makeApiRequest('/api/admin/register', {
                     method: 'POST',
                     body: JSON.stringify({ 
                         email, 
                         password,
-                        role: 'admin' // Explicitly set role to admin
+                        role: 'admin'
                     })
                 });
 
@@ -708,6 +690,8 @@
                 console.error('Registration error:', error);
                 registerError.textContent = error.message || 'Registration failed. Please try again.';
                 registerError.style.display = 'block';
+                // Clear password field on error
+                document.getElementById('registerPassword').value = '';
             }
         });
 
@@ -756,7 +740,7 @@
 
                 console.log('Submitting toilet data:', toiletData);
 
-                const data = await makeApiRequest('/api/admin/toilet/add', {
+                const data = await makeApiRequest('/api/toilet/add', {
                     method: 'POST',
                     body: JSON.stringify(toiletData)
                 });
@@ -773,8 +757,9 @@
                         marker = null;
                     }
                     
-                    // Refresh toilet list
+                    // Refresh toilet list and QR codes
                     loadToilets();
+                    loadQRCodes();
                 } else {
                     addToiletError.textContent = data.message || 'Failed to add toilet. Please try again.';
                     addToiletError.style.display = 'block';
@@ -930,8 +915,15 @@
                 qrGrid.innerHTML = '';
 
                 toilets.forEach(toilet => {
+                    // Create a more structured QR code data
+                    const qrData = {
+                        toiletId: toilet._id,
+                        name: toilet.name,
+                        location: toilet.location
+                    };
+                    
                     const reviewUrl = `${window.location.origin}/review.html?id=${toilet._id}`;
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reviewUrl)}`;
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify(qrData))}`;
                     
                     const qrCard = document.createElement('div');
                     qrCard.className = 'qr-card';
@@ -974,11 +966,13 @@
             reviewList.innerHTML = '<div class="loading">Loading reviews...</div>';
 
             try {
+                // Fetch both reviews and toilets data
                 const [reviews, toilets] = await Promise.all([
                     makeApiRequest('/api/reviews/all'),
                     makeApiRequest('/api/toilet/map')
                 ]);
 
+                // Store data for filtering
                 allReviews = reviews;
                 allToilets = toilets;
 
@@ -991,7 +985,9 @@
                     `;
                 });
 
+                // Display reviews
                 displayReviews();
+
             } catch (error) {
                 console.error('Error loading reviews:', error);
                 reviewList.innerHTML = `
@@ -1011,8 +1007,9 @@
 
             let filteredReviews = [...allReviews];
 
+            // Apply filters
             if (toiletFilter) {
-                filteredReviews = filteredReviews.filter(review => review.toiletId === toiletFilter);
+                filteredReviews = filteredReviews.filter(review => review.toiletId._id === toiletFilter);
             }
 
             if (ratingFilter) {
@@ -1027,21 +1024,52 @@
             // Sort reviews by date (newest first)
             filteredReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            reviewList.innerHTML = filteredReviews.map(review => `
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="review-toilet-name">${review.toiletName}</div>
-                        <div class="review-rating">
-                            ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+            // Create review cards
+            reviewList.innerHTML = filteredReviews.map(review => {
+                // Safely access toilet data with fallbacks
+                const toiletName = review.toiletId?.name || 'Unknown Toilet';
+                const toiletLocation = review.toiletId?.location || 'Unknown Location';
+                
+                return `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="review-toilet-name">
+                                ${toiletName}
+                                <small>(${toiletLocation})</small>
+                            </div>
+                            <div class="review-rating">
+                                ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+                            </div>
+                        </div>
+                        <div class="review-details">
+                            <div class="rating-breakdown">
+                                <div class="rating-item">
+                                    <span>Cleanliness:</span>
+                                    <span class="rating-stars">${'★'.repeat(review.cleanliness)}${'☆'.repeat(5-review.cleanliness)}</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span>Maintenance:</span>
+                                    <span class="rating-stars">${'★'.repeat(review.maintenance)}${'☆'.repeat(5-review.maintenance)}</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span>Accessibility:</span>
+                                    <span class="rating-stars">${'★'.repeat(review.accessibility)}${'☆'.repeat(5-review.accessibility)}</span>
+                                </div>
+                            </div>
+                            ${review.comment ? `
+                                <div class="review-comment">
+                                    <strong>Comment:</strong>
+                                    <p>${review.comment}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="review-meta">
+                            <div>Posted on: ${new Date(review.createdAt).toLocaleString()}</div>
+                            <button class="btn delete-btn" onclick="deleteReview('${review._id}')">Delete Review</button>
                         </div>
                     </div>
-                    <div class="review-comment">${review.comment || 'No comment provided'}</div>
-                    <div class="review-meta">
-                        <div>Posted on: ${new Date(review.createdAt).toLocaleString()}</div>
-                        <div>${review.rating}/5 stars</div>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             // Add summary at the top
             const summary = document.createElement('div');
@@ -1051,128 +1079,211 @@
                     <h3>Review Summary</h3>
                     <p>Total Reviews: ${filteredReviews.length}</p>
                     <p>Average Rating: ${(filteredReviews.reduce((sum, r) => sum + r.rating, 0) / filteredReviews.length).toFixed(1)} ★</p>
+                    <div class="rating-breakdown">
+                        <p>Average Cleanliness: ${(filteredReviews.reduce((sum, r) => sum + r.cleanliness, 0) / filteredReviews.length).toFixed(1)} ★</p>
+                        <p>Average Maintenance: ${(filteredReviews.reduce((sum, r) => sum + r.maintenance, 0) / filteredReviews.length).toFixed(1)} ★</p>
+                        <p>Average Accessibility: ${(filteredReviews.reduce((sum, r) => sum + r.accessibility, 0) / filteredReviews.length).toFixed(1)} ★</p>
+                    </div>
                 </div>
             `;
             reviewList.insertBefore(summary, reviewList.firstChild);
         }
 
-        // Add styles for the summary card
-        const style = document.createElement('style');
-        style.textContent = `
-            .reviews-summary {
-                margin-bottom: 1.5rem;
+        // Add function to delete review
+        async function deleteReview(reviewId) {
+            if (!confirm('Are you sure you want to delete this review?')) {
+                return;
             }
-            .summary-card {
-                background: #f8f9fa;
-                padding: 1rem;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+            try {
+                await makeApiRequest(`/api/reviews/${reviewId}`, {
+                    method: 'DELETE'
+                });
+
+                // Reload reviews after deletion
+                loadReviews();
+            } catch (error) {
+                console.error('Error deleting review:', error);
+                alert('Failed to delete review. Please try again.');
             }
-            .summary-card h3 {
-                margin: 0 0 0.5rem 0;
-                color: #333;
-            }
-            .summary-card p {
-                margin: 0.25rem 0;
-                color: #666;
-            }
-        `;
-        document.head.appendChild(style);
+        }
 
         // Add event listeners for filters
         document.getElementById('toiletFilter').addEventListener('change', displayReviews);
         document.getElementById('ratingFilter').addEventListener('change', displayReviews);
 
-        scanToiletBtn.addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                scannerVideo.srcObject = stream;
-                scanToiletForm.style.display = 'block';
-                adminDashboard.style.display = 'none';
-                qrCodesSection.style.display = 'none';
-                reviewsSection.style.display = 'none';
-                addToiletForm.style.display = 'none';
-
-                codeReader = new ZXing.BrowserQRCodeReader();
-                codeReader.getVideoInputDevices()
-                    .then((videoInputDevices) => {
-                        if (videoInputDevices.length > 0) {
-                            codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'scanner-video', (result, err) => {
-                                if (result) {
-                                    try {
-                                        const toiletData = JSON.parse(result.text);
-                                        document.getElementById('scannedName').value = toiletData.name || '';
-                                        document.getElementById('scannedLocation').value = toiletData.location || '';
-                                        document.getElementById('scannedLatitude').value = toiletData.latitude || '';
-                                        document.getElementById('scannedLongitude').value = toiletData.longitude || '';
-                                        scannedData.style.display = 'block';
-                                        codeReader.reset();
-                                    } catch (error) {
-                                        console.error('Invalid QR code data:', error);
-                                        alert('Invalid QR code format');
-                                    }
-                                }
-                                if (err && !(err instanceof ZXing.NotFoundException)) {
-                                    console.error(err);
-                                }
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error accessing camera:', err);
-                        alert('Error accessing camera. Please make sure you have granted camera permissions.');
-                    });
-            } catch (error) {
-                console.error('Error starting scanner:', error);
-                alert('Error starting scanner. Please make sure you have granted camera permissions.');
+        // Add styles for the review section
+        const reviewStyles = `
+            .review-card {
+                background: white;
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
-        });
 
-        unknownToiletForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const token = localStorage.getItem('adminToken');
-            if (!token) {
-                alert('Please log in to add a toilet');
+            .review-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid #eee;
+            }
+
+            .review-toilet-name {
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: #333;
+            }
+
+            .review-toilet-name small {
+                font-size: 0.9rem;
+                color: #666;
+                font-weight: normal;
+            }
+
+            .review-rating {
+                color: #ffc107;
+                font-size: 1.1rem;
+            }
+
+            .review-details {
+                margin: 1rem 0;
+            }
+
+            .rating-breakdown {
+                display: grid;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .rating-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem;
+                background: #f8f9fa;
+                border-radius: 4px;
+            }
+
+            .rating-stars {
+                color: #ffc107;
+            }
+
+            .review-comment {
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #f8f9fa;
+                border-radius: 4px;
+            }
+
+            .review-comment p {
+                margin: 0.5rem 0 0 0;
+                color: #666;
+            }
+
+            .review-meta {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid #eee;
+                color: #666;
+                font-size: 0.9rem;
+            }
+
+            .delete-btn {
+                background: #dc3545;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .delete-btn:hover {
+                background: #c82333;
+            }
+
+            .no-reviews {
+                text-align: center;
+                padding: 2rem;
+                color: #666;
+                background: #f8f9fa;
+                border-radius: 8px;
+            }
+        `;
+
+        // Add styles to document
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = reviewStyles;
+        document.head.appendChild(styleSheet);
+
+        // Update QR Scanner initialization
+        function initializeQRScanner() {
+            const scannerContainer = document.getElementById('scanner-container');
+            const scannerVideo = document.getElementById('scanner-video');
+            
+            if (!scannerContainer || !scannerVideo) {
+                console.error('Scanner elements not found');
                 return;
             }
 
-            const toiletData = {
-                name: document.getElementById('scannedName').value.trim(),
-                location: document.getElementById('scannedLocation').value.trim(),
-                coordinates: {
-                    latitude: parseFloat(document.getElementById('scannedLatitude').value),
-                    longitude: parseFloat(document.getElementById('scannedLongitude').value)
-                },
-                facilities: []
-            };
+            // Clean up any existing scanner
+            cleanupScanner();
 
-            try {
-                const data = await makeApiRequest('/api/toilet/add', {
-                    method: 'POST',
-                    body: JSON.stringify(toiletData)
+            // Initialize new scanner
+            codeReader = new ZXing.BrowserQRCodeReader();
+            
+            // Get available video devices
+            codeReader.getVideoInputDevices()
+                .then((videoInputDevices) => {
+                    if (videoInputDevices.length === 0) {
+                        throw new Error('No camera devices found');
+                    }
+
+                    // Use the first available camera (usually the back camera on mobile)
+                    const selectedDeviceId = videoInputDevices[0].deviceId;
+                    
+                    // Start scanning
+                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'scanner-video', (result, err) => {
+                        if (result) {
+                            try {
+                                const toiletData = JSON.parse(result.text);
+                                if (toiletData && toiletData.toiletId) {
+                                    document.getElementById('scannedName').value = toiletData.name || '';
+                                    document.getElementById('scannedLocation').value = toiletData.location || '';
+                                    document.getElementById('scannedData').style.display = 'block';
+                                    codeReader.reset();
+                                } else {
+                                    throw new Error('Invalid QR code format');
+                                }
+                            } catch (error) {
+                                console.error('Error parsing QR code data:', error);
+                                alert('Invalid QR code format. Please scan a valid toilet QR code.');
+                            }
+                        }
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            console.error('Scanning error:', err);
+                        }
+                    });
+                })
+                .catch((err) => {
+                    console.error('Error accessing camera:', err);
+                    alert('Error accessing camera. Please make sure you have granted camera permissions.');
                 });
+        }
 
-                if (data.success) {
-                    alert('Toilet added successfully!');
-                    unknownToiletForm.reset();
-                    scannedData.style.display = 'none';
-                    loadToilets();
-                } else {
-                    throw new Error(data.message || 'Failed to add toilet');
-                }
-            } catch (error) {
-                console.error('Error adding toilet:', error);
-                alert('Failed to add toilet. Please try again.');
-            }
-        });
-
-        // Add cleanup when switching away from scanner
+        // Update cleanup function
         function cleanupScanner() {
             if (codeReader) {
                 codeReader.reset();
                 codeReader = null;
             }
-            if (scannerVideo.srcObject) {
+            const scannerVideo = document.getElementById('scanner-video');
+            if (scannerVideo && scannerVideo.srcObject) {
                 scannerVideo.srcObject.getTracks().forEach(track => track.stop());
                 scannerVideo.srcObject = null;
             }

@@ -9,12 +9,24 @@ router.post('/submit', async (req, res) => {
     try {
         const { toiletId, rating, cleanliness, maintenance, accessibility, comment } = req.body;
 
+        // Validate required fields
+        if (!toiletId || !rating || !cleanliness || !maintenance || !accessibility) {
+            return res.status(400).json({ message: 'All rating fields are required' });
+        }
+
+        // Validate rating values
+        const ratings = [rating, cleanliness, maintenance, accessibility];
+        if (ratings.some(r => r < 1 || r > 5)) {
+            return res.status(400).json({ message: 'Ratings must be between 1 and 5' });
+        }
+
         // Check if toilet exists
         const toilet = await Toilet.findById(toiletId);
         if (!toilet) {
             return res.status(404).json({ message: 'Toilet not found' });
         }
 
+        // Create new review
         const review = new Review({
             toiletId,
             rating,
@@ -29,18 +41,29 @@ router.post('/submit', async (req, res) => {
         // Update toilet's average rating and total reviews
         const reviews = await Review.find({ toiletId });
         const totalReviews = reviews.length;
+        
+        // Calculate average rating considering all rating aspects
         const averageRating = reviews.reduce((acc, review) => {
             return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
         }, 0) / totalReviews;
 
-        toilet.averageRating = averageRating.toFixed(1);
-        toilet.totalReviews = totalReviews;
-        await toilet.save();
+        // Update toilet with new ratings
+        await Toilet.findByIdAndUpdate(toiletId, {
+            averageRating: averageRating.toFixed(1),
+            totalReviews
+        });
 
-        res.status(201).json({ success: true, review });
+        res.status(201).json({ 
+            success: true, 
+            review,
+            message: 'Review submitted successfully'
+        });
     } catch (err) {
         console.error('Error submitting review:', err);
-        res.status(500).json({ message: 'Error submitting review' });
+        res.status(500).json({ 
+            message: 'Error submitting review',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 });
 

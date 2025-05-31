@@ -398,6 +398,152 @@
         .map-container {
             height: 400px;
         }
+
+        .rating-input {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .rating-input input[type="radio"] {
+            display: none;
+        }
+        
+        .rating-input label {
+            cursor: pointer;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .rating-input input[type="radio"]:checked + label {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        
+        .rating-input label:hover {
+            background: #f8f9fa;
+        }
+        
+        #reviewFormSection {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #successMessage {
+            text-align: center;
+            padding: 2rem;
+            background: #d4edda;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+        
+        #successMessage h3 {
+            color: #155724;
+            margin-bottom: 1rem;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall 5s linear forwards;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .toilet-info-panel {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .toilet-details {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .info-group {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .info-group h3 {
+            color: #333;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+        }
+
+        .info-group h4 {
+            color: #666;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .rating-summary {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .rating-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .rating-stars {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .facilities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .facility-tag {
+            background: #e9ecef;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -422,6 +568,110 @@
                 <h2>Scan QR Code</h2>
                 <div id="qr-reader"></div>
                 <div id="qr-reader-results"></div>
+                
+                <!-- Add Toilet Info Panel -->
+                <div id="toiletInfoPanel" style="display: none;" class="toilet-info-panel">
+                    <h2>Toilet Information</h2>
+                    <div class="toilet-details">
+                        <div class="info-group">
+                            <h3 id="toiletName"></h3>
+                            <p id="toiletLocation"></p>
+                        </div>
+                        <div class="info-group">
+                            <h4>Current Ratings</h4>
+                            <div class="rating-summary">
+                                <div class="rating-item">
+                                    <span>Overall Rating:</span>
+                                    <span id="overallRating" class="rating-stars"></span>
+                                </div>
+                                <div class="rating-item">
+                                    <span>Total Reviews:</span>
+                                    <span id="totalReviews"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-group">
+                            <h4>Facilities</h4>
+                            <div id="facilitiesList" class="facilities-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reviewFormSection" style="display: none;">
+                    <h2>Submit Your Review</h2>
+                    <form id="reviewForm">
+                        <div class="form-group">
+                            <label>Overall Rating:</label>
+                            <div class="rating-input">
+                                <input type="radio" name="rating" value="5" id="rating5" required>
+                                <label for="rating5">5 ⭐</label>
+                                <input type="radio" name="rating" value="4" id="rating4">
+                                <label for="rating4">4 ⭐</label>
+                                <input type="radio" name="rating" value="3" id="rating3">
+                                <label for="rating3">3 ⭐</label>
+                                <input type="radio" name="rating" value="2" id="rating2">
+                                <label for="rating2">2 ⭐</label>
+                                <input type="radio" name="rating" value="1" id="rating1">
+                                <label for="rating1">1 ⭐</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Cleanliness:</label>
+                            <div class="rating-input">
+                                <input type="radio" name="cleanliness" value="5" id="clean5" required>
+                                <label for="clean5">5 ⭐</label>
+                                <input type="radio" name="cleanliness" value="4" id="clean4">
+                                <label for="clean4">4 ⭐</label>
+                                <input type="radio" name="cleanliness" value="3" id="clean3">
+                                <label for="clean3">3 ⭐</label>
+                                <input type="radio" name="cleanliness" value="2" id="clean2">
+                                <label for="clean2">2 ⭐</label>
+                                <input type="radio" name="cleanliness" value="1" id="clean1">
+                                <label for="clean1">1 ⭐</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Maintenance:</label>
+                            <div class="rating-input">
+                                <input type="radio" name="maintenance" value="5" id="main5" required>
+                                <label for="main5">5 ⭐</label>
+                                <input type="radio" name="maintenance" value="4" id="main4">
+                                <label for="main4">4 ⭐</label>
+                                <input type="radio" name="maintenance" value="3" id="main3">
+                                <label for="main3">3 ⭐</label>
+                                <input type="radio" name="maintenance" value="2" id="main2">
+                                <label for="main2">2 ⭐</label>
+                                <input type="radio" name="maintenance" value="1" id="main1">
+                                <label for="main1">1 ⭐</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Accessibility:</label>
+                            <div class="rating-input">
+                                <input type="radio" name="accessibility" value="5" id="acc5" required>
+                                <label for="acc5">5 ⭐</label>
+                                <input type="radio" name="accessibility" value="4" id="acc4">
+                                <label for="acc4">4 ⭐</label>
+                                <input type="radio" name="accessibility" value="3" id="acc3">
+                                <label for="acc3">3 ⭐</label>
+                                <input type="radio" name="accessibility" value="2" id="acc2">
+                                <label for="acc2">2 ⭐</label>
+                                <input type="radio" name="accessibility" value="1" id="acc1">
+                                <label for="acc1">1 ⭐</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="comments">Comments:</label>
+                            <textarea id="comments" rows="4" placeholder="Share your experience..."></textarea>
+                        </div>
+                        <button type="submit" class="btn">Submit Review</button>
+                    </form>
+                </div>
+                <div id="successMessage" style="display: none;">
+                    <h3>Thank you for your review!</h3>
+                    <p>Your feedback helps improve public facilities.</p>
+                    <button id="scanNewQR" class="btn">Scan Another QR Code</button>
+                </div>
                 <div class="instructions">
                     <h2>How to use:</h2>
                     <ol>
@@ -700,29 +950,114 @@
             mapError.style.display = 'block';
         });
 
-        // QR Scanner initialization
-        function onScanSuccess(decodedText, decodedResult) {
-            html5QrcodeScanner.clear();
-            let id = decodedText;
-            try {
-                const parsed = JSON.parse(decodedText);
-                id = parsed.toiletId || id;
-            } catch (e) {}
-            window.location.href = `/review.html?id=${id}`;
-        }
-
-        function onScanFailure(error) {
-            // Handle scan failure, usually better to ignore it.
-            console.warn(`QR scan error = ${error}`);
-        }
+        let html5QrcodeScanner = null;
+        let isProcessingScan = false;
 
         // Initialize QR Scanner
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader",
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            /* verbose= */ false
-        );
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        function initializeQRScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+            }
+
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader",
+                { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                },
+                false
+            );
+
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        // Handle successful QR scan
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isProcessingScan) {
+                return; // Prevent multiple processing
+            }
+
+            isProcessingScan = true;
+            console.log('QR Code scanned:', decodedText);
+
+            try {
+                // Stop the scanner
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+
+                // Hide scanner
+                document.getElementById('qr-reader').style.display = 'none';
+
+                // Parse QR code data
+                let toiletId;
+                try {
+                    const parsedData = JSON.parse(decodedText);
+                    toiletId = parsedData.toiletId;
+                } catch (e) {
+                    toiletId = decodedText.trim();
+                }
+
+                if (!toiletId) {
+                    throw new Error('Invalid QR code format');
+                }
+
+                // Load toilet information
+                loadToiletInfo(toiletId);
+
+            } catch (error) {
+                console.error('Error processing QR code:', error);
+                alert('Invalid QR code. Please scan a valid toilet QR code.');
+                resetScanner();
+            } finally {
+                isProcessingScan = false;
+            }
+        }
+
+        // Handle scan failure
+        function onScanFailure(error) {
+            // Only log errors that aren't "No QR code found"
+            if (error && !error.includes('No QR code found')) {
+                console.warn(`QR scan error: ${error}`);
+            }
+        }
+
+        // Reset scanner function
+        function resetScanner() {
+            // Reset processing flag
+            isProcessingScan = false;
+
+            // Clear existing scanner
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+
+            // Reset UI elements
+            document.getElementById('toiletInfoPanel').style.display = 'none';
+            document.getElementById('reviewFormSection').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('qr-reader').style.display = 'block';
+            
+            // Reset form
+            document.getElementById('reviewForm').reset();
+            
+            // Reset current toilet ID
+            currentToiletId = null;
+
+            // Initialize new scanner
+            initializeQRScanner();
+        }
+
+        // Update the scanNewQRButton click handler
+        document.getElementById('scanNewQR').addEventListener('click', resetScanner);
+
+        // Initialize scanner when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeQRScanner();
+        });
 
         // Update map stats
         function updateMapStats(toilets) {
@@ -741,6 +1076,190 @@
                 <p>Average Rating: ${avgRating.toFixed(1)} ⭐</p>
                 <p>High Rated (4+): ${highRated}</p>
             `;
+        }
+
+        let currentToiletId = null;
+        const reviewForm = document.getElementById('reviewForm');
+        const reviewFormSection = document.getElementById('reviewFormSection');
+        const successMessage = document.getElementById('successMessage');
+        const scanNewQRButton = document.getElementById('scanNewQR');
+
+        // Handle review form submission
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentToiletId) {
+                alert('No toilet selected. Please scan a QR code first.');
+                return;
+            }
+
+            const submitButton = reviewForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+
+            try {
+                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3000'
+                    : window.location.origin;
+
+                const reviewData = {
+                    toiletId: currentToiletId,
+                    rating: parseInt(document.querySelector('input[name="rating"]:checked').value),
+                    cleanliness: parseInt(document.querySelector('input[name="cleanliness"]:checked').value),
+                    maintenance: parseInt(document.querySelector('input[name="maintenance"]:checked').value),
+                    accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
+                    comment: document.getElementById('comments').value.trim()
+                };
+
+                console.log('Submitting review to:', `${API_URL}/api/reviews/submit`);
+                console.log('Review data:', reviewData);
+
+                const response = await fetch(`${API_URL}/api/reviews/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(reviewData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to submit review');
+                }
+
+                // Show success message
+                reviewFormSection.style.display = 'none';
+                successMessage.style.display = 'block';
+                createConfetti();
+
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                alert(error.message || 'Failed to submit review. Please try again.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Review';
+            }
+        });
+
+        function createConfetti() {
+            const colors = ['#ff69b4', '#ffd700', '#00ff00', '#ff0000', '#0000ff'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        async function loadToiletInfo(toiletId) {
+            const toiletInfoPanel = document.getElementById('toiletInfoPanel');
+            const reviewFormSection = document.getElementById('reviewFormSection');
+            
+            // Show loading state
+            toiletInfoPanel.style.display = 'block';
+            toiletInfoPanel.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading toilet information...</p>
+                </div>
+            `;
+
+            try {
+                // Update API URL to match backend route
+                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3000'
+                    : window.location.origin;
+
+                console.log('Fetching toilet info from:', `${API_URL}/api/toilet/${toiletId}`);
+                
+                const response = await fetch(`${API_URL}/api/toilet/${toiletId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+
+                const toilet = await response.json();
+                console.log('Received toilet data:', toilet);
+
+                if (!toilet) {
+                    throw new Error('No toilet data received');
+                }
+
+                // Update toilet information panel
+                toiletInfoPanel.innerHTML = `
+                    <div class="toilet-details">
+                        <div class="info-group">
+                            <h3>${toilet.name || 'Unknown Toilet'}</h3>
+                            <p>${toilet.location || 'Location not specified'}</p>
+                            ${toilet.description ? `<p>${toilet.description}</p>` : ''}
+                        </div>
+                        <div class="info-group">
+                            <h4>Current Ratings</h4>
+                            <div class="rating-summary">
+                                <div class="rating-item">
+                                    <span>Overall Rating:</span>
+                                    <span class="rating-stars">${getStarRating(toilet.averageRating)}</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span>Total Reviews:</span>
+                                    <span>${toilet.totalReviews || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-group">
+                            <h4>Facilities</h4>
+                            <div class="facilities-list">
+                                ${toilet.facilities && toilet.facilities.length > 0 
+                                    ? toilet.facilities.map(facility => `
+                                        <span class="facility-tag">
+                                            ${facility.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        </span>
+                                    `).join('')
+                                    : '<p>No facilities listed</p>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Show review form
+                reviewFormSection.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading toilet info:', error);
+                toiletInfoPanel.innerHTML = `
+                    <div style="color: #dc3545; text-align: center; padding: 2rem;">
+                        <h3>Error Loading Toilet Information</h3>
+                        <p>${error.message}</p>
+                        <p>Please make sure:</p>
+                        <ul style="text-align: left; margin: 1rem 0;">
+                            <li>The backend server is running</li>
+                            <li>You have a stable internet connection</li>
+                            <li>The toilet ID is valid</li>
+                        </ul>
+                        <button onclick="resetScanner()" class="btn">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        function getStarRating(rating) {
+            if (!rating) return 'No ratings yet';
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 >= 0.5;
+            let stars = '★'.repeat(fullStars);
+            if (halfStar) stars += '½';
+            stars += '☆'.repeat(5 - Math.ceil(rating));
+            return stars;
         }
     </script>
 </body>
