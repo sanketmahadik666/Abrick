@@ -39,5 +39,15 @@ exports.admin = async (req, res, next) => {
     //     res.status(500).json({ message: 'Server error in admin middleware' });
     // }
 
+    if(req.User && req.User.role === 'admin'){
+        next() ;
+    }
+    else{
+        res.status(403).json({
+            message : 'user might have under the admin preveleges'
+        })
+    }
+
+
     next() ;
 }; 
