@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -32,14 +31,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/toilet-review')
-    .then(() => {
-        console.log('Connected to MongoDB');
-    })
-    .catch((err) => {
-        console.error('MongoDB connection error:', err);
-    });
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

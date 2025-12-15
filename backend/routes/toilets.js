@@ -6,9 +6,17 @@ const { protect, admin } = require('../middleware/auth');
 // Get all toilets (public)
 router.get('/map', async (req, res) => {
     try {
-        const toilets = await Toilet.find()
-            .select('name location description coordinates facilities averageRating totalReviews');
-        res.json(toilets);
+        const toilets = await Toilet.find();
+        res.json(toilets.map(t => ({
+            id: t.id,
+            name: t.name,
+            location: t.location,
+            description: t.description,
+            coordinates: t.coordinates,
+            facilities: t.facilities,
+            averageRating: t.averageRating,
+            totalReviews: t.totalReviews
+        })));
     } catch (err) {
         console.error('Error fetching toilets:', err);
         res.status(500).json({ message: 'Error fetching toilets' });
@@ -22,7 +30,7 @@ router.get('/:id', async (req, res) => {
         if (!toilet) {
             return res.status(404).json({ message: 'Toilet not found' });
         }
-        res.json(toilet);
+        res.json(toilet.toObject());
     } catch (err) {
         console.error('Error fetching toilet:', err);
         res.status(500).json({ message: 'Error fetching toilet details' });
@@ -43,7 +51,7 @@ router.post('/add', protect, admin, async (req, res) => {
         });
 
         await toilet.save();
-        res.status(201).json({ success: true, toilet });
+        res.status(201).json({ success: true, toilet: toilet.toObject() });
     } catch (err) {
         console.error('Error adding toilet:', err);
         res.status(500).json({ message: 'Error adding toilet' });
@@ -67,7 +75,7 @@ router.put('/:id', protect, admin, async (req, res) => {
         toilet.facilities = facilities || toilet.facilities;
 
         await toilet.save();
-        res.json({ success: true, toilet });
+        res.json({ success: true, toilet: toilet.toObject() });
     } catch (err) {
         console.error('Error updating toilet:', err);
         res.status(500).json({ message: 'Error updating toilet' });

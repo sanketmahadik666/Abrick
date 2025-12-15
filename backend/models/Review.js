@@ -1,85 +1,80 @@
-const mongoose = require('mongoose');
+const { reviews } = require('./storage');
 
-const reviewSchema = new mongoose.Schema({
-    toiletId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Toilet',
-        required: true
-    },
-    rating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    cleanliness: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    maintenance: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    accessibility: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5
-    },
-    comment: {
-        type: String,
-        trim: true
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-// Update toilet average rating after saving a review
-reviewSchema.post('save', async function() {
-    const Toilet = mongoose.model('Toilet');
-    
-    const reviews = await this.constructor.find({ toiletId: this.toiletId });
-    const totalReviews = reviews.length;
-    
-    const averageRating = reviews.reduce((acc, review) => {
-        return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
-    }, 0) / totalReviews;
-
-    await Toilet.findByIdAndUpdate(this.toiletId, {
-        averageRating: averageRating.toFixed(1),
-        totalReviews
-    });
-});
-
-// Update toilet average rating after deleting a review
-reviewSchema.post('remove', async function() {
-    const Toilet = mongoose.model('Toilet');
-    
-    const reviews = await this.constructor.find({ toiletId: this.toiletId });
-    const totalReviews = reviews.length;
-    
-    if (totalReviews === 0) {
-        await Toilet.findByIdAndUpdate(this.toiletId, {
-            averageRating: 0,
-            totalReviews: 0
-        });
-        return;
+class Review {
+    constructor(data) {
+        this.id = data.id || Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        this.toiletId = data.toiletId;
+        this.rating = data.rating;
+        this.cleanliness = data.cleanliness;
+        this.maintenance = data.maintenance;
+        this.accessibility = data.accessibility;
+        this.comment = data.comment ? data.comment.trim() : '';
+        this.createdAt = data.createdAt || new Date();
     }
 
-    const averageRating = reviews.reduce((acc, review) => {
-        return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
-    }, 0) / totalReviews;
+    async save() {
+        const index = reviews.findIndex(r => r.id === this.id);
+        if (index > -1) {
+            reviews[index] = this;
+        } else {
+            reviews.push(this);
+        }
+        return this;
+    }
 
-    await Toilet.findByIdAndUpdate(this.toiletId, {
-        averageRating: averageRating.toFixed(1),
-        totalReviews
-    });
-});
+    async remove() {
+        const index = reviews.findIndex(r => r.id === this.id);
+        if (index > -1) {
+            reviews.splice(index, 1);
+        }
+    }
 
-module.exports = mongoose.model('Review', reviewSchema); 
+    toObject() {
+        return {
+            id: this.id,
+            toiletId: this.toiletId,
+            rating: this.rating,
+            cleanliness: this.cleanliness,
+            maintenance: this.maintenance,
+            accessibility: this.accessibility,
+            comment: this.comment,
+            createdAt: this.createdAt
+        };
+    }
+
+    static async find(query = {}) {
+        return reviews.filter(r => {
+            for (let key in query) {
+                if (r[key] !== query[key]) return false;
+            }
+            return true;
+        }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    static async findById(id) {
+        return reviews.find(r => r.id === id);
+    }
+
+    static async countDocuments() {
+        return reviews.length;
+    }
+
+    static async aggregate(pipeline) {
+        // Simple aggregation for average ratings
+        if (pipeline[0].$group) {
+            const group = pipeline[0].$group;
+            if (group._id === null) {
+                const result = {
+                    avgRating: reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length || 0,
+                    avgCleanliness: reviews.reduce((sum, r) => sum + r.cleanliness, 0) / reviews.length || 0,
+                    avgMaintenance: reviews.reduce((sum, r) => sum + r.maintenance, 0) / reviews.length || 0,
+                    avgAccessibility: reviews.reduce((sum, r) => sum + r.accessibility, 0) / reviews.length || 0
+                };
+                return [result];
+            }
+        }
+        return [];
+    }
+}
+
+module.exports = Review; 

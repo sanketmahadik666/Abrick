@@ -33,11 +33,11 @@ router.post('/submit', async (req, res) => {
             return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
         }, 0) / totalReviews;
 
-        toilet.averageRating = averageRating.toFixed(1);
+        toilet.averageRating = parseFloat(averageRating.toFixed(1));
         toilet.totalReviews = totalReviews;
         await toilet.save();
 
-        res.status(201).json({ success: true, review });
+        res.status(201).json({ success: true, review: review.toObject() });
     } catch (err) {
         console.error('Error submitting review:', err);
         res.status(500).json({ message: 'Error submitting review' });
@@ -47,9 +47,8 @@ router.post('/submit', async (req, res) => {
 // Get all reviews for a toilet (public)
 router.get('/toilet/:toiletId', async (req, res) => {
     try {
-        const reviews = await Review.find({ toiletId: req.params.toiletId })
-            .sort({ createdAt: -1 });
-        res.json(reviews);
+        const reviews = await Review.find({ toiletId: req.params.toiletId });
+        res.json(reviews.map(r => r.toObject()));
     } catch (err) {
         console.error('Error fetching reviews:', err);
         res.status(500).json({ message: 'Error fetching reviews' });
@@ -59,10 +58,9 @@ router.get('/toilet/:toiletId', async (req, res) => {
 // Get all reviews (admin only)
 router.get('/all', protect, admin, async (req, res) => {
     try {
-        const reviews = await Review.find()
-            .populate('toiletId', 'name location')
-            .sort({ createdAt: -1 });
-        res.json(reviews);
+        const reviews = await Review.find();
+        // For simplicity, return reviews without populate
+        res.json(reviews.map(r => r.toObject()));
     } catch (err) {
         console.error('Error fetching all reviews:', err);
         res.status(500).json({ message: 'Error fetching reviews' });
@@ -77,10 +75,10 @@ router.delete('/:id', protect, admin, async (req, res) => {
             return res.status(404).json({ message: 'Review not found' });
         }
 
+        const toiletId = review.toiletId;
         await review.remove();
 
         // Update toilet's average rating and total reviews
-        const toiletId = review.toiletId;
         const reviews = await Review.find({ toiletId });
         const totalReviews = reviews.length;
 
@@ -95,7 +93,7 @@ router.delete('/:id', protect, admin, async (req, res) => {
             }, 0) / totalReviews;
 
             await Toilet.findByIdAndUpdate(toiletId, {
-                averageRating: averageRating.toFixed(1),
+                averageRating: parseFloat(averageRating.toFixed(1)),
                 totalReviews
             });
         }

@@ -26,7 +26,7 @@ router.post('/register', async (req, res) => {
 
         // Create token
         const token = jwt.sign(
-            { id: user._id },
+            { id: user.id },
             process.env.JWT_SECRET,
             { expiresIn: '30d' }
         );
@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
         res.status(201).json({
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 role: user.role
             }
@@ -64,7 +64,7 @@ router.post('/login', async (req, res) => {
 
         // Create token
         const token = jwt.sign(
-            { id: user._id },
+            { id: user.id },
             process.env.JWT_SECRET,
             { expiresIn: '30d' }
         );
@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
         res.json({
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 role: user.role
             }
@@ -86,8 +86,11 @@ router.post('/login', async (req, res) => {
 // Get current user
 router.get('/me', protect, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user.toObject());
     } catch (err) {
         console.error('Get user error:', err);
         res.status(500).json({ message: 'Error getting user data' });
