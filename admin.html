@@ -668,13 +668,10 @@
         let map;
         let marker;
         let codeReader = null;
-<<<<<<< HEAD
-=======
         const scanToiletForm = document.getElementById('scanToiletForm');
         const scannerVideo = document.getElementById('scanner-video');
         const scannedData = document.getElementById('scanned-data');
         const unknownToiletForm = document.getElementById('unknownToiletForm');
->>>>>>> master
 
         // Use shared utilities directly to avoid any conflicts
 
@@ -775,12 +772,8 @@
         // Registration form submission
         document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-<<<<<<< HEAD
-            const email = document.getElementById('registerEmail').value.trim();
-=======
             const submitBtn = e.target.querySelector('button[type="submit"]');
-            const email = document.getElementById('registerEmail').value;
->>>>>>> master
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             const registerError = document.getElementById('registerError');
 
@@ -804,16 +797,10 @@
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-<<<<<<< HEAD
                 registerError.textContent = error.message || 'Registration failed. Please try again.';
-                registerError.style.display = 'block';
-=======
-                const registerError = document.getElementById('registerError');
-                registerError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
                 registerError.style.display = 'block';
             } finally {
                 ToiletReviewUtils.setButtonLoading(submitBtn, false);
->>>>>>> master
             }
         });
 
@@ -1121,12 +1108,6 @@
                 Logger.info('REVIEW', 'Loading all reviews and toilets...');
                 
                 const [reviews, toilets] = await Promise.all([
-<<<<<<< HEAD
-                    makeApiRequest('/api/reviews/all'),
-                    makeApiRequest('/api/toilet/map')
-                ]);
-
-=======
                     makeApiRequest('/api/review/all'),
                     makeApiRequest('/api/toilet/map')
                 ]);
@@ -1138,8 +1119,6 @@
                     Logger.error('REVIEW', 'Invalid reviews data received', { reviews });
                     throw new Error('Invalid reviews data received');
                 }
-
->>>>>>> master
                 allReviews = reviews;
                 allToilets = toilets;
 
@@ -1158,15 +1137,6 @@
             } catch (error) {
                 Logger.error('REVIEW', 'Error loading reviews', { message: error.message });
                 console.error('Error loading reviews:', error);
-<<<<<<< HEAD
-                reviewList.innerHTML = `
-                    <div class="error-message">
-                        Error loading reviews: ${error.message}
-                        <br><br>
-                        <button class="btn" onclick="loadReviews()">Try Again</button>
-                    </div>
-                `;
-=======
                 
                 if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Unauthorized')) {
                     reviewList.innerHTML = `
@@ -1185,7 +1155,6 @@
                         </div>
                     `;
                 }
->>>>>>> master
             }
         }
 
