@@ -1,0 +1,85 @@
+name: Deployment Check
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_run:
+    workflows: [ "CI/CD Pipeline" ]
+    types: [ completed ]
+    branches: [ master, main ]
+
+jobs:
+  deploy-check:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Verify deployment readiness
+        run: |
+          echo "═══════════════════════════════════════════════════════"
+          echo "          DEPLOYMENT READINESS CHECK"
+          echo "═══════════════════════════════════════════════════════"
+          echo ""
+          
+          # Check if we're on master/main branch
+          BRANCH="${GITHUB_REF##*/}"
+          echo "Branch: $BRANCH"
+          
+          if [ "$BRANCH" = "master" ] || [ "$BRANCH" = "main" ]; then
+            echo "✓ On production branch"
+          else
+            echo "⚠ Not on production branch"
+          fi
+          
+          echo ""
+          echo "Checking required files..."
+          
+          required_files=(
+            "backend/server.js"
+            "backend/package.json"
+            "backend/.env"
+            "admin.html"
+            "index.html"
+            "README.md"
+          )
+          
+          missing_files=0
+          for file in "${required_files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "  ✓ $file"
+            else
+              echo "  ✗ Missing: $file"
+              ((missing_files++))
+            fi
+          done
+          
+          echo ""
+          if [ $missing_files -eq 0 ]; then
+            echo "✓ All required files present"
+            echo "✓ Ready for deployment"
+          else
+            echo "✗ Some required files are missing"
+            echo "⚠ Cannot proceed with deployment"
+            exit 1
+          fi
+
+  notify-deployment:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: deploy-check
+    
+    steps:
+      - name: Notify deployment
+        run: |
+          echo "✓ Deployment checks passed"
+          echo ""
+          echo "Next Steps:"
+          echo "1. Pull latest code on server"
+          echo "2. Install dependencies: cd backend && npm install"
+          echo "3. Start server: npm start"
+          echo "4. Verify: curl http://localhost:3000/api/toilet/map"
+          echo ""
+          echo "To deploy automatically, configure CD workflow"
