@@ -49,7 +49,7 @@ adminDashboardLink.addEventListener('click', (e) => {
 // Admin Authentication
 adminLoginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
     try {
@@ -58,7 +58,7 @@ adminLoginForm.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
@@ -366,14 +366,14 @@ reviewForm.addEventListener('submit', async (e) => {
 adminLoginSection.innerHTML = `
     <h2>Admin Login</h2>
     <form id="adminLoginForm">
-        <input type="text" id="username" placeholder="Username" required>
+        <input type="email" id="email" placeholder="Email" required>
         <input type="password" id="password" placeholder="Password" required>
         <button type="submit">Login</button>
     </form>
     <div class="register-section">
         <h3>New Admin? Register here</h3>
         <form id="adminRegisterForm">
-            <input type="text" id="registerUsername" placeholder="Username" required>
+            <input type="email" id="registerEmail" placeholder="Email" required>
             <input type="password" id="registerPassword" placeholder="Password" required>
             <button type="submit">Register</button>
         </form>
@@ -383,7 +383,7 @@ adminLoginSection.innerHTML = `
 // Handle admin registration
 document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('registerUsername').value;
+    const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
 
     try {
@@ -392,7 +392,7 @@ document.getElementById('adminRegisterForm').addEventListener('submit', async (e
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
