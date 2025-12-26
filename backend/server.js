@@ -8,8 +8,13 @@ const authRoutes = require('./routes/auth');
 const toiletRoutes = require('./routes/toilets');
 const reviewRoutes = require('./routes/reviews');
 
+// Services
+const SLOService = require('./services/SLOService');
+const sloServiceInstance = SLOService; // This is the singleton instance
+const { middleware } = SLOService;
+
 // Models for sample data
-const { toilets } = require('./models/storage');
+const storage = require('./models/storage');
 const Toilet = require('./models/Toilet');
 
 // Load environment variables
@@ -20,24 +25,26 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-//app.use(express.urlencoded({ extended: true }));
+
+// SLO Monitoring Middleware
+app.use(middleware);
 
 // Request logging middleware
 app.use((req, res, next) => {
     const startTime = Date.now();
     console.log(`[REQUEST] ${req.method} ${req.path} - IP: ${req.ip}`);
-    
+
     if (req.method !== 'GET' && Object.keys(req.body).length > 0) {
         console.log(`[REQUEST] Body:`, JSON.stringify(req.body, null, 2));
     }
-    
+
     const originalJson = res.json;
     res.json = function(data) {
         const duration = Date.now() - startTime;
         console.log(`[RESPONSE] ${req.method} ${req.path} - Status: ${res.statusCode} - Duration: ${duration}ms`);
         return originalJson.call(this, data);
     };
-    
+
     next();
 });
 
@@ -47,84 +54,122 @@ app.use(express.static(path.join(__dirname, '../')));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', authRoutes);
-
 app.use('/api/toilet', toiletRoutes);
 app.use('/api/review', reviewRoutes);
-//app.use('/api/review/submit', reviewRoutes);
+
+// SLO Metrics Endpoint
+app.get('/api/slo/metrics', (req, res) => {
+    try {
+        const metrics = sloServiceInstance.exportMetrics();
+        res.json(metrics);
+    } catch (error) {
+        console.error('[SLO] Error getting metrics:', error.message);
+        res.status(500).json({ message: 'Error fetching SLO metrics' });
+    }
+});
 
 // Serve frontend for any other routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-// Initialize sample data if no toilets exist
-function initializeSampleData() {
-    console.log('[INIT] Checking if sample data needs to be initialized...');
+// Initialize system with dynamic data fetching capabilities and seed data
+async function initializeDynamicDataSystem() {
+    console.log('[INIT] Initializing dynamic Indian toilet data system...');
 
-    if (toilets.length === 0) {
-        console.log('[INIT] No toilets found, adding sample data...');
+    try {
+        // Check existing toilets
+        const existingToilets = storage.toilets.find();
+        console.log(`[INIT] Found ${existingToilets.length} existing toilets`);
 
-        const sampleToilets = [
-            {
-                name: 'Central Park Restroom',
-                location: 'Central Park, New York',
-                description: 'Modern facility with full amenities in the heart of Central Park',
-                coordinates: { latitude: 40.7829, longitude: -73.9654 },
-                facilities: ['handicap', 'baby_change', 'shower', 'paper_towel'],
-                averageRating: 4.2,
-                totalReviews: 15
-            },
-            {
-                name: 'Times Square Public Toilet',
-                location: 'Times Square, Manhattan',
-                description: 'Busy location with quick access facilities',
-                coordinates: { latitude: 40.7580, longitude: -73.9855 },
-                facilities: ['handicap', 'paper_towel', 'hand_dryer'],
-                averageRating: 3.8,
-                totalReviews: 23
-            },
-            {
-                name: 'Brooklyn Bridge Facility',
-                location: 'Brooklyn Bridge Park',
-                description: 'Scenic location with clean, well-maintained facilities',
-                coordinates: { latitude: 40.7017, longitude: -73.9950 },
-                facilities: ['handicap', 'baby_change', 'bidet', 'paper_towel'],
-                averageRating: 4.5,
-                totalReviews: 8
-            },
-            {
-                name: 'Grand Central Terminal',
-                location: 'Grand Central Terminal, Midtown',
-                description: 'High-traffic area with multiple facilities',
-                coordinates: { latitude: 40.7527, longitude: -73.9772 },
-                facilities: ['handicap', 'shower', 'bidet', 'paper_towel', 'hand_dryer'],
-                averageRating: 4.0,
-                totalReviews: 31
-            },
-            {
-                name: 'Battery Park Comfort Station',
-                location: 'Battery Park, Lower Manhattan',
-                description: 'Waterfront location with modern amenities',
-                coordinates: { latitude: 40.7033, longitude: -74.0170 },
-                facilities: ['handicap', 'baby_change', 'shower', 'bidet'],
-                averageRating: 3.5,
-                totalReviews: 12
+        if (existingToilets.length < 100) {
+            console.log('[INIT] Adding seed data for demonstration...');
+
+            // Add some initial seed data for demonstration
+            const seedToilets = [
+                {
+                    name: 'Central Park Restroom',
+                    location: 'Central Park, New York',
+                    coordinates: { latitude: 40.7829, longitude: -73.9654 },
+                    facilities: ['handicap', 'baby_change', 'shower', 'paper_towel'],
+                    type: 'private',
+                    verified: true
+                },
+                {
+                    name: 'Times Square Public Toilet',
+                    location: 'Times Square, Manhattan',
+                    coordinates: { latitude: 40.7580, longitude: -73.9855 },
+                    facilities: ['handicap', 'paper_towel', 'hand_dryer'],
+                    type: 'private',
+                    verified: true
+                },
+                {
+                    name: 'Mumbai Central Railway Station',
+                    location: 'Mumbai Central, Dadar, Mumbai',
+                    coordinates: { latitude: 18.9700, longitude: 72.8200 },
+                    facilities: ['unisex', 'handicap', 'fee_required'],
+                    type: 'public',
+                    source: 'railway_station',
+                    verified: true
+                },
+                {
+                    name: 'Chhatrapati Shivaji Terminus',
+                    location: 'CST, Fort, Mumbai',
+                    coordinates: { latitude: 18.9398, longitude: 72.8354 },
+                    facilities: ['unisex', 'handicap', 'baby_change'],
+                    type: 'public',
+                    source: 'railway_station',
+                    verified: true
+                },
+                {
+                    name: 'Phoenix Mall Public Toilets',
+                    location: 'Phoenix Mall, Lower Parel, Mumbai',
+                    coordinates: { latitude: 18.9944, longitude: 72.8259 },
+                    facilities: ['unisex', 'handicap', 'baby_change'],
+                    type: 'public',
+                    source: 'shopping_mall',
+                    verified: true
+                },
+                {
+                    name: 'New Delhi Railway Station',
+                    location: 'New Delhi Railway Station',
+                    coordinates: { latitude: 28.6425, longitude: 77.2197 },
+                    facilities: ['unisex', 'handicap'],
+                    type: 'public',
+                    source: 'railway_station',
+                    verified: true
+                },
+                {
+                    name: 'Indira Gandhi International Airport',
+                    location: 'Palam, Delhi',
+                    coordinates: { latitude: 28.5562, longitude: 77.1000 },
+                    facilities: ['unisex', 'handicap', 'baby_change', 'shower'],
+                    type: 'public',
+                    source: 'airport',
+                    verified: true
+                }
+            ];
+
+            // Save seed data
+            for (const toiletData of seedToilets) {
+                try {
+                    const toilet = new Toilet(toiletData);
+                    await toilet.save();
+                    console.log(`[INIT] Added seed toilet: ${toilet.name}`);
+                } catch (error) {
+                    console.error(`[INIT] Error adding seed toilet ${toiletData.name}:`, error.message);
+                }
             }
-        ];
 
-        sampleToilets.forEach((toiletData, index) => {
-            try {
-                const toilet = new Toilet(toiletData);
-                toilet.save();
-                console.log(`[INIT] Added sample toilet: ${toilet.name}`);
-            } catch (error) {
-                console.error(`[INIT] Error adding sample toilet ${index}:`, error);
-            }
-        });
+            console.log('[INIT] Seed data initialization complete');
+        }
 
-        console.log(`[INIT] Successfully added ${sampleToilets.length} sample toilets`);
-    } else {
-        console.log(`[INIT] Found ${toilets.length} existing toilets, skipping sample data initialization`);
+        console.log('[INIT] System ready for dynamic API data fetching!');
+        console.log('[INIT] Available data sources: Overpass API, Geofabrik, City CKAN, Government APIs, Tourism Boards, Transport Hubs, Commercial Centers, Educational Institutions');
+        console.log('[INIT] Zoom-based loading and real-time sync enabled!');
+
+    } catch (error) {
+        console.error('[INIT] Error during initialization:', error);
     }
 }
 
@@ -149,70 +194,18 @@ console.log('[CONFIG] PORT:', PORT);
 console.log('[CONFIG] JWT_SECRET:', JWT_SECRET ? '***configured***' : 'NOT SET');
 console.log('[CONFIG] NODE_ENV:', process.env.NODE_ENV || 'development');
 
-// Initialize sample data
-initializeSampleData();
+// Initialize dynamic data fetching system with seed data
+initializeDynamicDataSystem().catch(console.error);
 
 app.listen(PORT, () => {
-<<<<<<< HEAD
-    console.log(`Server is running on port ${PORT}`);
-}); 
-
-
-
-
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const cors = require('cors');
-// const dotenv = require('dotenv');
-// const path = require('path');
-
-// // Routes
-// const authRoutes = require('./routes/auth');
-// const toiletRoutes = require('./routes/toilets');
-// const reviewRoutes = require('./routes/reviews');
-
-// dotenv.config();
-
-// const app = express();
-
-// // Middleware
-// app.use(cors());
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-
-// // Static files
-// app.use(express.static(path.join(__dirname, '../*')));
-
-// // API Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/admin', authRoutes);  // Admin specific routes
-// app.use('/api/toilets', toiletRoutes);
-// app.use('/api/reviews', reviewRoutes);
-
-// // Serve React app
-// app.get('*', (req, res) => {
-//     res.sendFile(path.join(__dirname, '../', 'admin.html'));
-// });
-
-// // Database connection
-// mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/toilet-review')
-//     .then(() => console.log('MongoDB connected'))
-//     .catch(err => console.error('MongoDB connection error:', err));
-
-// // Error handling
-// app.use((err, req, res, next) => {
-//     console.error(err.stack);
-//     res.status(500).json({ message: 'Server error occurred' });
-// });
-
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//     console.log(`Server running on port ${PORT}`);
-// });
-=======
     console.log(`\n[SERVER] ✓ Toilet Review System server is running on port ${PORT}`);
     console.log(`[SERVER] ✓ Access the application at: http://localhost:${PORT}`);
     console.log(`[SERVER] ✓ Admin panel available at: http://localhost:${PORT}/admin.html`);
+    console.log(`[SERVER] ✓ SLO monitoring active`);
     console.log(`[SERVER] ✓ Ready to accept connections\n`);
-}); 
->>>>>>> master
+
+    // Log SLO targets on startup
+    console.log('[SLO] Service Level Objectives:');
+    console.log('[SLO]', JSON.stringify(sloServiceInstance.getSLOTargets(), null, 2));
+    console.log('');
+});

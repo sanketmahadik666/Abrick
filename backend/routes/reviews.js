@@ -11,16 +11,6 @@ router.post('/submit', async (req, res) => {
         const { toiletId, rating, cleanliness, maintenance, accessibility, comment } = req.body;
 
         // Validate required fields
-<<<<<<< HEAD
-        if (!toiletId || !rating || !cleanliness || !maintenance || !accessibility) {
-            return res.status(400).json({ message: 'All rating fields are required' });
-        }
-
-        // Validate rating values
-        const ratings = [rating, cleanliness, maintenance, accessibility];
-        if (ratings.some(r => r < 1 || r > 5)) {
-            return res.status(400).json({ message: 'Ratings must be between 1 and 5' });
-=======
         if (!toiletId || rating === undefined || cleanliness === undefined ||
             maintenance === undefined || accessibility === undefined) {
             console.log('[REVIEW] Submit failed: Missing required fields');
@@ -32,7 +22,6 @@ router.post('/submit', async (req, res) => {
             maintenance < 1 || maintenance > 5 || accessibility < 1 || accessibility > 5) {
             console.log('[REVIEW] Submit failed: Invalid rating ranges');
             return res.status(400).json({ message: 'All ratings must be between 1 and 5' });
->>>>>>> master
         }
 
         // Check if toilet exists
@@ -58,31 +47,12 @@ router.post('/submit', async (req, res) => {
         // Update toilet's average rating and total reviews
         const reviews = await Review.find({ toiletId });
         const totalReviews = reviews.length;
-        
+
         // Calculate average rating considering all rating aspects
         const averageRating = reviews.reduce((acc, review) => {
             return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
         }, 0) / totalReviews;
 
-<<<<<<< HEAD
-        // Update toilet with new ratings
-        await Toilet.findByIdAndUpdate(toiletId, {
-            averageRating: averageRating.toFixed(1),
-            totalReviews
-        });
-
-        res.status(201).json({ 
-            success: true, 
-            review,
-            message: 'Review submitted successfully'
-        });
-    } catch (err) {
-        console.error('Error submitting review:', err);
-        res.status(500).json({ 
-            message: 'Error submitting review',
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
-=======
         toilet.averageRating = parseFloat(averageRating.toFixed(1));
         toilet.totalReviews = totalReviews;
         await toilet.save();
@@ -92,7 +62,6 @@ router.post('/submit', async (req, res) => {
     } catch (err) {
         console.error('[REVIEW] Error submitting review:', err.message);
         res.status(500).json({ message: 'Error submitting review' });
->>>>>>> master
     }
 });
 
@@ -137,19 +106,19 @@ router.delete('/:id', async (req, res) => {
         const totalReviews = reviews.length;
 
         if (totalReviews === 0) {
-            await Toilet.findByIdAndUpdate(toiletId, {
-                averageRating: 0,
-                totalReviews: 0
-            });
+            const toilet = await Toilet.findById(toiletId);
+            toilet.averageRating = 0;
+            toilet.totalReviews = 0;
+            await toilet.save();
         } else {
             const averageRating = reviews.reduce((acc, review) => {
                 return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
             }, 0) / totalReviews;
 
-            await Toilet.findByIdAndUpdate(toiletId, {
-                averageRating: parseFloat(averageRating.toFixed(1)),
-                totalReviews
-            });
+            const toilet = await Toilet.findById(toiletId);
+            toilet.averageRating = parseFloat(averageRating.toFixed(1));
+            toilet.totalReviews = totalReviews;
+            await toilet.save();
         }
 
         res.json({ success: true, message: 'Review deleted' });
@@ -190,4 +159,4 @@ router.get('/stats', async (req, res) => {
     }
 });
 
-module.exports = router; 
+module.exports = router;

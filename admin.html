@@ -1105,21 +1105,43 @@
                 const toilets = await makeApiRequest('/api/toilet/map');
                 qrGrid.innerHTML = '';
 
-                toilets.forEach(toilet => {
-                    const reviewUrl = `${window.location.origin}/review.html?id=${toilet.id}`;
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reviewUrl)}`;
-                    
+                // Generate QR codes for each toilet using backend endpoint
+                const qrPromises = toilets.map(async (toilet) => {
+                    try {
+                        const qrData = await makeApiRequest(`/api/toilet/${toilet.id}/qr`);
+                        return { toilet, qrData };
+                    } catch (error) {
+                        console.error(`Error generating QR for toilet ${toilet.id}:`, error);
+                        return { toilet, error: true };
+                    }
+                });
+
+                const qrResults = await Promise.all(qrPromises);
+
+                qrResults.forEach(({ toilet, qrData, error }) => {
                     const qrCard = document.createElement('div');
                     qrCard.className = 'qr-card';
-                    qrCard.innerHTML = `
-                        <h3>${toilet.name}</h3>
-                        <p>${toilet.location}</p>
-                        <img src="${qrUrl}" alt="QR Code for ${toilet.name}">
-                        <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
-                        <button class="download-btn" onclick="downloadQR('${qrUrl}', '${toilet.name}')">
-                            Download QR Code
-                        </button>
-                    `;
+
+                    if (error) {
+                        qrCard.innerHTML = `
+                            <h3>${toilet.name}</h3>
+                            <p>${toilet.location}</p>
+                            <div style="color: #dc3545; text-align: center; padding: 20px;">
+                                Error generating QR code
+                            </div>
+                            <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
+                        `;
+                    } else {
+                        qrCard.innerHTML = `
+                            <h3>${qrData.toiletName}</h3>
+                            <p>${toilet.location}</p>
+                            <img src="${qrData.qrCode}" alt="QR Code for ${qrData.toiletName}" style="max-width: 200px; height: auto;">
+                            <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
+                            <button class="download-btn" onclick="downloadQR('${qrData.qrCode}', '${qrData.toiletName}')">
+                                Download QR Code
+                            </button>
+                        `;
+                    }
                     qrGrid.appendChild(qrCard);
                 });
 
@@ -1132,13 +1154,24 @@
             }
         }
 
-        function downloadQR(url, toiletName) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${toiletName.replace(/[^a-zA-Z0-9]/g, '_')}_QR.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function downloadQR(dataURL, toiletName) {
+            // Convert data URL to blob for download
+            fetch(dataURL)
+                .then(res => res.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${toiletName.replace(/[^a-zA-Z0-9]/g, '_')}_QR.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    console.error('Error downloading QR code:', error);
+                    alert('Failed to download QR code');
+                });
         }
 
         // Add function to load reviews

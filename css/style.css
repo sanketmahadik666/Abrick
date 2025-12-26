@@ -779,9 +779,251 @@ button:active {
     nav, .action-buttons, button {
         display: none;
     }
-    
+
     body {
         background: white;
         color: black;
     }
+}
+
+/* Hybrid Public/Private Toilet System Styles */
+.map-filters {
+    background: white;
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .map-filters {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+    }
+}
+
+.map-filters label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.map-filters input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+.toilet-popup {
+    padding: 15px;
+    max-width: 280px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.toilet-type {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.public-badge {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.private-badge {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    border: 1px solid #ce93d8;
+}
+
+.public-notice {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+    border: 1px solid #ffeaa7;
+}
+
+.review-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    width: 100%;
+    min-height: 36px;
+}
+
+.review-button:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+}
+
+.public-popup {
+    border-left: 3px solid #2196f3;
+}
+
+.private-popup {
+    border-left: 3px solid #9c27b0;
+}
+
+.facility-tag {
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: #495057;
+    display: inline-block;
+    margin: 0.125rem;
+}
+
+.toilet-details {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.info-group {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.info-group h3 {
+    color: var(--text-color);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    word-wrap: break-word;
+}
+
+.info-group h4 {
+    color: var(--text-muted);
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.rating-summary {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.rating-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: white;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+.rating-stars {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.facilities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+/* Enhanced legend for hybrid system */
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0.25rem 0;
+    padding: 0.25rem 0;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Mobile responsiveness for hybrid features */
+@media (max-width: 767px) {
+    .map-filters {
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        left: 10px;
+        z-index: 900;
+        max-width: none;
+    }
+
+    .toilet-popup {
+        max-width: 250px;
+        font-size: 13px;
+    }
+
+    .info-group {
+        padding: 0.75rem;
+    }
+
+    .info-group h3 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .map-filters {
+        position: static;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading states for sync operations */
+.sync-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.sync-loading::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--primary-color);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Success/error states for sync */
+.sync-success {
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
+.sync-error {
+    color: #dc3545;
+    font-weight: 500;
 }

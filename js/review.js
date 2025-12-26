@@ -1,299 +1,471 @@
-// DOM Elements
-const toiletInfo = document.getElementById('toiletInfo');
+// Enhanced review.js for Hybrid Public/Private Toilet System
+// Updated to work with modern API endpoints and review functionality
+
+// DOM Elements - Enhanced for hybrid system
 const reviewForm = document.getElementById('reviewForm');
 const reviewFormSection = document.getElementById('reviewFormSection');
 const successMessage = document.getElementById('successMessage');
 const scanNewQRButton = document.getElementById('scanNewQR');
-const qrReaderSection = document.getElementById('qr-reader-section');
+const toiletInfoPanel = document.getElementById('toiletInfoPanel');
 
+// State - Enhanced for hybrid system
 let currentToiletId = null;
-let qrScanner = null;
+let currentToiletData = null;
+let scanner = null;
 
-<<<<<<< HEAD
-// Add debugging utility
-const debug = {
-    log: (message, data) => {
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[DEBUG] ${message}`, data || '');
-        }
-    },
-    error: (message, error) => {
-        console.error(`[ERROR] ${message}`, error);
-    }
-};
-=======
-// Loading functions (using shared utilities to avoid conflicts)
-function hideReviewLoading() {
-    const loading = document.getElementById('reviewLoading');
-    if (loading) {
-        loading.classList.add('hidden');
-    }
-}
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('[REVIEW] Initializing review.js...');
 
-function showReviewLoading() {
-    const loading = document.getElementById('reviewLoading');
-    if (loading) {
-        loading.classList.remove('hidden');
-    }
-}
-
-// Use shared button loading utility
-const setButtonLoading = ToiletReviewUtils.setButtonLoading;
->>>>>>> master
-
-// Initialize QR Scanner
-function initializeQRScanner() {
-    debug.log('Initializing QR Scanner');
-    qrReaderSection.style.display = 'block';
-    const html5QrCode = new Html5Qrcode("qr-reader");
-    
-    // Check for camera permissions first
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        debug.error('Camera access not supported');
-        alert("Camera access is not supported in your browser. Please use a modern browser with camera support.");
-        return null;
+    // Check if we're on a page with review functionality
+    if (reviewForm) {
+        console.log('[REVIEW] Review form found, attaching listeners');
+        attachReviewFormListeners();
     }
 
-    html5QrCode.start(
-        { facingMode: "environment" },
-        {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-        },
-        (decodedText) => {
-            debug.log('QR Code scanned:', decodedText);
-            
-            // Stop scanning after successful scan
-            html5QrCode.stop();
-            
-            // Hide scanner after successful scan
-            qrReaderSection.style.display = 'none';
-            
-            // Extract toilet ID from QR code
-            try {
-                // Try parsing as JSON first
-                const parsedData = JSON.parse(decodedText);
-                if (parsedData && parsedData.toiletId) {
-                    currentToiletId = parsedData.toiletId;
-                    debug.log('Parsed toilet ID from JSON:', currentToiletId);
-                } else {
-                    throw new Error('Invalid QR code format');
-                }
-            } catch (e) {
-                debug.error('Error parsing QR code data:', e);
-                // If not JSON or invalid format, try using the raw text as ID
-                if (decodedText && decodedText.trim()) {
-                    currentToiletId = decodedText.trim();
-                    debug.log('Using raw text as toilet ID:', currentToiletId);
-                } else {
-                    throw new Error('Invalid QR code content');
-                }
-            }
+    // Check if QR scanner is needed
+    if (document.getElementById('qr-reader')) {
+        console.log('[REVIEW] QR scanner found, initializing...');
+        initializeQRScanner();
+    }
 
-            // Clean the ID - remove any quotes or extra whitespace
-            currentToiletId = currentToiletId.replace(/['"]/g, '').trim();
-            
-            if (!currentToiletId) {
-                throw new Error('No toilet ID found in QR code');
-            }
-            
-            loadToiletInfo(currentToiletId);
-        },
-        (error) => {
-            // Log scan errors for debugging
-            debug.error('QR Scan error:', error);
-        }
-    ).catch((err) => {
-        debug.error('QR Scanner initialization error:', err);
-        if (err.name === 'NotAllowedError') {
-            alert("Camera access was denied. Please allow camera access to scan QR codes.");
-        } else if (err.name === 'NotFoundError') {
-            alert("No camera found. Please connect a camera to scan QR codes.");
-        } else {
-            alert("Could not start QR scanner. Please check camera permissions and try again.");
-        }
-    });
+    console.log('[REVIEW] Initialization complete');
+});
 
-    return html5QrCode;
-}
-
-// Load toilet information
-async function loadToiletInfo(toiletId) {
-    debug.log('Loading toilet info for ID:', toiletId);
+// Enhanced API request utility
+async function makeApiRequest(endpoint, options = {}) {
     try {
-        console.log(`[REVIEW] Loading toilet info for ID: ${toiletId}`);
-        const response = await fetch(`/api/toilet/${toiletId}`);
-        console.log(`[REVIEW] Toilet API response: ${response.status}`);
+        console.log(`[REVIEW-API] Making request to: ${endpoint}`);
+        const response = await fetch(endpoint, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+        });
 
-        const data = await response.json();
+        console.log(`[REVIEW-API] Response status: ${response.status}`);
+
+        let data;
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+            console.log('[REVIEW-API] Response data:', data);
+        } else {
+            data = await response.text();
+            console.log('[REVIEW-API] Response text:', data);
+        }
 
         if (!response.ok) {
-            console.error(`[REVIEW] Failed to load toilet: ${data.message || response.statusText}`);
-            throw new Error(data.message || 'Failed to load toilet information');
+            throw new Error((data && data.message) || data || 'API request failed');
         }
 
-<<<<<<< HEAD
-        debug.log('Toilet data loaded:', data);
-=======
-        console.log(`[REVIEW] Loaded toilet: ${data.name} at ${data.location}`);
->>>>>>> master
-
-        toiletInfo.innerHTML = `
-            <h2>${data.name}</h2>
-            <p><strong>Location:</strong> ${data.location}</p>
-            <p>${data.description || ''}</p>
-            <div class="ratings-summary">
-                <p><strong>Average Rating:</strong> ${data.averageRating?.toFixed(1) || 'No ratings yet'} ⭐</p>
-                <p><strong>Total Reviews:</strong> ${data.totalReviews || 0}</p>
-            </div>
-        `;
-
-        // Show toilet info and review form
-        toiletInfo.style.display = 'block';
-        reviewFormSection.style.display = 'block';
-        console.log(`[REVIEW] Toilet info displayed, review form ready`);
+        return data;
     } catch (error) {
-<<<<<<< HEAD
-        debug.error('Error loading toilet info:', error);
-=======
-        console.error('[REVIEW] Error loading toilet info:', error);
->>>>>>> master
-        alert('Could not load toilet information. Please try scanning again.');
-        // Show scanner again if loading fails
-        qrReaderSection.style.display = 'block';
+        console.error('[REVIEW-API] Request error:', error);
+        throw error;
     }
 }
 
-// Add this function at the top with other functions
+// Attach review form listeners
+function attachReviewFormListeners() {
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', handleReviewSubmission);
+        console.log('[REVIEW] Review form listener attached');
+    }
+
+    if (scanNewQRButton) {
+        scanNewQRButton.addEventListener('click', resetScanner);
+        console.log('[REVIEW] Scan new QR button listener attached');
+    }
+}
+
+// Handle review form submission - Enhanced for hybrid system
+async function handleReviewSubmission(e) {
+    e.preventDefault();
+
+    console.log('[REVIEW] Processing review submission...');
+
+    if (!currentToiletId) {
+        console.error('[REVIEW] No toilet ID found');
+        alert('No toilet selected. Please scan a QR code first.');
+        return;
+    }
+
+    // Get form data
+    const reviewData = {
+        toiletId: currentToiletId,
+        rating: parseInt(document.getElementById('rating').value),
+        cleanliness: parseInt(document.getElementById('cleanliness').value),
+        maintenance: parseInt(document.getElementById('maintenance').value),
+        accessibility: parseInt(document.getElementById('accessibility').value),
+        comment: document.getElementById('comments').value.trim()
+    };
+
+    console.log('[REVIEW] Review data:', reviewData);
+
+    // Validation
+    if (!reviewData.rating || !reviewData.cleanliness || !reviewData.maintenance || !reviewData.accessibility) {
+        console.error('[REVIEW] Validation failed: Missing required ratings');
+        alert('Please provide ratings for all categories.');
+        return;
+    }
+
+    if (reviewData.rating < 1 || reviewData.rating > 5 ||
+        reviewData.cleanliness < 1 || reviewData.cleanliness > 5 ||
+        reviewData.maintenance < 1 || reviewData.maintenance > 5 ||
+        reviewData.accessibility < 1 || reviewData.accessibility > 5) {
+        console.error('[REVIEW] Validation failed: Invalid rating ranges');
+        alert('All ratings must be between 1 and 5.');
+        return;
+    }
+
+    // Submit button state
+    const submitButton = reviewForm.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+
+    try {
+        console.log('[REVIEW] Submitting review to API...');
+        const data = await makeApiRequest('/api/reviews/submit', {
+            method: 'POST',
+            body: JSON.stringify(reviewData)
+        });
+
+        console.log('[REVIEW] Review submitted successfully:', data);
+
+        // Show success message and confetti
+        showSuccessMessage();
+
+        // Reset form
+        reviewForm.reset();
+        currentToiletId = null;
+        currentToiletData = null;
+
+    } catch (error) {
+        console.error('[REVIEW] Submission failed:', error);
+        alert(error.message || 'Failed to submit review. Please try again.');
+    } finally {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
+}
+
+// Show success message with animation
+function showSuccessMessage() {
+    console.log('[REVIEW] Showing success message');
+
+    if (reviewFormSection) reviewFormSection.style.display = 'none';
+    if (toiletInfoPanel) toiletInfoPanel.style.display = 'none';
+    if (successMessage) successMessage.style.display = 'block';
+
+    // Create confetti animation
+    createConfetti();
+
+    // Auto-hide success message after 5 seconds
+    setTimeout(() => {
+        if (successMessage) successMessage.style.display = 'none';
+    }, 5000);
+}
+
+// Create confetti animation
 function createConfetti() {
-    const confettiContainer = document.getElementById('confettiContainer');
+    console.log('[REVIEW] Creating confetti animation');
+
     const colors = ['#ff69b4', '#ffd700', '#00ff00', '#ff0000', '#0000ff'];
-    
-    // Create 50 confetti pieces
-    for (let i = 0; i < 50; i++) {
+    const confettiCount = 50;
+
+    for (let i = 0; i < confettiCount; i++) {
         const confetti = document.createElement('div');
         confetti.className = 'confetti';
         confetti.style.left = Math.random() * 100 + 'vw';
         confetti.style.animationDelay = Math.random() * 2 + 's';
         confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confettiContainer.appendChild(confetti);
-        
+        document.body.appendChild(confetti);
+
         // Remove confetti after animation
         setTimeout(() => {
-            confetti.remove();
+            if (confetti.parentNode) {
+                confetti.parentNode.removeChild(confetti);
+            }
         }, 5000);
     }
 }
 
-// Handle review submission
-reviewForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const submitBtn = reviewForm.querySelector('button[type="submit"]');
+// Load toilet information - Enhanced for hybrid system
+async function loadToiletInfo(toiletId) {
+    console.log('[REVIEW] Loading toilet info for ID:', toiletId);
 
-    // Disable form while submitting
-    const submitButton = reviewForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = 'Submitting...';
+    if (!toiletInfoPanel) {
+        console.error('[REVIEW] Toilet info panel not found');
+        return;
+    }
 
-    console.log(`[REVIEW] Submitting review for toilet ${currentToiletId}`);
-    console.log(`[REVIEW] Review data:`, reviewData);
-
-    setButtonLoading(submitBtn, true);
+    // Show loading state
+    toiletInfoPanel.style.display = 'block';
+    toiletInfoPanel.innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+            <div class="loading-spinner"></div>
+            <p>Loading toilet information...</p>
+        </div>
+    `;
 
     try {
-        const reviewData = {
-            toiletId: currentToiletId,
-            rating: parseInt(document.querySelector('input[name="rating"]:checked').value),
-            cleanliness: parseInt(document.querySelector('input[name="cleanliness"]:checked').value),
-            maintenance: parseInt(document.querySelector('input[name="maintenance"]:checked').value),
-            accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
-            comment: document.getElementById('comments').value
-        };
+        console.log('[REVIEW] Fetching toilet data from API...');
+        const toilet = await makeApiRequest(`/api/toilet/${toiletId}`);
 
-        // Validate all required fields
-        if (!reviewData.rating || !reviewData.cleanliness || !reviewData.maintenance || !reviewData.accessibility) {
-            throw new Error('Please provide all ratings');
+        console.log('[REVIEW] Toilet data received:', toilet);
+
+        if (!toilet) {
+            throw new Error('No toilet data received');
         }
 
-        const response = await fetch('/api/reviews', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reviewData)
-        });
+        // Store toilet data
+        currentToiletData = toilet;
 
-        console.log(`[REVIEW] Submit response: ${response.status}`);
+        // Update info panel
+        updateToiletInfoPanel(toilet);
 
-        const data = await response.json();
-        console.log(`[REVIEW] Response data:`, data);
-
-        if (!response.ok) {
-            console.error(`[REVIEW] Submit failed: ${data.message || response.statusText}`);
-            throw new Error(data.message || 'Failed to submit review');
+        // Show review form
+        if (reviewFormSection) {
+            reviewFormSection.style.display = 'block';
         }
-
-        console.log(`[REVIEW] Review submitted successfully`);
-
-        // Hide review form and toilet info
-        reviewFormSection.style.display = 'none';
-        toiletInfo.style.display = 'none';
-
-        // Show success message with animations
-        successMessage.style.display = 'block';
-        createConfetti();
 
     } catch (error) {
-<<<<<<< HEAD
-        console.error('Error submitting review:', error);
-        alert(error.message || 'Failed to submit review. Please try again.');
-    } finally {
-        // Re-enable form
-        submitButton.disabled = false;
-        submitButton.textContent = 'Submit Review';
-=======
-        console.error('[REVIEW] Error submitting review:', error);
-        alert('Failed to submit review. Please try again.');
-    } finally {
-        setButtonLoading(submitBtn, false);
-        console.log(`[REVIEW] Submit process completed`);
->>>>>>> master
+        console.error('[REVIEW] Error loading toilet info:', error);
+        toiletInfoPanel.innerHTML = `
+            <div style="color: #dc3545; text-align: center; padding: 2rem;">
+                <h3>Error Loading Toilet Information</h3>
+                <p>${error.message}</p>
+                <p>Please make sure:</p>
+                <ul style="text-align: left; margin: 1rem 0;">
+                    <li>The backend server is running</li>
+                    <li>You have a stable internet connection</li>
+                    <li>The toilet ID is valid</li>
+                </ul>
+                <button onclick="resetScanner()" class="btn">Try Again</button>
+            </div>
+        `;
     }
-});
+}
 
-// Handle "Scan New QR" button click
-scanNewQRButton.addEventListener('click', () => {
-    // Reset the form
-    reviewForm.reset();
-    
-    // Hide all sections except scanner
-    successMessage.style.display = 'none';
-    reviewFormSection.style.display = 'none';
-    toiletInfo.style.display = 'none';
-    
-    // Initialize new QR scanner
-    if (qrScanner) {
-        qrScanner.stop();
+// Update toilet info panel - Enhanced for hybrid system
+function updateToiletInfoPanel(toilet) {
+    console.log('[REVIEW] Updating toilet info panel for:', toilet.name);
+
+    const isPublic = toilet.type === 'public';
+
+    toiletInfoPanel.innerHTML = `
+        <h2>Toilet Information</h2>
+        <div class="toilet-details">
+            <div class="info-group">
+                <h3>${toilet.name || 'Unknown Toilet'}</h3>
+                <div class="toilet-type-badge ${isPublic ? 'public-badge' : 'private-badge'}">
+                    ${isPublic ? '🏛️ Public Facility' : '🏢 Private Toilet'}
+                </div>
+                <p><strong>Location:</strong> ${toilet.location || 'Location not specified'}</p>
+                ${toilet.description ? `<p><strong>Description:</strong> ${toilet.description}</p>` : ''}
+            </div>
+
+            ${!isPublic ? `
+                <div class="info-group">
+                    <h4>Current Ratings</h4>
+                    <div class="rating-summary">
+                        <div class="rating-item">
+                            <span>Overall Rating:</span>
+                            <span class="rating-stars">${getStarRating(toilet.averageRating)}</span>
+                        </div>
+                        <div class="rating-item">
+                            <span>Total Reviews:</span>
+                            <span>${toilet.totalReviews || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="info-group">
+                    <div class="public-notice">
+                        ℹ️ <strong>Public Facility Notice:</strong><br>
+                        This is a public toilet facility. Information is provided for reference only.
+                        Reviews and ratings are not available for public facilities.
+                    </div>
+                </div>
+            `}
+
+            <div class="info-group">
+                <h4>Facilities</h4>
+                <div class="facilities-list">
+                    ${toilet.facilities && toilet.facilities.length > 0
+                        ? toilet.facilities.map(facility => `
+                            <span class="facility-tag">
+                                ${facility.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </span>
+                        `).join('')
+                        : '<p>No facilities listed</p>'
+                    }
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper function to create star rating display
+function getStarRating(rating) {
+    if (!rating) return 'No ratings yet';
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    let stars = '★'.repeat(fullStars);
+    if (halfStar) stars += '½';
+    stars += '☆'.repeat(5 - Math.ceil(rating));
+    return stars;
+}
+
+// Initialize QR Scanner - Enhanced for hybrid system
+function initializeQRScanner() {
+    console.log('[REVIEW] Initializing QR scanner...');
+
+    const qrReader = document.getElementById('qr-reader');
+    if (!qrReader) {
+        console.warn('[REVIEW] QR reader element not found');
+        return;
     }
-    qrScanner = initializeQRScanner();
-});
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    // Get toilet ID from URL if present
-    const urlParams = new URLSearchParams(window.location.search);
-    const toiletId = urlParams.get('id');
+    // Check if Html5Qrcode is available
+    if (typeof Html5Qrcode === 'undefined') {
+        console.error('[REVIEW] Html5Qrcode library not loaded');
+        qrReader.innerHTML = '<p>QR scanner library not available. Please refresh the page.</p>';
+        return;
+    }
 
-    if (toiletId) {
-        // Hide scanner if we have a toilet ID
-        qrReaderSection.style.display = 'none';
-        currentToiletId = toiletId;
+    try {
+        scanner = new Html5QrcodeScanner(
+            "qr-reader",
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true,
+                showZoomSliderIfSupported: true
+            },
+            false
+        );
+
+        scanner.render(onScanSuccess, onScanFailure);
+        console.log('[REVIEW] QR scanner initialized successfully');
+
+    } catch (error) {
+        console.error('[REVIEW] Error initializing QR scanner:', error);
+        qrReader.innerHTML = '<p>Error initializing QR scanner. Please refresh the page.</p>';
+    }
+}
+
+// Handle successful QR scan - Enhanced for hybrid system
+function onScanSuccess(decodedText, decodedResult) {
+    console.log('[REVIEW] QR code scanned successfully:', decodedText);
+
+    if (!decodedText || decodedText.trim() === '') {
+        console.error('[REVIEW] Empty QR code data');
+        alert('Invalid QR code. Please scan a valid toilet QR code.');
+        return;
+    }
+
+    try {
+        // Try to parse as JSON first, then fallback to plain text
+        let toiletId;
+        try {
+            const parsedData = JSON.parse(decodedText);
+            toiletId = parsedData.toiletId || parsedData.id;
+        } catch (parseError) {
+            // If not JSON, use the text directly as toilet ID
+            toiletId = decodedText.trim();
+        }
+
+        if (!toiletId) {
+            throw new Error('Invalid QR code format - no toilet ID found');
+        }
+
+        console.log('[REVIEW] Extracted toilet ID:', toiletId);
+
+        // Stop scanner
+        if (scanner) {
+            scanner.clear();
+            scanner = null;
+        }
+
+        // Hide scanner
+        const qrReader = document.getElementById('qr-reader');
+        if (qrReader) qrReader.style.display = 'none';
+
+        // Load toilet information
         loadToiletInfo(toiletId);
-    } else {
-        // Initialize QR scanner if no toilet ID in URL
-        qrScanner = initializeQRScanner();
+
+    } catch (error) {
+        console.error('[REVIEW] Error processing QR code:', error);
+        alert('Invalid QR code format. Please scan a valid toilet QR code.');
+        resetScanner();
+    }
+}
+
+// Handle scan failure
+function onScanFailure(error) {
+    // Only log errors that aren't "No QR code found" to avoid spam
+    if (error && !error.includes('No QR code found') && !error.includes('NotFoundException')) {
+        console.warn('[REVIEW] QR scan error:', error);
+    }
+}
+
+// Reset scanner function
+function resetScanner() {
+    console.log('[REVIEW] Resetting scanner...');
+
+    // Stop current scanner
+    if (scanner) {
+        scanner.clear();
+        scanner = null;
     }
 
-    // Hide loading after initialization
-    setTimeout(hideReviewLoading, 500);
-}); 
+    // Reset UI elements
+    if (toiletInfoPanel) toiletInfoPanel.style.display = 'none';
+    if (reviewFormSection) reviewFormSection.style.display = 'none';
+    if (successMessage) successMessage.style.display = 'none';
+    if (reviewForm) reviewForm.reset();
+
+    const qrReader = document.getElementById('qr-reader');
+    if (qrReader) {
+        qrReader.style.display = 'block';
+        qrReader.innerHTML = ''; // Clear any existing content
+    }
+
+    // Reset current toilet data
+    currentToiletId = null;
+    currentToiletData = null;
+
+    // Initialize new scanner
+    setTimeout(() => {
+        initializeQRScanner();
+    }, 100);
+
+    console.log('[REVIEW] Scanner reset complete');
+}
+
+// Utility function for debugging
+function debugLog(message, data) {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[REVIEW-DEBUG] ${message}`, data || '');
+    }
+}
+
+// Export functions for global access (if needed)
+window.loadToiletInfo = loadToiletInfo;
+window.resetScanner = resetScanner;
+
+// Initialize if this script is loaded directly
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        loadToiletInfo,
+        resetScanner,
+        makeApiRequest
+    };
+}

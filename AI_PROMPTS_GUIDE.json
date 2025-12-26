@@ -1,0 +1,352 @@
+{
+  "title": "AI Frontend Modification Prompts Guide",
+  "version": "1.0",
+  "description": "Comprehensive JSON prompts for AI-assisted frontend modifications with best practices",
+  "author": "Abrick Project",
+  "date": "2025-12-26",
+  "usage_instructions": "Use these JSON prompts with AI/LLM to maintain consistent behavior and get better results",
+
+  "prompt_structure": {
+    "role": "Define the AI's role and expertise level",
+    "context": "Project structure and existing code patterns",
+    "task": "Clear, specific modification request",
+    "requirements": "Specific rules and constraints",
+    "output_format": "Expected format of response",
+    "examples": "Real examples from your codebase"
+  },
+
+  "best_practices": {
+    "1_be_specific": "Use exact file names, line numbers, and code snippets",
+    "2_provide_context": "Include related code and existing patterns",
+    "3_define_constraints": "Specify what NOT to do",
+    "4_maintain_style": "Reference existing code style and patterns",
+    "5_clear_requirements": "List must-haves vs nice-to-haves",
+    "6_examples": "Show before/after examples",
+    "7_error_handling": "Specify how to handle edge cases",
+    "8_testing": "Include testing requirements"
+  },
+
+  "prompts": {
+    "modify_html_structure": {
+      "role": "You are an expert frontend developer familiar with HTML5, accessibility standards, and responsive design.",
+      "context": "Working on Toilet Review System - a Web app built with vanilla JavaScript and HTML5. Project uses Leaflet.js for maps and ZXing for QR scanning.",
+      "task": "Modify HTML structure in [FILE_NAME] to [SPECIFIC_CHANGE]",
+      "requirements": [
+        "Maintain existing CSS classes for styling",
+        "Preserve all JavaScript event listeners and data attributes",
+        "Keep accessibility standards (alt text, aria labels, semantic HTML)",
+        "Don't change IDs unless specifically requested",
+        "Maintain consistent indentation (4 spaces)",
+        "Keep all form field names exactly as they are"
+      ],
+      "style_guidelines": {
+        "indentation": "4 spaces",
+        "tag_format": "Lowercase HTML tags",
+        "attribute_order": "id, class, data-*, event handlers",
+        "comments": "Use <!-- Comment --> format"
+      },
+      "output_format": "Return ONLY the modified HTML section with 3 lines of context before and after",
+      "example": {
+        "file": "admin.html",
+        "change": "Add a loading spinner to the reviews section",
+        "before": "<div class='review-list'>\n  <!-- reviews will be loaded here -->\n</div>",
+        "after": "<div class='review-list'>\n  <div id='reviewLoading' class='loading-spinner hidden'>\n    <span>Loading reviews...</span>\n  </div>\n  <!-- reviews will be loaded here -->\n</div>"
+      }
+    },
+
+    "modify_css_styles": {
+      "role": "You are an expert CSS developer with knowledge of responsive design, accessibility, and modern CSS practices.",
+      "context": "Toilet Review System uses vanilla CSS in css/style.css. Supports mobile-first responsive design. Uses CSS variables for theming.",
+      "task": "Modify CSS in [FILE_NAME] to [SPECIFIC_CHANGE]",
+      "requirements": [
+        "Use existing CSS variables (--primary-color, --secondary-color, etc)",
+        "Maintain mobile-first approach (mobile styles first, then media queries)",
+        "Preserve existing class names and selectors",
+        "Use relative units (rem, em) instead of fixed pixels where possible",
+        "Ensure accessibility (sufficient color contrast, readable font sizes)",
+        "Don't remove existing styles without explanation"
+      ],
+      "style_guidelines": {
+        "naming": "Use kebab-case for class names",
+        "structure": "Group related properties",
+        "variables": "Use CSS custom properties for colors and spacing",
+        "media_queries": "Mobile (320px+), Tablet (768px+), Desktop (1024px+)"
+      },
+      "output_format": "Return CSS rule blocks with selector, all properties, and context comments",
+      "example": {
+        "file": "css/style.css",
+        "change": "Style the error message container for better visibility",
+        "before": ".error-message { color: red; }",
+        "after": ".error-message {\n  background-color: #fee;\n  border: 1px solid #fc8888;\n  border-radius: 4px;\n  padding: 12px 16px;\n  color: #c00;\n  font-weight: 500;\n  margin: 16px 0;\n}"
+      }
+    },
+
+    "modify_javascript_logic": {
+      "role": "You are an expert JavaScript developer with deep knowledge of ES6+, async/await, Fetch API, and event handling.",
+      "context": "Toilet Review System frontend uses vanilla ES6+ JavaScript. Key files: js/main.js, js/admin.js, js/review.js, js/utils.js. Uses async/await, Promise.all, localStorage for persistence, Fetch API for HTTP requests.",
+      "task": "Modify JavaScript in [FILE_NAME] to [SPECIFIC_CHANGE]",
+      "requirements": [
+        "Use ES6+ syntax (arrow functions, const/let, template literals)",
+        "Use async/await for Promise handling, NOT .then() chains",
+        "Always include error handling with try/catch blocks",
+        "Add console logging for debugging with format: Logger.info/error/success('CATEGORY', 'message')",
+        "Preserve existing function signatures",
+        "Don't change global variables without explanation",
+        "Use makeAuthenticatedRequest() for API calls (includes auth header)",
+        "Use ToiletReviewUtils helper functions"
+      ],
+      "function_patterns": {
+        "async_function": "async function functionName() { try { /* code */ } catch(error) { Logger.error('CAT', 'msg'); } }",
+        "api_call": "const data = await makeAuthenticatedRequest('/api/endpoint');",
+        "error_handling": "Logger.error('CATEGORY', 'Error message', { data: errorData });",
+        "logging": "Logger.info('CATEGORY', 'Action completed');"
+      },
+      "output_format": "Return complete function with all error handling, comments for complex logic, and logging statements",
+      "example": {
+        "file": "js/admin.js",
+        "change": "Add function to validate email format before submission",
+        "code": "function validateEmail(email) {\n  const regex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n  return regex.test(email);\n}\n\nasync function submitForm(email, password) {\n  try {\n    if (!validateEmail(email)) {\n      Logger.error('FORM', 'Invalid email format');\n      throw new Error('Please enter a valid email address');\n    }\n    const data = await makeAuthenticatedRequest('/api/auth/login', {\n      method: 'POST',\n      body: JSON.stringify({ email, password })\n    });\n    Logger.success('AUTH', 'Login successful');\n    return data;\n  } catch (error) {\n    Logger.error('AUTH', 'Login failed', { message: error.message });\n    throw error;\n  }\n}"
+      }
+    },
+
+    "add_new_feature": {
+      "role": "You are a full-stack frontend developer with expertise in feature implementation and code organization.",
+      "context": "Toilet Review System is a vanilla JS app with HTML/CSS. Architecture: Utilities layer (utils.js), UI layer (main.js, admin.js, review.js), Logger utility for debugging. All API calls go through makeAuthenticatedRequest().",
+      "task": "Add new feature: [FEATURE_NAME] to the frontend with the following requirements",
+      "requirements": [
+        "Create separate file if feature is large (js/feature-name.js)",
+        "Reuse existing utilities (makeAuthenticatedRequest, Logger, ToiletReviewUtils)",
+        "Follow existing code patterns and naming conventions",
+        "Add comprehensive error handling",
+        "Include logging at key points (start, success, error)",
+        "Update HTML if new UI elements needed",
+        "Add CSS for new UI elements",
+        "Ensure mobile responsiveness",
+        "Document function parameters and return values",
+        "Add JSDoc comments for complex functions"
+      ],
+      "folder_structure": {
+        "scripts": "js/",
+        "styles": "css/",
+        "html_files": "*.html files in root",
+        "documentation": "*.md files in root"
+      },
+      "output_format": "Provide: 1) HTML changes, 2) CSS changes, 3) JavaScript implementation, 4) Integration instructions",
+      "example": {
+        "feature": "Add toilet rating system",
+        "steps": [
+          "Add rating input to HTML form",
+          "Create CSS for star rating display",
+          "Create function to calculate average rating",
+          "Add API call to submit rating",
+          "Add logging for tracking ratings"
+        ]
+      }
+    },
+
+    "fix_bug": {
+      "role": "You are an expert debugging engineer with deep knowledge of JavaScript, DOM manipulation, async operations, and HTTP requests.",
+      "context": "Toilet Review System frontend. Common issues: CORS errors, missing auth headers, async timing problems, DOM not ready, localStorage issues.",
+      "task": "Fix bug: [BUG_DESCRIPTION]",
+      "requirements": [
+        "Identify root cause first",
+        "Check if issue is in HTML, CSS, or JavaScript",
+        "Check if issue is network/API related (use makeAuthenticatedRequest)",
+        "Check if issue is timing related (use async/await correctly)",
+        "Check if issue is DOM related (element exists before manipulation)",
+        "Add detailed logging to pinpoint exact failure point",
+        "Provide step-by-step reproduction steps",
+        "Include expected vs actual behavior",
+        "Test fix in multiple browsers if possible"
+      ],
+      "debugging_checklist": [
+        "Browser console for errors",
+        "Network tab for failed requests",
+        "Logger output for application flow",
+        "Check if token exists in localStorage",
+        "Verify API endpoints are correct",
+        "Check if async operations complete before DOM manipulation"
+      ],
+      "output_format": "Root cause → Code change → Testing steps → Verification",
+      "example": {
+        "bug": "Reviews fail to load with 'Failed to fetch' error",
+        "root_cause": "makeAuthenticatedRequest() not injecting Authorization header properly",
+        "fix": "Ensure headers are merged correctly and Authorization is set before request"
+      }
+    },
+
+    "refactor_code": {
+      "role": "You are an expert code refactoring specialist with knowledge of clean code, DRY principle, and performance optimization.",
+      "context": "Toilet Review System uses vanilla JS. Goal is to improve: readability, maintainability, performance, and reduce code duplication.",
+      "task": "Refactor [FILE_NAME] to [REFACTORING_GOAL]",
+      "requirements": [
+        "Maintain exact same functionality",
+        "Don't break existing API or function signatures",
+        "Extract duplicate code into reusable functions",
+        "Use meaningful variable names",
+        "Add comments for complex logic",
+        "Keep backward compatibility",
+        "Improve performance if possible",
+        "Maintain existing logging patterns"
+      ],
+      "refactoring_patterns": [
+        "Extract repeated code into functions",
+        "Use helper functions from utils.js",
+        "Consolidate similar event listeners",
+        "Use const/let appropriately",
+        "Simplify conditional logic",
+        "Use template literals for strings"
+      ],
+      "output_format": "Show before/after code with explanation of improvements",
+      "example": {
+        "before": "Multiple similar API calls scattered in code",
+        "after": "Create wrapper functions using makeAuthenticatedRequest"
+      }
+    },
+
+    "update_responsive_design": {
+      "role": "You are an expert in responsive web design and mobile-first development.",
+      "context": "Toilet Review System needs to work on mobile (320px), tablet (768px), and desktop (1024px+). Uses Leaflet.js maps and requires touch-friendly interfaces.",
+      "task": "Update [FILE_NAME] for better responsiveness on [DEVICE_TYPE]",
+      "requirements": [
+        "Mobile-first approach (start with mobile styles)",
+        "Use CSS media queries for larger screens",
+        "Ensure touch-friendly buttons (min 44x44px)",
+        "Test on actual devices or browser dev tools",
+        "Optimize images and assets for mobile",
+        "Ensure text is readable (min 16px)",
+        "Test map interactions on mobile",
+        "Verify form inputs are usable on small screens"
+      ],
+      "breakpoints": {
+        "mobile": "320px - 767px",
+        "tablet": "768px - 1023px",
+        "desktop": "1024px+"
+      },
+      "output_format": "Provide CSS media queries and mobile-specific optimizations",
+      "example": {
+        "file": "css/style.css",
+        "change": "Make review form mobile-responsive",
+        "mobile": "Full-width form, stacked inputs",
+        "tablet": "Two-column layout",
+        "desktop": "Three-column layout"
+      }
+    }
+  },
+
+  "common_patterns": {
+    "api_request_pattern": {
+      "description": "Standard pattern for making authenticated API requests",
+      "code": "async function fetchData() {\n  try {\n    Logger.info('CATEGORY', 'Fetching data from /api/endpoint');\n    const response = await makeAuthenticatedRequest('/api/endpoint');\n    Logger.success('CATEGORY', 'Data fetched successfully');\n    return response;\n  } catch (error) {\n    Logger.error('CATEGORY', 'Failed to fetch data', { message: error.message });\n    throw error;\n  }\n}"
+    },
+    "form_submission_pattern": {
+      "description": "Standard pattern for form submission with validation",
+      "code": "document.getElementById('formId').addEventListener('submit', async (e) => {\n  e.preventDefault();\n  const submitBtn = e.target.querySelector('button[type=\"submit\"]');\n  try {\n    Logger.info('FORM', 'Form submitted');\n    ToiletReviewUtils.setButtonLoading(submitBtn, true);\n    \n    const formData = new FormData(e.target);\n    const data = await makeAuthenticatedRequest('/api/endpoint', {\n      method: 'POST',\n      body: JSON.stringify(Object.fromEntries(formData))\n    });\n    \n    Logger.success('FORM', 'Form processed successfully');\n  } catch (error) {\n    Logger.error('FORM', 'Form submission failed', { message: error.message });\n  } finally {\n    ToiletReviewUtils.setButtonLoading(submitBtn, false);\n  }\n});"
+    },
+    "event_listener_pattern": {
+      "description": "Standard pattern for DOM event listeners",
+      "code": "const element = document.getElementById('elementId');\nif (element) {\n  element.addEventListener('click', async (e) => {\n    e.preventDefault();\n    try {\n      Logger.info('EVENT', 'Element clicked');\n      // Handle event\n    } catch (error) {\n      Logger.error('EVENT', 'Error handling click', { message: error.message });\n    }\n  });\n} else {\n  Logger.warn('DOM', 'Element #elementId not found');\n}"
+    },
+    "conditional_rendering_pattern": {
+      "description": "Standard pattern for showing/hiding elements",
+      "code": "function showElement(elementId) {\n  const element = document.getElementById(elementId);\n  if (element) {\n    element.classList.remove('hidden');\n    Logger.info('DOM', `Showed ${elementId}`);\n  }\n}\n\nfunction hideElement(elementId) {\n  const element = document.getElementById(elementId);\n  if (element) {\n    element.classList.add('hidden');\n    Logger.info('DOM', `Hid ${elementId}`);\n  }\n}"
+    }
+  },
+
+  "logging_guidelines": {
+    "categories": {
+      "AUTH": "Authentication and login/register operations",
+      "API": "API request and response operations",
+      "DOM": "DOM manipulation and element operations",
+      "FORM": "Form submission and validation",
+      "ERROR": "Error handling and exceptions",
+      "EVENT": "User events and interactions",
+      "MAP": "Map-related operations",
+      "REVIEW": "Review submission and display",
+      "TOILET": "Toilet data operations",
+      "QR": "QR code scanning operations"
+    },
+    "levels": {
+      "info": "Logger.info('CAT', 'message') - General information",
+      "success": "Logger.success('CAT', 'message') - Operation successful",
+      "error": "Logger.error('CAT', 'message', { data }) - Operation failed",
+      "warn": "Logger.warn('CAT', 'message') - Warning/caution",
+      "debug": "Logger.debug('CAT', 'message', { data }) - Debugging info"
+    }
+  },
+
+  "prompt_templates": {
+    "simple_modification": "Modify [FILE] in the [LOCATION] section. Current code: [CODE]. Change: [WHAT_TO_CHANGE]. Maintain: [WHAT_TO_PRESERVE]. Output format: [SHOW_ONLY_MODIFIED_SECTION]",
+    
+    "bug_fix": "Bug: [DESCRIBE_BUG]. Affected file: [FILE]. Error message: [ERROR]. Expected behavior: [EXPECTED]. Actual behavior: [ACTUAL]. Debug with: [LOGGING_POINTS]. Fix approach: [YOUR_APPROACH]",
+    
+    "feature_addition": "Add feature: [FEATURE_NAME] to [FILE]. Feature should: [REQUIREMENT_1], [REQUIREMENT_2]. Use existing patterns: [PATTERNS]. Call API endpoint: [ENDPOINT]. Update UI: [UI_CHANGES]. Add styling: [CSS_NEEDED]",
+    
+    "code_review": "Review this code: [CODE]. Check for: [SECURITY], [PERFORMANCE], [READABILITY]. Suggest improvements. Maintain: [CONSTRAINTS]. Output: [SUGGESTED_CHANGES]"
+  },
+
+  "do_and_dont": {
+    "DO": [
+      "✓ Be specific with file names and line numbers",
+      "✓ Provide complete context and related code",
+      "✓ Show before/after examples",
+      "✓ Specify exact requirements",
+      "✓ Include error handling requirements",
+      "✓ Mention existing patterns to follow",
+      "✓ Ask for logging at key points",
+      "✓ Request specific output format"
+    ],
+    "DONT": [
+      "✗ Use vague descriptions ('make it better')",
+      "✗ Request changes without context",
+      "✗ Assume AI knows your codebase details",
+      "✗ Ask for multiple unrelated changes in one prompt",
+      "✗ Skip error handling requirements",
+      "✗ Forget to mention style guidelines",
+      "✗ Request output without format specification",
+      "✗ Change behavior without explaining why"
+    ]
+  },
+
+  "example_prompts_by_use_case": {
+    "add_button": {
+      "prompt": "In admin.html, add a new button with id='deleteButton' in the toolbar section. Button should: 1) Have text 'Delete Selected', 2) Have class 'btn btn-danger', 3) Trigger deleteSelected() function on click. Add after the existing 'Edit' button. Maintain existing button styling and spacing. Output: Only the new button HTML with 2 lines of context before and after."
+    },
+    
+    "fix_api_error": {
+      "prompt": "Bug: API requests to /api/review/all return 401 Unauthorized. File: js/admin.js, function: loadReviews(). Current code uses makeApiRequest(). Fix: Ensure makeAuthenticatedRequest() is used instead and token is retrieved from localStorage. Add logging: Logger.info('API', 'Loading reviews...') and Logger.error('API', 'Failed to load reviews', { status }). Output: Complete fixed function with all error handling."
+    },
+    
+    "add_feature": {
+      "prompt": "Add dark mode toggle to admin.html. Feature should: 1) Add toggle button in header, 2) Store preference in localStorage, 3) Apply .dark-mode class to body, 4) Include CSS for dark mode styling in css/style.css. Files to modify: admin.html (add button), css/style.css (add dark-mode styles), js/admin.js (add toggle function). Include Logger calls for mode changes. Output: Changes for each file separately."
+    },
+    
+    "refactor_duplicate": {
+      "prompt": "In js/main.js, three similar functions (loadToilets, loadReviews, loadUsers) make API calls with identical error handling. Refactor to: 1) Create single function fetchData(endpoint) that handles all cases, 2) Reuse makeAuthenticatedRequest(), 3) Add appropriate logging, 4) Keep all function signatures for backward compatibility. Output: New helper function + refactored usage in each location."
+    }
+  },
+
+  "important_notes": {
+    "always_remember": [
+      "Token is stored in localStorage as 'adminToken'",
+      "All API calls should use makeAuthenticatedRequest() which injects token automatically",
+      "Logger utility is already loaded in all HTML files",
+      "Logging format: Logger.{level}('CATEGORY', 'message', optional_data)",
+      "CSS classes: hidden = display:none, btn = button styling, error-message = error styling",
+      "Never hardcode API endpoints - use constants",
+      "Always test for null/undefined before DOM manipulation",
+      "Use async/await, never .then() chains",
+      "Maintain consistent error messages for users"
+    ],
+    "before_final_submission": [
+      "✓ Check for syntax errors",
+      "✓ Verify all Logger calls are present",
+      "✓ Confirm error handling is complete",
+      "✓ Test API endpoint references",
+      "✓ Ensure mobile responsive (if applicable)",
+      "✓ Check CSS class names exist",
+      "✓ Verify no breaking changes",
+      "✓ Add JSDoc comments for functions"
+    ]
+  }
+}
