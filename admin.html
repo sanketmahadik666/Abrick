@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,84 +9,52 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-   /* Elegant Admin Dashboard CSS with Light Colors */
-/* Elegant Admin Dashboard CSS with Light Colors */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem; /* Reduced padding for mobile */
+        }
 
-/* --------------------
-   1. CSS Variables (Custom Properties)
-   -------------------- */
-:root {
-    /* Colors */
-    --color-primary-start: #667eea;
-    --color-primary-end: #764ba2;
-    --color-gradient-accent-1: #f093fb;
-    --color-gradient-accent-2: #f5576c;
-    --color-background-start: #f5f7fa;
-    --color-background-end: #c3cfe2;
-    --color-text-primary: #2c3e50;
-    --color-text-secondary: #64748b;
-    --color-text-light: #94a3b8;
-    --color-card-bg-opacity: rgba(255, 255, 255, 0.9);
-    --color-card-bg-light-opacity: rgba(248, 250, 252, 0.9);
-    --color-border-light: rgba(255, 255, 255, 0.2);
-    --color-border-default: #e2e8f0;
-    --color-form-bg-opacity: rgba(255, 255, 255, 0.8);
-    --color-form-bg-focus-opacity: rgba(255, 255, 255, 1);
-    --color-success: #28a745;
-    --color-error: #dc3545;
-    --color-warning-text: #8b4513;
-    --color-rating: #fbbf24;
+        @media (min-width: 768px) {
+            .admin-container {
+                padding: 20px;
+            }
+        }
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, var(--color-primary-start) 0%, var(--color-primary-end) 100%);
-    --gradient-background: linear-gradient(135deg, var(--color-background-start) 0%, var(--color-background-end) 100%);
-    --gradient-card-top-border: linear-gradient(90deg, var(--color-primary-start), var(--color-primary-end), var(--color-gradient-accent-1), var(--color-gradient-accent-2));
-    --gradient-logout-btn: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-    --gradient-logout-btn-hover: linear-gradient(135deg, #ff8a95 0%, #fdb99b 100%);
-    --gradient-edit-btn: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-    --gradient-edit-btn-hover: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-    --gradient-delete-btn: linear-gradient(135deg, #ffeef0 0%, #ffcccb 100%);
-    --gradient-delete-btn-hover: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-    --gradient-download-btn: linear-gradient(135deg, #d4edda 0%, #b3e5fc 100%);
-    --gradient-download-btn-hover: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    --gradient-section-bg: linear-gradient(135deg, var(--color-card-bg-light-opacity) 0%, var(--color-card-bg-opacity) 100%);
-    --gradient-message-success: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    --gradient-message-error: linear-gradient(135deg, #f8d7da 0%, #f1c0c7 100%);
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem; /* Smaller gap for mobile */
+        }
 
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-xxl: 2.5rem;
-    --spacing-xxxl: 3rem;
+        @media (min-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+            }
+        }
 
-    /* Border Radius */
-    --border-radius-sm: 8px;
-    --border-radius-md: 12px;
-    --border-radius-lg: 16px;
-    --border-radius-xl: 20px;
-    --border-radius-pill: 25px;
+        #logoutBtn {
+            background: #dc3545;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-<<<<<<< HEAD
-    /* Shadows */
-    --shadow-base: 0 4px 15px rgba(0, 0, 0, 0.08); /* A common default */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.15);
-    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.1);
-    --shadow-nav: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-focus-ring: 0 0 0 3px rgba(102, 126, 234, 0.1); /* For inputs */
-    --shadow-button-primary: 0 4px 15px rgba(102, 126, 234, 0.4);
-    --shadow-button-primary-hover: 0 10px 25px rgba(102, 126, 234, 0.5);
-    --shadow-button-logout-hover: 0 8px 20px rgba(255, 154, 158, 0.4);
-    --shadow-button-nav-hover: 0 8px 20px rgba(102, 126, 234, 0.2);
-    --shadow-button-warning-hover: 0 8px 20px rgba(255, 216, 155, 0.4);
-    --shadow-button-danger-hover: 0 8px 20px rgba(255, 107, 107, 0.4);
-    --shadow-button-download-hover: 0 8px 20px rgba(40, 167, 69, 0.4);
-    --shadow-message: 0 2px 8px rgba(0, 0, 0, 0.1); /* General message shadow */
-=======
+        #logoutBtn:hover {
+            background: #c82333;
+        }
+
+        .login-form, .admin-dashboard {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
         .login-form {
             display: block; /* Ensure login form is visible by default */
         }
@@ -96,696 +66,343 @@
         .form-group {
             margin-bottom: 1rem;
         }
->>>>>>> master
-
-    /* Transitions */
-    --transition-ease: all 0.3s ease;
-    --transition-bezier: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--gradient-background);
-    min-height: 100vh;
-    color: var(--color-text-primary);
-    line-height: 1.6;
-}
-
-/* Navigation Styles */
-nav {
-    background: var(--color-card-bg-opacity);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--color-border-light);
-    padding: var(--spacing-md) 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: var(--shadow-nav);
-}
-
-.nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--spacing-xl);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-nav h1 {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.nav-links a {
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    font-weight: 500;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius-sm);
-    transition: var(--transition-ease);
-}
-
-.nav-links a:hover {
-    background: rgba(102, 126, 234, 0.1); /* Specific to primary hue */
-    color: var(--color-primary-start);
-}
-
-/* Container Styles */
-.admin-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-xl);
-}
-
-/* Card Styles */
-.login-form, .admin-dashboard, #qrCodesSection, #reviewsSection {
-    background: var(--color-card-bg-opacity);
-    backdrop-filter: blur(20px);
-    padding: var(--spacing-xxl);
-    border-radius: var(--border-radius-xl);
-    box-shadow: var(--shadow-xl);
-    margin-top: var(--spacing-xl);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.login-form::before, .admin-dashboard::before,
-#qrCodesSection::before, #reviewsSection::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--gradient-card-top-border);
-    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
-}
-
-h2 {
-    color: var(--color-text-primary);
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: var(--spacing-lg);
-    text-align: center;
-}
-
-h3 {
-    color: var(--color-text-primary);
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: var(--spacing-md);
-}
-
-/* Form Styles */
-.form-group {
-    margin-bottom: var(--spacing-lg);
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: var(--spacing-sm);
-    color: #4a5568; /* Specific, could be another text variable */
-    font-weight: 500;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 0.875rem var(--spacing-md);
-    border: 2px solid var(--color-border-default);
-    border-radius: var(--border-radius-md);
-    font-size: var(--spacing-md);
-    background: var(--color-form-bg-opacity);
-    transition: var(--transition-ease);
-    font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--color-primary-start);
-    background: var(--color-form-bg-focus-opacity);
-    box-shadow: var(--shadow-focus-ring);
-    transform: translateY(-2px);
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-/* Button Styles (Refactored to a component approach) */
-.button {
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 600;
-    padding: 0.875rem 1.5rem;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    transition: var(--transition-bezier);
-    position: relative;
-    overflow: hidden;
-    font-family: inherit;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-radius: var(--border-radius-md); /* Default button radius */
-}
-
-/* Primary Button (e.g., <button class="button button--primary">) */
-.button--primary {
-    background: var(--gradient-primary);
-    color: white;
-    box-shadow: var(--shadow-button-primary);
-}
-.button--primary:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-button-primary-hover);
-}
-.button--primary:active {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-button-primary); /* Uses base primary shadow */
-}
-
-/* Logout Button (e.g., <button class="button button--logout">) */
-.button--logout {
-    background: var(--gradient-logout-btn);
-    color: var(--color-text-primary);
-    border-radius: var(--border-radius-pill);
-    padding: 0.75rem 1.25rem;
-}
-.button--logout:hover {
-    background: var(--gradient-logout-btn-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-button-logout-hover);
-}
-
-/* Navigation Button (e.g., <a class="button button--nav">) */
-.button--nav {
-    background: var(--color-form-bg-opacity); /* Using a variant of card bg */
-    color: var(--color-text-secondary);
-    border: 2px solid var(--color-border-default);
-    margin: 0 var(--spacing-xs);
-    font-size: 0.8rem;
-    padding: 0.625rem var(--spacing-md);
-}
-.button--nav:hover {
-    background: var(--color-form-bg-focus-opacity); /* Using a variant of card bg on focus */
-    border-color: var(--color-primary-start);
-    color: var(--color-primary-start);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-button-nav-hover);
-}
-.button--nav.active {
-    background: var(--gradient-primary);
-    color: white;
-    border-color: transparent;
-    box-shadow: var(--shadow-button-primary); /* Reusing primary shadow */
-}
-
-/* Edit Button (e.g., <button class="button button--edit">) */
-.button--edit {
-    background: var(--gradient-edit-btn);
-    color: var(--color-warning-text);
-    border-radius: var(--border-radius-sm);
-}
-.button--edit:hover {
-    background: var(--gradient-edit-btn-hover);
-    color: white; /* Noticeable color change on hover */
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-button-warning-hover);
-}
-
-/* Delete Button (e.g., <button class="button button--delete">) */
-.button--delete {
-    background: var(--gradient-delete-btn);
-    color: var(--color-error);
-    border-radius: var(--border-radius-sm);
-}
-.button--delete:hover {
-    background: var(--gradient-delete-btn-hover);
-    color: white; /* Noticeable color change on hover */
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-button-danger-hover);
-}
-
-/* Download Button (e.g., <a class="button button--download">) */
-.button--download {
-    background: var(--gradient-download-btn);
-    color: var(--color-success);
-    border-radius: var(--border-radius-sm);
-    padding: 0.625rem var(--spacing-md);
-    font-size: 0.8rem;
-}
-.button--download:hover {
-    background: var(--gradient-download-btn-hover);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-button-download-hover);
-}
-
-/* --- Keep original selectors for backward compatibility for now,
-     but ideally, these would be removed and replaced with the new
-     .button--{type} classes in the HTML.
-     If retaining, ensure they don't conflict with .button or other rules.
-     For this example, I'm showing how they could *still* be used,
-     but the ideal is to refactor the HTML. --- */
-.btn {
-    /* This can directly become .button--primary if all .btn instances are primary */
-    /* Or, if .btn has specific meaning in HTML, it can inherit from .button--primary */
-    background: var(--gradient-primary); /* Duplication if .button--primary exists */
-    color: white;
-    box-shadow: var(--shadow-button-primary);
-}
-.btn:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-button-primary-hover);
-}
-.btn:active {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-button-primary);
-}
-
-#logoutBtn { /* If this is the only logout button, it's fine, but .button--logout is more flexible */
-    background: var(--gradient-logout-btn);
-    color: var(--color-text-primary);
-    border-radius: var(--border-radius-pill);
-    padding: 0.75rem 1.25rem;
-}
-#logoutBtn:hover {
-    background: var(--gradient-logout-btn-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-button-logout-hover);
-}
-/* ... similar for .edit-btn, .delete-btn, .nav-btn, .download-btn if you want to keep IDs/specific classes */
-
-
-/* Map Styles */
-#map {
-    height: 300px;
-    margin-bottom: var(--spacing-md);
-    border-radius: var(--border-radius-md);
-    border: 2px solid var(--color-border-default);
-    overflow: hidden;
-    box-shadow: var(--shadow-base); /* Using a new base shadow variable */
-}
-
-/* Facilities Group */
-.facilities-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-md);
-    margin: var(--spacing-md) 0;
-    padding: var(--spacing-lg);
-    background: var(--color-card-bg-light-opacity); /* Using opacity variable */
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--color-border-default);
-}
-
-.facility-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem; /* Still a specific px value, could be var(--spacing-sm) */
-    padding: 0.75rem;
-    background: white;
-    border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-ease);
-}
-
-.facility-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-base); /* Hover gets a slightly larger shadow */
-}
-
-.facility-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--color-primary-start);
-}
-
-.facility-item label {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #4a5568;
-    cursor: pointer;
-}
-
-/* Coordinates Group */
-.coordinates-group {
-    display: flex;
-    gap: var(--spacing-md);
-}
-
-.coordinates-group .form-group {
-    flex: 1;
-}
-
-/* Success and Error Messages */
-.success-message {
-    color: var(--color-success);
-    background: var(--gradient-message-success);
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-radius: var(--border-radius-md);
-    margin-top: var(--spacing-md);
-    border: 1px solid var(--color-success); /* Changed to use success color for consistency */
-    box-shadow: var(--shadow-message);
-}
-
-.error-message {
-    color: var(--color-error);
-    background: var(--gradient-message-error);
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-radius: var(--border-radius-md);
-    margin-top: var(--spacing-md);
-    border: 1px solid var(--color-error); /* Changed to use error color for consistency */
-    box-shadow: var(--shadow-message);
-}
-
-/* Toilet List */
-#toiletList {
-    margin-top: var(--spacing-xl);
-}
-
-.toilet-item {
-    background: var(--gradient-section-bg); /* Reusing a common gradient */
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-md);
-    border-radius: var(--border-radius-lg);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: var(--shadow-base);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: var(--transition-ease);
-}
-
-.toilet-item:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-}
-
-.toilet-info h3 {
-    margin: 0;
-    color: var(--color-text-primary);
-    font-size: 1.2rem;
-}
-
-.toilet-actions {
-    display: flex;
-    gap: 0.75rem; /* Still a specific value */
-}
-
-/* QR Codes Section */
-.qr-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--spacing-lg);
-    padding: var(--spacing-md) 0;
-}
-
-.qr-card {
-    background: var(--gradient-section-bg); /* Reusing a common gradient */
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-lg);
-    text-align: center;
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: var(--transition-ease);
-}
-
-.qr-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
-
-<<<<<<< HEAD
-.qr-card h3 {
-    margin: var(--spacing-md) 0;
-    color: var(--color-text-primary);
-    font-size: 1.1rem;
-}
-
-.qr-card p {
-    color: var(--color-text-secondary);
-    margin-bottom: var(--spacing-md);
-    font-size: 0.9rem;
-}
-
-.qr-card img {
-    max-width: 200px;
-    height: auto;
-    margin: var(--spacing-md) auto;
-    display: block;
-    border-radius: var(--border-radius-sm);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Reviews Section */
-.reviews-filters {
-    display: flex;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    background: var(--gradient-section-bg);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--color-border-default);
-}
-
-.reviews-filters select {
-    min-width: 200px;
-    padding: 0.75rem;
-    border: 2px solid var(--color-border-default);
-    border-radius: var(--border-radius-sm);
-    background: white;
-    font-family: inherit;
-}
-
-.review-list {
-    display: grid;
-    gap: var(--spacing-md);
-}
-
-.review-card {
-    background: var(--gradient-section-bg); /* Reusing a common gradient */
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-lg);
-    box-shadow: var(--shadow-base);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: var(--transition-ease);
-}
-
-.review-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.review-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 1px solid var(--color-border-default);
-}
-
-.review-toilet-name {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-.review-rating, .star-rating {
-    color: var(--color-rating);
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.review-comment {
-    color: var(--color-text-secondary);
-    margin: var(--spacing-md) 0;
-    line-height: 1.6;
-    font-style: italic;
-}
-
-.review-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-    color: var(--color-text-light);
-}
-
-.no-reviews {
-    text-align: center;
-    padding: var(--spacing-xxxl);
-    color: var(--color-text-secondary);
-    background: var(--gradient-section-bg);
-    border-radius: var(--border-radius-lg);
-    margin-top: var(--spacing-md);
-    border: 2px dashed var(--color-border-default);
-}
-
-/* Scanner Styles */
-#scanner-container {
-    margin: var(--spacing-lg) 0;
-    text-align: center;
-    padding: var(--spacing-lg);
-    background: var(--gradient-section-bg);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--color-border-default);
-}
-
-#scanner-video {
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-base);
-}
-
-#scanned-data {
-    margin-top: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    background: var(--gradient-section-bg);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--color-border-default);
-}
-
-/* Register Section */
-.register-section {
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-xl);
-    border-top: 2px solid var(--color-border-default);
-    background: linear-gradient(135deg, rgba(248, 250, 252, 0.5) 0%, rgba(255, 255, 255, 0.5) 100%); /* Specific, consider adding to vars */
-    padding: var(--spacing-xl);
-    border-radius: var(--border-radius-md);
-}
-
-/* Loading State */
-.loading {
-    text-align: center;
-    padding: var(--spacing-xl);
-    font-size: 1.1rem;
-    color: var(--color-text-secondary);
-    background: var(--gradient-section-bg);
-    border-radius: var(--border-radius-md);
-    border: 2px dashed var(--color-border-default);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .nav-container {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        padding: 0 var(--spacing-md);
-    }
-
-    .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .admin-container {
-        padding: var(--spacing-md);
-    }
-
-    .login-form, .admin-dashboard, #qrCodesSection, #reviewsSection {
-        padding: var(--spacing-lg);
-    }
-
-    .coordinates-group {
-        flex-direction: column;
-    }
-
-    .facilities-group {
-        grid-template-columns: 1fr;
-    }
-
-    .toilet-item {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        text-align: center;
-    }
-
-    .reviews-filters {
-        flex-direction: column;
-    }
-
-    .qr-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Smooth Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.login-form, .admin-dashboard, #qrCodesSection, #reviewsSection {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-/* Accessibility: Reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-    .login-form, .admin-dashboard, #qrCodesSection, #reviewsSection {
-        animation: none;
-    }
-    .button:hover, .toilet-item:hover, .qr-card:hover, .review-card:hover {
-        transform: none; /* Disable transform for hover */
-    }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f5f9; /* Consider a variable for this too */
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--gradient-primary);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%); /* Slightly darker version of primary gradient */
-}
-=======
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 1rem;
+        }
+
+        #map {
+            height: 300px;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .facilities-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .facility-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #d4edda;
+            border-radius: 4px;
+        }
+
+        .coordinates-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .coordinates-group {
+                flex-direction: row;
+            }
+        }
+
+        .coordinates-group .form-group {
+            flex: 1;
+        }
+
+        #toiletList {
+            margin-top: 2rem;
+        }
+
+        .toilet-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column; /* Mobile: stack vertically */
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .toilet-item {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 0;
+            }
+        }
+
+        .toilet-info h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .toilet-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+        }
+
+        .nav-btn {
+            background: #28a745;
+            margin: 0 5px;
+        }
+
+        .nav-btn:hover {
+            background: #218838;
+        }
+
+        .nav-btn.active {
+            background: #218838;
+            box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
+        }
+
+        #qrCodesSection, #reviewsSection {
+            display: none;
+            margin-top: 2rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .qr-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .qr-card h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .qr-card p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .qr-card img {
+            max-width: 200px;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+        }
+
+        .qr-card .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .qr-card .download-btn:hover {
+            background: #218838;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .review-list {
+            margin-top: 1rem;
+        }
+
+        .review-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .reviews-filters {
+            display: flex;
+            flex-direction: column; /* Mobile: stack vertically */
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .reviews-filters {
+                flex-direction: row;
+                gap: 1rem;
+            }
+        }
+
+        .reviews-filters select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%; /* Mobile: full width */
+            min-height: 44px;
+        }
+
+        @media (min-width: 768px) {
+            .reviews-filters select {
+                min-width: 200px;
+                width: auto;
+            }
+        }
+
+        .review-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .review-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .review-toilet-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .review-rating {
+            color: #ffc107;
+            font-size: 1.1rem;
+        }
+
+        .review-comment {
+            color: #666;
+            margin: 1rem 0;
+            line-height: 1.5;
+        }
+
+        .review-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .star-rating {
+            color: #ffc107;
+        }
+
+        .reviews-summary {
+            margin-bottom: 1.5rem;
+        }
+        .summary-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .summary-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .summary-card p {
+            margin: 0.25rem 0;
+            color: #666;
+        }
+
+        #scanner-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #scanned-data {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
         #scanned-data h3 {
             margin-bottom: 15px;
             color: #333;
@@ -858,7 +475,6 @@ h3 {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
->>>>>>> master
     </style>
 </head>
 <body>
@@ -1043,77 +659,50 @@ h3 {
     <script src="js/logger.js"></script>
     <script src="js/utils.js"></script>
     <script>
-<<<<<<< HEAD
-        // Configure API URL based on environment
-        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3000'
-            : window.location.origin;
-=======
         Logger.info('ADMIN', 'Admin panel JavaScript starting...');
 
         const API_URL = ToiletReviewUtils.getApiUrl();
 
         Logger.info('ADMIN', 'API URL set to:', { url: API_URL });
->>>>>>> master
 
-        // Add debugging utility
-        const debug = {
-            log: (message, data) => {
-                console.log(`[DEBUG] ${message}`, data || '');
-            },
-            error: (message, error) => {
-                console.error(`[ERROR] ${message}`, error);
-            }
-        };
+        // async function makeApiRequest(endpoint, options = {}) {
+        //     const token = localStorage.getItem('adminToken');
+        //     const defaultHeaders = {
+        //         'Content-Type': 'application/json',
+        //     };
 
-<<<<<<< HEAD
-        async function makeApiRequest(endpoint, options = {}) {
-            const token = localStorage.getItem('adminToken');
-            const defaultHeaders = {
-                'Content-Type': 'application/json',
-            };
+        //     if (token) {
+        //         defaultHeaders['Authorization'] = `Bearer ${token}`;
+        //     }
 
-            if (token) {
-                defaultHeaders['Authorization'] = `Bearer ${token}`;
-            }
+        //     try {
+        //         console.log(`Making API request to: ${API_URL}${endpoint}`);
+        //         const response = await fetch(`${API_URL}${endpoint}`, {
+        //             ...options,
+        //             headers: {
+        //                 ...defaultHeaders,
+        //                 ...options.headers,
+        //             },
+        //         });
 
-            try {
-                debug.log(`Making API request to: ${API_URL}${endpoint}`);
-                const response = await fetch(`${API_URL}${endpoint}`, {
-                    ...options,
-                    headers: {
-                        ...defaultHeaders,
-                        ...options.headers,
-                    },
-                });
+        //         console.log(`Response status: ${response.status}`);
+        //         const data = await response.json();
+        //         console.log('Response data:', data);
 
-                debug.log(`Response status: ${response.status}`);
+        //         if (!response.ok) {
+        //             throw new Error(data.message || 'API request failed');
+        //         }
 
-                let data;
-                const contentType = response.headers.get('content-type');
+        //         return data;
+        //     } catch (error) {
+        //         console.error('API request error:', error);
+        //         throw error;
+        //     }
+        // }
 
-                if (contentType && contentType.includes('application/json')) {
-                    data = await response.json();
-                    debug.log('Response data:', data);
-                } else {
-                    data = await response.text();
-                    debug.log('Response text:', data);
-                }
 
-                if (!response.ok) {
-                    throw new Error((data && data.message) || data || 'API request failed');
-                }
-
-                return data;
-            } catch (error) {
-                debug.error('API request error:', error);
-                throw error;
-            }
-        }
-=======
         // Use shared API utility
         const makeApiRequest = ToiletReviewUtils.makeAuthenticatedRequest;
->>>>>>> master
 
         const loginForm = document.getElementById('loginForm');
         const adminDashboard = document.getElementById('adminDashboard');
@@ -1124,14 +713,10 @@ h3 {
         let map;
         let marker;
         let codeReader = null;
-<<<<<<< HEAD
-        let isProcessingScan = false;
-=======
         const scanToiletForm = document.getElementById('scanToiletForm');
         const scannerVideo = document.getElementById('scanner-video');
         const scannedData = document.getElementById('scanned-data');
         const unknownToiletForm = document.getElementById('unknownToiletForm');
->>>>>>> master
 
         // Use shared utilities directly to avoid any conflicts
 
@@ -1214,18 +799,10 @@ h3 {
                     body: JSON.stringify({ email, password })
                 });
 
-               function debug() {
-                let one = 0 ;
-                one ++ ;
-                console.log("if the count gets incresing then it must have get hited");
-               }
-
                 if (data.token && data.user.role === 'admin') {
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('adminEmail', data.user.email);
-                     console.log(typeof(data)  + "plese come on the console");
-
-                    showDashboard().apply(debug());
+                    showDashboard();
                 } else {
                     throw new Error('Unauthorized access. Admin privileges required.');
                 }
@@ -1240,24 +817,20 @@ h3 {
         // Registration form submission
         document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-<<<<<<< HEAD
-            const email = document.getElementById('registerEmail').value.trim();
-=======
             const submitBtn = e.target.querySelector('button[type="submit"]');
-            const email = document.getElementById('registerEmail').value;
->>>>>>> master
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             const registerError = document.getElementById('registerError');
 
             ToiletReviewUtils.setButtonLoading(submitBtn, true);
 
             try {
-                const data = await makeApiRequest('/api/admin/register', {
+                const data = await makeApiRequest('/api/auth/register', {
                     method: 'POST',
                     body: JSON.stringify({ 
                         email, 
                         password,
-                        role: 'admin'
+                        role: 'admin' // Explicitly set role to admin
                     })
                 });
 
@@ -1269,18 +842,10 @@ h3 {
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-<<<<<<< HEAD
                 registerError.textContent = error.message || 'Registration failed. Please try again.';
-                registerError.style.display = 'block';
-                // Clear password field on error
-                document.getElementById('registerPassword').value = '';
-=======
-                const registerError = document.getElementById('registerError');
-                registerError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
                 registerError.style.display = 'block';
             } finally {
                 ToiletReviewUtils.setButtonLoading(submitBtn, false);
->>>>>>> master
             }
         });
 
@@ -1351,9 +916,8 @@ h3 {
                         marker = null;
                     }
                     
-                    // Refresh toilet list and QR codes
+                    // Refresh toilet list
                     loadToilets();
-                    loadQRCodes();
                 } else {
                     addToiletError.textContent = data.message || 'Failed to add toilet. Please try again.';
                     addToiletError.style.display = 'block';
@@ -1542,20 +1106,8 @@ h3 {
                 qrGrid.innerHTML = '';
 
                 toilets.forEach(toilet => {
-<<<<<<< HEAD
-                    // Create a more structured QR code data
-                    const qrData = {
-                        toiletId: toilet._id,
-                        name: toilet.name,
-                        location: toilet.location
-                    };
-                    
-                    const reviewUrl = `${window.location.origin}/review.html?id=${toilet._id}`;
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify(qrData))}`;
-=======
                     const reviewUrl = `${window.location.origin}/review.html?id=${toilet.id}`;
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reviewUrl)}`;
->>>>>>> master
                     
                     const qrCard = document.createElement('div');
                     qrCard.className = 'qr-card';
@@ -1598,15 +1150,6 @@ h3 {
             reviewList.innerHTML = '<div class="loading">Loading reviews...</div>';
 
             try {
-<<<<<<< HEAD
-                // Fetch both reviews and toilets data
-                const [reviews, toilets] = await Promise.all([
-                    makeApiRequest('/api/reviews/all'),
-                    makeApiRequest('/api/toilet/map')
-                ]);
-
-                // Store data for filtering
-=======
                 Logger.info('REVIEW', 'Loading all reviews and toilets...');
                 
                 const [reviews, toilets] = await Promise.all([
@@ -1621,8 +1164,6 @@ h3 {
                     Logger.error('REVIEW', 'Invalid reviews data received', { reviews });
                     throw new Error('Invalid reviews data received');
                 }
-
->>>>>>> master
                 allReviews = reviews;
                 allToilets = toilets;
 
@@ -1637,21 +1178,10 @@ h3 {
                     `;
                 });
 
-                // Display reviews
                 displayReviews();
-
             } catch (error) {
                 Logger.error('REVIEW', 'Error loading reviews', { message: error.message });
                 console.error('Error loading reviews:', error);
-<<<<<<< HEAD
-                reviewList.innerHTML = `
-                    <div class="error-message">
-                        Error loading reviews: ${error.message}
-                        <br><br>
-                        <button class="btn" onclick="loadReviews()">Try Again</button>
-                    </div>
-                `;
-=======
                 
                 if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Unauthorized')) {
                     reviewList.innerHTML = `
@@ -1670,7 +1200,6 @@ h3 {
                         </div>
                     `;
                 }
->>>>>>> master
             }
         }
 
@@ -1681,9 +1210,8 @@ h3 {
 
             let filteredReviews = [...allReviews];
 
-            // Apply filters
             if (toiletFilter) {
-                filteredReviews = filteredReviews.filter(review => review.toiletId._id === toiletFilter);
+                filteredReviews = filteredReviews.filter(review => review.toiletId === toiletFilter);
             }
 
             if (ratingFilter) {
@@ -1698,21 +1226,6 @@ h3 {
             // Sort reviews by date (newest first)
             filteredReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-<<<<<<< HEAD
-            // Create review cards
-            reviewList.innerHTML = filteredReviews.map(review => {
-                // Safely access toilet data with fallbacks
-                const toiletName = review.toiletId?.name || 'Unknown Toilet';
-                const toiletLocation = review.toiletId?.location || 'Unknown Location';
-                
-                return `
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="review-toilet-name">
-                                ${toiletName}
-                                <small>(${toiletLocation})</small>
-                            </div>
-=======
             reviewList.innerHTML = filteredReviews.map(review => {
                 const toilet = allToilets.find(t => t.id === review.toiletId);
                 const toiletName = toilet ? toilet.name : 'Unknown Toilet';
@@ -1720,43 +1233,14 @@ h3 {
                     <div class="review-card">
                         <div class="review-header">
                             <div class="review-toilet-name">${toiletName}</div>
->>>>>>> master
                             <div class="review-rating">
                                 ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
                             </div>
                         </div>
-<<<<<<< HEAD
-                        <div class="review-details">
-                            <div class="rating-breakdown">
-                                <div class="rating-item">
-                                    <span>Cleanliness:</span>
-                                    <span class="rating-stars">${'★'.repeat(review.cleanliness)}${'☆'.repeat(5-review.cleanliness)}</span>
-                                </div>
-                                <div class="rating-item">
-                                    <span>Maintenance:</span>
-                                    <span class="rating-stars">${'★'.repeat(review.maintenance)}${'☆'.repeat(5-review.maintenance)}</span>
-                                </div>
-                                <div class="rating-item">
-                                    <span>Accessibility:</span>
-                                    <span class="rating-stars">${'★'.repeat(review.accessibility)}${'☆'.repeat(5-review.accessibility)}</span>
-                                </div>
-                            </div>
-                            ${review.comment ? `
-                                <div class="review-comment">
-                                    <strong>Comment:</strong>
-                                    <p>${review.comment}</p>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="review-meta">
-                            <div>Posted on: ${new Date(review.createdAt).toLocaleString()}</div>
-                            <button class="btn delete-btn" onclick="deleteReview('${review._id}')">Delete Review</button>
-=======
                         <div class="review-comment">${review.comment || 'No comment provided'}</div>
                         <div class="review-meta">
                             <div>Posted on: ${new Date(review.createdAt).toLocaleString()}</div>
                             <div>${review.rating}/5 stars</div>
->>>>>>> master
                         </div>
                     </div>
                 `;
@@ -1770,34 +1254,33 @@ h3 {
                     <h3>Review Summary</h3>
                     <p>Total Reviews: ${filteredReviews.length}</p>
                     <p>Average Rating: ${(filteredReviews.reduce((sum, r) => sum + r.rating, 0) / filteredReviews.length).toFixed(1)} ★</p>
-                    <div class="rating-breakdown">
-                        <p>Average Cleanliness: ${(filteredReviews.reduce((sum, r) => sum + r.cleanliness, 0) / filteredReviews.length).toFixed(1)} ★</p>
-                        <p>Average Maintenance: ${(filteredReviews.reduce((sum, r) => sum + r.maintenance, 0) / filteredReviews.length).toFixed(1)} ★</p>
-                        <p>Average Accessibility: ${(filteredReviews.reduce((sum, r) => sum + r.accessibility, 0) / filteredReviews.length).toFixed(1)} ★</p>
-                    </div>
                 </div>
             `;
             reviewList.insertBefore(summary, reviewList.firstChild);
         }
 
-        // Add function to delete review
-        async function deleteReview(reviewId) {
-            if (!confirm('Are you sure you want to delete this review?')) {
-                return;
+        // Add styles for the summary card
+        const style = document.createElement('style');
+        style.textContent = `
+            .reviews-summary {
+                margin-bottom: 1.5rem;
             }
-
-            try {
-                await makeApiRequest(`/api/reviews/${reviewId}`, {
-                    method: 'DELETE'
-                });
-
-                // Reload reviews after deletion
-                loadReviews();
-            } catch (error) {
-                console.error('Error deleting review:', error);
-                alert('Failed to delete review. Please try again.');
+            .summary-card {
+                background: #f8f9fa;
+                padding: 1rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
-        }
+            .summary-card h3 {
+                margin: 0 0 0.5rem 0;
+                color: #333;
+            }
+            .summary-card p {
+                margin: 0.25rem 0;
+                color: #666;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Add event listeners for filters
         const toiletFilter = document.getElementById('toiletFilter');
@@ -1809,17 +1292,6 @@ h3 {
             ratingFilter.addEventListener('change', displayReviews);
         }
 
-<<<<<<< HEAD
-        // Add styles for the review section
-        const reviewStyles = `
-            .review-card {
-                background: white;
-                border-radius: 8px;
-                padding: 1.5rem;
-                margin-bottom: 1rem;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-=======
         // Fallback: ensure login form is visible after a delay if nothing is shown
         setTimeout(() => {
             const loginFormVisible = loginForm && loginForm.style.display !== 'none';
@@ -1832,174 +1304,56 @@ h3 {
                 hideAdminGlobalLoading();
             }
         }, 3000);
->>>>>>> master
 
-            .review-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 1rem;
-                padding-bottom: 0.5rem;
-                border-bottom: 1px solid #eee;
-            }
-
-            .review-toilet-name {
-                font-size: 1.2rem;
-                font-weight: bold;
-                color: #333;
-            }
-
-            .review-toilet-name small {
-                font-size: 0.9rem;
-                color: #666;
-                font-weight: normal;
-            }
-
-            .review-rating {
-                color: #ffc107;
-                font-size: 1.1rem;
-            }
-
-            .review-details {
-                margin: 1rem 0;
-            }
-
-            .rating-breakdown {
-                display: grid;
-                gap: 0.5rem;
-                margin-bottom: 1rem;
-            }
-
-            .rating-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0.5rem;
-                background: #f8f9fa;
-                border-radius: 4px;
-            }
-
-            .rating-stars {
-                color: #ffc107;
-            }
-
-            .review-comment {
-                margin-top: 1rem;
-                padding: 1rem;
-                background: #f8f9fa;
-                border-radius: 4px;
-            }
-
-            .review-comment p {
-                margin: 0.5rem 0 0 0;
-                color: #666;
-            }
-
-            .review-meta {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-top: 1rem;
-                padding-top: 1rem;
-                border-top: 1px solid #eee;
-                color: #666;
-                font-size: 0.9rem;
-            }
-
-            .delete-btn {
-                background: #dc3545;
-                color: white;
-                border: none;
-                padding: 0.5rem 1rem;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-
-            .delete-btn:hover {
-                background: #c82333;
-            }
-
-            .no-reviews {
-                text-align: center;
-                padding: 2rem;
-                color: #666;
-                background: #f8f9fa;
-                border-radius: 8px;
-            }
-        `;
-
-        // Add styles to document
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = reviewStyles;
-        document.head.appendChild(styleSheet);
-
-        // Update QR Scanner initialization
-        function initializeQRScanner() {
-            const scannerContainer = document.getElementById('scanner-container');
-            const scannerVideo = document.getElementById('scanner-video');
-            
-            if (!scannerContainer || !scannerVideo) {
-                console.error('Scanner elements not found');
+        unknownToiletForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                alert('Please log in to add a toilet');
                 return;
             }
 
-            // Clean up any existing scanner
-            cleanupScanner();
+            const toiletData = {
+                name: document.getElementById('scannedName').value.trim(),
+                location: document.getElementById('scannedLocation').value.trim(),
+                coordinates: {
+                    latitude: parseFloat(document.getElementById('scannedLatitude').value),
+                    longitude: parseFloat(document.getElementById('scannedLongitude').value)
+                },
+                facilities: []
+            };
 
-            // Initialize new scanner
-            codeReader = new ZXing.BrowserQRCodeReader();
-            
-            // Get available video devices
-            codeReader.getVideoInputDevices()
-                .then((videoInputDevices) => {
-                    if (videoInputDevices.length === 0) {
-                        throw new Error('No camera devices found');
-                    }
-
-                    // Use the first available camera (usually the back camera on mobile)
-                    const selectedDeviceId = videoInputDevices[0].deviceId;
-                    
-                    // Start scanning
-                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'scanner-video', (result, err) => {
-                        if (result) {
-                            try {
-                                const toiletData = JSON.parse(result.text);
-                                if (toiletData && toiletData.toiletId) {
-                                    document.getElementById('scannedName').value = toiletData.name || '';
-                                    document.getElementById('scannedLocation').value = toiletData.location || '';
-                                    document.getElementById('scannedData').style.display = 'block';
-                                    codeReader.reset();
-                                } else {
-                                    throw new Error('Invalid QR code format');
-                                }
-                            } catch (error) {
-                                console.error('Error parsing QR code data:', error);
-                                alert('Invalid QR code format. Please scan a valid toilet QR code.');
-                            }
-                        }
-                        if (err && !(err instanceof ZXing.NotFoundException)) {
-                            console.error('Scanning error:', err);
-                        }
-                    });
-                })
-                .catch((err) => {
-                    console.error('Error accessing camera:', err);
-                    alert('Error accessing camera. Please make sure you have granted camera permissions.');
+            try {
+                const data = await makeApiRequest('/api/toilet/add', {
+                    method: 'POST',
+                    body: JSON.stringify(toiletData)
                 });
-        }
 
-        // Update cleanup function
+                if (data.success) {
+                    alert('Toilet added successfully!');
+                    unknownToiletForm.reset();
+                    scannedData.style.display = 'none';
+                    loadToilets();
+                } else {
+                    throw new Error(data.message || 'Failed to add toilet');
+                }
+            } catch (error) {
+                console.error('Error adding toilet:', error);
+                alert('Failed to add toilet. Please try again.');
+            }
+        });
+
+        // Add cleanup when switching away from scanner
         function cleanupScanner() {
             if (codeReader) {
                 codeReader.reset();
                 codeReader = null;
             }
-            const scannerVideo = document.getElementById('scanner-video');
-            if (scannerVideo && scannerVideo.srcObject) {
+            if (scannerVideo.srcObject) {
                 scannerVideo.srcObject.getTracks().forEach(track => track.stop());
                 scannerVideo.srcObject = null;
             }
         }
     </script>
 </body>
-</html> 
+</html>
