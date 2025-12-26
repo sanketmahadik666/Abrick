@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Toilet Review System - Test Page</h1>
+
+    <div class="test-section">
+        <h2>Basic HTML/CSS Test</h2>
+        <p class="success">✓ HTML and CSS are loading correctly</p>
+    </div>
+
+    <div class="test-section">
+        <h2>JavaScript Test</h2>
+        <p id="js-test">Testing JavaScript...</p>
+    </div>
+
+    <div class="test-section">
+        <h2>API Connectivity Test</h2>
+        <p id="api-test">Testing API connection...</p>
+        <button onclick="testAPI()">Test API</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation Test</h2>
+        <p><a href="index.html">Go to Main Page</a></p>
+        <p><a href="admin.html">Go to Admin Panel</a></p>
+        <p><a href="review.html">Go to Review Page</a></p>
+    </div>
+
+    <script>
+        // Test JavaScript
+        document.getElementById('js-test').innerHTML = '<span class="success">✓ JavaScript is working correctly</span>';
+
+        // Test API function
+        async function testAPI() {
+            const apiTest = document.getElementById('api-test');
+            try {
+                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3000'
+                    : window.location.origin;
+
+                console.log('Testing API at:', API_URL);
+
+                const response = await fetch(`${API_URL}/api/toilet/map`);
+                console.log('API Response:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    apiTest.innerHTML = `<span class="success">✓ API is responding correctly. Found ${data.length} toilets.</span>`;
+                } else {
+                    apiTest.innerHTML = `<span class="error">✗ API responded with status ${response.status}</span>`;
+                }
+            } catch (error) {
+                console.error('API test error:', error);
+                apiTest.innerHTML = `<span class="error">✗ API connection failed: ${error.message}</span>`;
+            }
+        }
+
+        // Auto-test API on page load
+        setTimeout(testAPI, 1000);
+    </script>
+</body>
+</html>

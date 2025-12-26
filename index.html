@@ -11,7 +11,50 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="js/utils.js"></script>
     <style>
+        /* Global Loading Overlay */
+        .global-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+
+        .global-loading.hidden {
+            display: none;
+        }
+
+        .global-loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #007bff;
+            border-radius: 50%;
+            animation: globalSpin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes globalSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .global-loading-text {
+            color: #333;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+        }
+
         .hero-section {
             text-align: center;
             padding: 2rem 1rem;
@@ -411,6 +454,12 @@
         </div>
     </nav>
 
+    <!-- Global Loading Overlay -->
+    <div id="globalLoading" class="global-loading">
+        <div class="global-loading-spinner"></div>
+        <div class="global-loading-text">Loading Toilet Review System...</div>
+    </div>
+
     <main>
         <div class="hero-section">
             <h1>Welcome to Toilet Review System</h1>
@@ -585,42 +634,70 @@
         // Function to load and display toilets on the map
         async function loadToilets() {
             try {
-                console.log('Starting to load toilets...');
+                console.log('[MAP] Starting to load toilets...');
                 mapError.style.display = 'none';
                 mapLoading.style.display = 'flex';
 
                 // Clear existing markers
                 markers.clearLayers();
+                console.log('[MAP] Cleared existing markers');
 
-                // Use the correct API URL
-                const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
-                    ? 'http://localhost:3000'  // Development
-                    : '';  // Production (empty string means same origin)
+                // Use the shared API URL utility
+                const API_URL = ToiletReviewUtils.getApiUrl();
 
+                console.log('[MAP] Using API URL:', API_URL || 'same origin');
                 const response = await fetch(`${API_URL}/api/toilet/map`);
-                console.log('API Response:', response.status, response.statusText);
+                console.log('[MAP] API Response:', response.status, response.statusText);
 
                 if (!response.ok) {
+                    console.error('[MAP] API request failed:', response.status, response.statusText);
                     throw new Error(`Failed to fetch toilets: ${response.status} - ${response.statusText}`);
                 }
 
                 const toilets = await response.json();
-                console.log('Fetched toilets:', toilets);
+                console.log('[MAP] Fetched toilets:', toilets);
 
-                if (!toilets || !Array.isArray(toilets) || toilets.length === 0) {
-                    throw new Error('No toilets available in the system yet.');
+                if (!toilets || !Array.isArray(toilets)) {
+                    console.warn('[MAP] Invalid toilets data received:', toilets);
+                    throw new Error('Invalid data received from server.');
                 }
+
+                if (toilets.length === 0) {
+                    console.log('[MAP] No toilets available yet - showing empty map');
+                    // Show a message but don't throw an error
+                    mapError.textContent = 'No toilets have been added to the system yet. Check back later or contact an administrator.';
+                    mapError.style.display = 'block';
+                    map.setView([18.5204, 73.8567], 13);
+
+                    // Update stats for empty state
+                    updateMapStats([]);
+
+                    setTimeout(() => {
+                        mapLoading.style.display = 'none';
+                        hideLoadingOverlay();
+                    }, 500);
+                    return;
+                }
+
+                console.log(`[MAP] Processing ${toilets.length} toilets`);
 
                 // Update statistics
                 updateMapStats(toilets);
 
                 // Add markers with better styling
-                toilets.forEach(toilet => {
+                let validToilets = 0;
+                toilets.forEach((toilet, index) => {
                     if (!toilet.coordinates?.latitude || !toilet.coordinates?.longitude) {
-                        console.warn('Invalid coordinates for toilet:', toilet);
+                        console.warn(`[MAP] Invalid coordinates for toilet ${index}:`, toilet);
                         return;
                     }
 
+                    if (!toilet.name || !toilet.location) {
+                        console.warn(`[MAP] Missing required fields for toilet ${index}:`, toilet);
+                        return;
+                    }
+
+                    validToilets++;
                     const marker = createMarker(toilet);
                     const popupContent = `
                         <div class="toilet-popup">
@@ -642,6 +719,8 @@
                     markers.addLayer(marker);
                 });
 
+                console.log(`[MAP] Added ${validToilets} valid toilet markers`);
+
                 map.addLayer(markers);
 
                 // Fit bounds with animation
@@ -652,20 +731,26 @@
                         animate: true,
                         duration: 1
                     });
+                    console.log('[MAP] Fitted map bounds to markers');
                 } else {
                     map.setView([18.5204, 73.8567], 13);
+                    console.log('[MAP] Set default map view');
                 }
 
                 setTimeout(() => {
                     mapLoading.style.display = 'none';
+                    hideLoadingOverlay(); // Hide global loading when map is ready
+                    console.log('[MAP] Loading complete, UI updated');
                 }, 500);
 
             } catch (error) {
-                console.error('Error loading toilets:', error);
-                mapError.textContent = `${error.message}. Please make sure the server is running on port 3000.`;
+                console.error('[MAP] Error loading toilets:', error);
+                console.error('[MAP] Error stack:', error.stack);
+                mapError.textContent = `${error.message} Please make sure the server is running on port 3000.`;
                 mapError.style.display = 'block';
                 mapLoading.style.display = 'none';
                 map.setView([18.5204, 73.8567], 13);
+                hideLoadingOverlay();
             }
         }
 
@@ -692,6 +777,8 @@
         map.whenReady(() => {
             loadToilets();
         });
+
+        // Loading utilities are already available globally from utils.js
 
         // Add error handler for tile loading
         map.on('tileerror', function(e) {
@@ -726,20 +813,30 @@
 
         // Update map stats
         function updateMapStats(toilets) {
+            console.log('[STATS] Updating map statistics for', toilets?.length || 0, 'toilets');
             const statsContent = document.getElementById('map-stats-content');
+
             if (!toilets || toilets.length === 0) {
-                statsContent.innerHTML = 'No toilets available';
+                console.log('[STATS] No toilets to display statistics for');
+                statsContent.innerHTML = `
+                    <p>No toilets available yet</p>
+                    <p>Add toilets via the admin panel</p>
+                `;
                 return;
             }
 
             const totalToilets = toilets.length;
             const avgRating = toilets.reduce((sum, t) => sum + (t.averageRating || 0), 0) / totalToilets;
             const highRated = toilets.filter(t => t.averageRating >= 4).length;
+            const reviewedToilets = toilets.filter(t => t.totalReviews > 0).length;
+
+            console.log(`[STATS] Calculated: total=${totalToilets}, avg=${avgRating.toFixed(1)}, highRated=${highRated}, reviewed=${reviewedToilets}`);
 
             statsContent.innerHTML = `
                 <p>Total Toilets: ${totalToilets}</p>
                 <p>Average Rating: ${avgRating.toFixed(1)} ⭐</p>
                 <p>High Rated (4+): ${highRated}</p>
+                <p>Reviewed: ${reviewedToilets}/${totalToilets}</p>
             `;
         }
     </script>

@@ -1,0 +1,88 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+npm-debug.log*
+npm-error.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+.c9/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build output
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Log files
+logs/
+*.log
+
+# Cache files
+.cache/
+*.cache
+
+# Module cache
+.eslintcache
+.stylelintcache
+
+# Testing
+.jest/
+.mocha/
+
+# Docker volumes (if using Docker)
+volumes/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Git
+.git/
+
+# Package manager lockfiles (optional - uncomment if you want to commit these)
+# package-lock.json
+# yarn.lock
+
+# Database files (if any)
+*.db
+*.sqlite
+*.sqlite3
+
+# API keys and secrets
+secrets.json
+.secrets/
+
+# OS specific
+.vscode-settings/
+launch.json
