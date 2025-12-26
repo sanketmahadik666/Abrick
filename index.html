@@ -12,6 +12,48 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        /* Global Loading Overlay */
+        .global-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+
+        .global-loading.hidden {
+            display: none;
+        }
+
+        .global-loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #007bff;
+            border-radius: 50%;
+            animation: globalSpin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes globalSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .global-loading-text {
+            color: #333;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+        }
+
         .hero-section {
             text-align: center;
             padding: 2rem 1rem;
@@ -411,6 +453,12 @@
         </div>
     </nav>
 
+    <!-- Global Loading Overlay -->
+    <div id="globalLoading" class="global-loading">
+        <div class="global-loading-spinner"></div>
+        <div class="global-loading-text">Loading Toilet Review System...</div>
+    </div>
+
     <main>
         <div class="hero-section">
             <h1>Welcome to Toilet Review System</h1>
@@ -658,6 +706,7 @@
 
                 setTimeout(() => {
                     mapLoading.style.display = 'none';
+                    hideGlobalLoading(); // Hide global loading when map is ready
                 }, 500);
 
             } catch (error) {
@@ -692,6 +741,22 @@
         map.whenReady(() => {
             loadToilets();
         });
+
+        // Hide global loading when everything is initialized
+        function hideGlobalLoading() {
+            const globalLoading = document.getElementById('globalLoading');
+            if (globalLoading) {
+                globalLoading.classList.add('hidden');
+            }
+        }
+
+        // Show global loading
+        function showGlobalLoading() {
+            const globalLoading = document.getElementById('globalLoading');
+            if (globalLoading) {
+                globalLoading.classList.remove('hidden');
+            }
+        }
 
         // Add error handler for tile loading
         map.on('tileerror', function(e) {

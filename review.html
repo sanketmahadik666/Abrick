@@ -6,6 +6,75 @@
     <title>Submit Review - Toilet Review System</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        /* Loading States for Review Page */
+        .review-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+
+        .review-loading-overlay.hidden {
+            display: none;
+        }
+
+        .review-loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #007bff;
+            border-radius: 50%;
+            animation: reviewSpin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes reviewSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .review-loading-text {
+            color: #333;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Button Loading States */
+        button.loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        button.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: reviewButtonSpin 1s linear infinite;
+        }
+
+        @keyframes reviewButtonSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <nav>
@@ -16,6 +85,12 @@
             </div>
         </div>
     </nav>
+
+    <!-- Loading Overlay -->
+    <div id="reviewLoading" class="review-loading-overlay">
+        <div class="review-loading-spinner"></div>
+        <div class="review-loading-text">Loading Review System...</div>
+    </div>
 
     <main>
         <div id="qr-reader-section" class="scanner-container">

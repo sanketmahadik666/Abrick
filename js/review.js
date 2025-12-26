@@ -9,6 +9,31 @@ const qrReaderSection = document.getElementById('qr-reader-section');
 let currentToiletId = null;
 let qrScanner = null;
 
+// Loading functions
+function hideReviewLoading() {
+    const loading = document.getElementById('reviewLoading');
+    if (loading) {
+        loading.classList.add('hidden');
+    }
+}
+
+function showReviewLoading() {
+    const loading = document.getElementById('reviewLoading');
+    if (loading) {
+        loading.classList.remove('hidden');
+    }
+}
+
+function setButtonLoading(button, loading) {
+    if (loading) {
+        button.classList.add('loading');
+        button.disabled = true;
+    } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+    }
+}
+
 // Initialize QR Scanner
 function initializeQRScanner() {
     qrReaderSection.style.display = 'block';
@@ -107,6 +132,7 @@ function createConfetti() {
 // Handle review submission
 reviewForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = reviewForm.querySelector('button[type="submit"]');
 
     const reviewData = {
         toiletId: currentToiletId,
@@ -116,6 +142,8 @@ reviewForm.addEventListener('submit', async (e) => {
         accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
         comment: document.getElementById('comments').value
     };
+
+    setButtonLoading(submitBtn, true);
 
     try {
         const response = await fetch('/api/review/submit', {
@@ -135,7 +163,7 @@ reviewForm.addEventListener('submit', async (e) => {
         // Hide review form and toilet info
         reviewFormSection.style.display = 'none';
         toiletInfo.style.display = 'none';
-        
+
         // Show success message with animations
         successMessage.style.display = 'block';
         createConfetti();
@@ -144,6 +172,8 @@ reviewForm.addEventListener('submit', async (e) => {
     } catch (error) {
         console.error('Error submitting review:', error);
         alert('Failed to submit review. Please try again.');
+    } finally {
+        setButtonLoading(submitBtn, false);
     }
 });
 
@@ -179,4 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize QR scanner if no toilet ID in URL
         qrScanner = initializeQRScanner();
     }
+
+    // Hide loading after initialization
+    setTimeout(hideReviewLoading, 500);
 }); 

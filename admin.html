@@ -352,6 +352,74 @@
             margin-bottom: 15px;
             color: #333;
         }
+
+        /* Global Loading Overlay for Admin */
+        .admin-global-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+        }
+
+        .admin-global-loading.hidden {
+            display: none;
+        }
+
+        .admin-loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #007bff;
+            border-radius: 50%;
+            animation: adminSpin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes adminSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .admin-loading-text {
+            color: #333;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Button Loading States */
+        .btn.loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: buttonSpin 1s linear infinite;
+        }
+
+        @keyframes buttonSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -367,6 +435,12 @@
             </div>
         </div>
     </nav>
+
+    <!-- Global Loading Overlay for Admin -->
+    <div id="adminGlobalLoading" class="admin-global-loading">
+        <div class="admin-loading-spinner"></div>
+        <div class="admin-loading-text">Loading Admin Dashboard...</div>
+    </div>
 
     <div class="admin-container">
         <div id="loginForm" class="login-form">
@@ -627,6 +701,32 @@
         const scannedData = document.getElementById('scanned-data');
         const unknownToiletForm = document.getElementById('unknownToiletForm');
 
+        // Admin loading functions
+        function hideAdminGlobalLoading() {
+            const globalLoading = document.getElementById('adminGlobalLoading');
+            if (globalLoading) {
+                globalLoading.classList.add('hidden');
+            }
+        }
+
+        function showAdminGlobalLoading() {
+            const globalLoading = document.getElementById('adminGlobalLoading');
+            if (globalLoading) {
+                globalLoading.classList.remove('hidden');
+            }
+        }
+
+        // Button loading states
+        function setButtonLoading(button, loading) {
+            if (loading) {
+                button.classList.add('loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
         // Check if user is already logged in
         const token = localStorage.getItem('adminToken');
         if (token) {
@@ -661,9 +761,13 @@
         // Login form submission
         document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const loginError = document.getElementById('loginError');
+
+            setButtonLoading(submitBtn, true);
+            loginError.style.display = 'none';
 
             try {
                 const data = await makeApiRequest('/api/auth/login', {
@@ -679,14 +783,19 @@
             } catch (error) {
                 loginError.textContent = error.message || 'Login failed. Please check your credentials.';
                 loginError.style.display = 'block';
+            } finally {
+                setButtonLoading(submitBtn, false);
             }
         });
 
         // Registration form submission
         document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
+
+            setButtonLoading(submitBtn, true);
 
             try {
                 const data = await makeApiRequest('/api/auth/register', {
@@ -702,14 +811,22 @@
                 console.error('Registration error:', error);
                 const registerError = document.getElementById('registerError');
                 registerError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
+                registerError.style.display = 'block';
+            } finally {
+                setButtonLoading(submitBtn, false);
             }
         });
 
         // Add toilet form submission
         addToiletForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = addToiletForm.querySelector('button[type="submit"]');
             const addToiletError = document.getElementById('addToiletError');
             const addToiletSuccess = document.getElementById('addToiletSuccess');
+
+            setButtonLoading(submitBtn, true);
+            addToiletError.style.display = 'none';
+            addToiletSuccess.style.display = 'none';
 
             try {
                 // Get form values
@@ -750,7 +867,7 @@
 
                 console.log('Submitting toilet data:', toiletData);
 
-                const data = await makeApiRequest('/api/admin/toilet/add', {
+                const data = await makeApiRequest('/api/toilet/add', {
                     method: 'POST',
                     body: JSON.stringify(toiletData)
                 });
@@ -779,6 +896,8 @@
                 addToiletError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
                 addToiletError.style.display = 'block';
                 addToiletSuccess.style.display = 'none';
+            } finally {
+                setButtonLoading(submitBtn, false);
             }
         });
 
@@ -789,6 +908,8 @@
             document.getElementById('logoutBtn').style.display = 'inline-block';
             initMap();
             loadToilets();
+            // Hide loading after a short delay to ensure UI is rendered
+            setTimeout(hideAdminGlobalLoading, 500);
         }
 
         // Load existing toilets
@@ -818,8 +939,8 @@
                         <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} (${toilet.totalReviews || 0} reviews)</p>
                     </div>
                     <div class="toilet-actions">
-                        <button class="btn edit-btn" onclick="editToilet('${toilet._id}')">Edit</button>
-                        <button class="btn delete-btn" onclick="deleteToilet('${toilet._id}')">Delete</button>
+                        <button class="btn edit-btn" onclick="editToilet('${toilet.id}')">Edit</button>
+                        <button class="btn delete-btn" onclick="deleteToilet('${toilet.id}')">Delete</button>
                     </div>
                 `;
                 toiletList.appendChild(toiletElement);
@@ -836,7 +957,7 @@
         async function deleteToilet(id) {
             if (confirm('Are you sure you want to delete this toilet?')) {
                 try {
-                    const data = await makeApiRequest(`/api/admin/toilet/${id}`, {
+                    const data = await makeApiRequest(`/api/toilet/${id}`, {
                         method: 'DELETE'
                     });
 
@@ -924,7 +1045,7 @@
                 qrGrid.innerHTML = '';
 
                 toilets.forEach(toilet => {
-                    const reviewUrl = `${window.location.origin}/review.html?id=${toilet._id}`;
+                    const reviewUrl = `${window.location.origin}/review.html?id=${toilet.id}`;
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reviewUrl)}`;
                     
                     const qrCard = document.createElement('div');
@@ -975,7 +1096,7 @@
 
             try {
                 const [reviews, toilets] = await Promise.all([
-                    makeApiRequest('/api/reviews/all', {
+                    makeApiRequest('/api/review/all', {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -995,7 +1116,7 @@
                 toiletFilter.innerHTML = '<option value="">All Toilets</option>';
                 allToilets.forEach(toilet => {
                     toiletFilter.innerHTML += `
-                        <option value="${toilet._id}">${toilet.name} (${toilet.location})</option>
+                        <option value="${toilet.id}">${toilet.name} (${toilet.location})</option>
                     `;
                 });
 
@@ -1045,21 +1166,25 @@
             // Sort reviews by date (newest first)
             filteredReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            reviewList.innerHTML = filteredReviews.map(review => `
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="review-toilet-name">${review.toiletName}</div>
-                        <div class="review-rating">
-                            ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+            reviewList.innerHTML = filteredReviews.map(review => {
+                const toilet = allToilets.find(t => t.id === review.toiletId);
+                const toiletName = toilet ? toilet.name : 'Unknown Toilet';
+                return `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="review-toilet-name">${toiletName}</div>
+                            <div class="review-rating">
+                                ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+                            </div>
+                        </div>
+                        <div class="review-comment">${review.comment || 'No comment provided'}</div>
+                        <div class="review-meta">
+                            <div>Posted on: ${new Date(review.createdAt).toLocaleString()}</div>
+                            <div>${review.rating}/5 stars</div>
                         </div>
                     </div>
-                    <div class="review-comment">${review.comment || 'No comment provided'}</div>
-                    <div class="review-meta">
-                        <div>Posted on: ${new Date(review.createdAt).toLocaleString()}</div>
-                        <div>${review.rating}/5 stars</div>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             // Add summary at the top
             const summary = document.createElement('div');
