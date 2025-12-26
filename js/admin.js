@@ -10,7 +10,7 @@ const viewReviewsBtn = document.getElementById('viewReviewsBtn');
 const dashboardContent = document.getElementById('dashboardContent');
 
 // State
-let token = localStorage.getItem('token');
+let token = localStorage.getItem('adminToken');
 
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,35 +21,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Add debugging utility
+const debug = {
+    log: (message, data) => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] ${message}`, data || '');
+        }
+    },
+    error: (message, error) => {
+        console.error(`[ERROR] ${message}`, error);
+    }
+};
+
+// Update makeApiRequest with debugging
+async function makeApiRequest(endpoint, options = {}) {
+    const token = localStorage.getItem('adminToken');
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+    };
+
+    if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+        debug.log(`Making API request to: ${API_URL}${endpoint}`);
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            ...options,
+            headers: {
+                ...defaultHeaders,
+                ...options.headers,
+            },
+        });
+
+        debug.log(`Response status: ${response.status}`);
+        let data;
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+            debug.log('Response data:', data);
+        } else {
+            data = await response.text();
+            debug.log('Response text:', data);
+        }
+
+        if (!response.ok) {
+            throw new Error((data && data.message) || data || 'API request failed');
+        }
+
+        return data;
+    } catch (error) {
+        debug.error('API request error:', error);
+        throw error;
+    }
+}
+
 // Admin Authentication
 adminLoginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const loginError = document.getElementById('loginError');
+
+    debug.log('Attempting login with email:', email);
 
     try {
-        const response = await fetch('/api/admin/login', {
+        const data = await makeApiRequest('/api/auth/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
-        console.log('Login response:', data);
-
-        if (response.ok) {
-            token = data.token;
-            localStorage.setItem('token', token);
+        if (data.token && data.user.role === 'admin') {
+            debug.log('Login successful, saving token');
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('adminEmail', data.user.email);
             showDashboard();
-            alert('Login successful!');
         } else {
-            alert(data.message || 'Login failed. Please check your credentials.');
+            throw new Error('Unauthorized access. Admin privileges required.');
         }
     } catch (error) {
-        console.error('Login error:', error);
-        alert('Login failed. Please try again.');
+        debug.error('Login failed:', error);
+        loginError.textContent = error.message || 'Login failed. Please check your credentials.';
+        loginError.style.display = 'block';
     }
 });
 

@@ -25,17 +25,35 @@ router.get('/map', async (req, res) => {
     }
 });
 
-// Get single toilet (public)
-router.get('/:id', async (req, res) => {
+// Search toilets by location (public)
+router.get('/search/nearby', async (req, res) => {
     try {
+<<<<<<< HEAD
+        const { lat, lng, radius = 5000 } = req.query; // radius in meters, default 5km
+
+        const toilets = await Toilet.find({
+            coordinates: {
+                $near: {
+                    $geometry: {
+                        type: 'Point',
+                        coordinates: [parseFloat(lng), parseFloat(lat)]
+                    },
+                    $maxDistance: parseInt(radius)
+                }
+            }
+        });
+
+        res.json(toilets);
+=======
         const toilet = await Toilet.findById(req.params.id);
         if (!toilet) {
             return res.status(404).json({ message: 'Toilet not found' });
         }
         res.json(toilet.toObject());
+>>>>>>> master
     } catch (err) {
-        console.error('Error fetching toilet:', err);
-        res.status(500).json({ message: 'Error fetching toilet details' });
+        console.error('Error searching toilets:', err);
+        res.status(500).json({ message: 'Error searching toilets' });
     }
 });
 
@@ -75,8 +93,27 @@ router.post('/add', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
+// Get single toilet (public)
+router.get('/:id', async (req, res) => {
+    try {
+        const toilet = await Toilet.findById(req.params.id);
+        if (!toilet) {
+            return res.status(404).json({ message: 'Toilet not found' });
+        }
+        res.json(toilet);
+    } catch (err) {
+        console.error('Error fetching toilet:', err);
+        res.status(500).json({ message: 'Error fetching toilet details' });
+    }
+});
+
+// Update toilet (admin only)
+router.put('/:id', protect, admin, async (req, res) => {
+=======
 // Update toilet (public for demo)
 router.put('/:id', async (req, res) => {
+>>>>>>> master
     try {
         const { name, location, description, coordinates, facilities } = req.body;
 
@@ -116,30 +153,6 @@ router.delete('/:id', async (req, res) => {
     } catch (err) {
         console.error('[TOILET] Error deleting toilet:', err.message);
         res.status(500).json({ message: 'Error deleting toilet' });
-    }
-});
-
-// Search toilets by location (public)
-router.get('/search/nearby', async (req, res) => {
-    try {
-        const { lat, lng, radius = 5000 } = req.query; // radius in meters, default 5km
-
-        const toilets = await Toilet.find({
-            coordinates: {
-                $near: {
-                    $geometry: {
-                        type: 'Point',
-                        coordinates: [parseFloat(lng), parseFloat(lat)]
-                    },
-                    $maxDistance: parseInt(radius)
-                }
-            }
-        });
-
-        res.json(toilets);
-    } catch (err) {
-        console.error('Error searching toilets:', err);
-        res.status(500).json({ message: 'Error searching toilets' });
     }
 });
 
