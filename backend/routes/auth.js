@@ -7,11 +7,19 @@ const { protect } = require('../middleware/auth');
 // Register a new user
 router.post('/register', async (req, res) => {
     try {
+        console.log('[AUTH] Register attempt with email:', req.body.email);
         const { email, password } = req.body;
+
+        // Validate required fields
+        if (!email || !password) {
+            console.log('[AUTH] Register failed: Missing email or password');
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
 
         // Check if user already exists
         let user = await User.findOne({ email });
         if (user) {
+            console.log('[AUTH] Register failed: User already exists:', email);
             return res.status(400).json({ message: 'User already exists' });
         }
 
@@ -23,6 +31,7 @@ router.post('/register', async (req, res) => {
         });
 
         await user.save();
+        console.log('[AUTH] Register successful: New user created:', email);
 
         // Create token
         const token = jwt.sign(
@@ -40,7 +49,7 @@ router.post('/register', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Registration error:', err);
+        console.error('[AUTH] Registration error:', err.message);
         res.status(500).json({ message: 'Error in user registration' });
     }
 });
@@ -48,20 +57,30 @@ router.post('/register', async (req, res) => {
 // Login user
 router.post('/login', async (req, res) => {
     try {
+        console.log('[AUTH] Login attempt with email:', req.body.email);
         const { email, password } = req.body;
+
+        // Validate required fields
+        if (!email || !password) {
+            console.log('[AUTH] Login failed: Missing email or password');
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
 
         // Check if user exists
         const user = await User.findOne({ email });
         if (!user) {
+            console.log('[AUTH] Login failed: User not found:', email);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         // Check password
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
+            console.log('[AUTH] Login failed: Invalid password for user:', email);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        console.log('[AUTH] Login successful:', email);
         // Create token
         const token = jwt.sign(
             { id: user.id },
@@ -78,7 +97,7 @@ router.post('/login', async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Login error:', err);
+        console.error('[AUTH] Login error:', err.message);
         res.status(500).json({ message: 'Error in user login' });
     }
 });
@@ -86,13 +105,16 @@ router.post('/login', async (req, res) => {
 // Get current user
 router.get('/me', protect, async (req, res) => {
     try {
+        console.log('[AUTH] /me request for user ID:', req.user.id);
         const user = await User.findById(req.user.id);
         if (!user) {
+            console.log('[AUTH] User not found:', req.user.id);
             return res.status(404).json({ message: 'User not found' });
         }
+        console.log('[AUTH] /me successful for:', user.email);
         res.json(user.toObject());
     } catch (err) {
-        console.error('Get user error:', err);
+        console.error('[AUTH] Get user error:', err.message);
         res.status(500).json({ message: 'Error getting user data' });
     }
 });

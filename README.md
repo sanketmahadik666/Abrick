@@ -42,10 +42,51 @@ A comprehensive web application for reviewing and rating public toilet facilitie
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
 
-### Setup
+- **Node.js** (v16 or higher) - [Download from nodejs.org](https://nodejs.org/)
+- **npm** (comes with Node.js)
+
+To verify installation:
+```bash
+node --version
+npm --version
+```
+
+If Node.js is not installed, install it using your package manager:
+
+**Ubuntu/Debian:**
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**macOS (with Homebrew):**
+```bash
+brew install node
+```
+
+**Windows:**
+Download and run the installer from [nodejs.org](https://nodejs.org/)
+
+### Quick Start (Recommended)
+
+1. **Run the setup script**
+   ```bash
+   ./setup.sh
+   ```
+
+2. **Start the application**
+   ```bash
+   ./start.sh
+   ```
+
+3. **Open in browser**
+   ```
+   http://localhost:3000
+   ```
+
+### Manual Setup
+
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
@@ -58,17 +99,93 @@ A comprehensive web application for reviewing and rating public toilet facilitie
    npm install
    ```
 
-3. **Start the server**
+3. **Configure environment**
    ```bash
+   # Create .env file in backend directory
+   cat > backend/.env << EOF
+   PORT=3000
+   JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+   NODE_ENV=development
+   EOF
+   ```
+
+4. **Start the server**
+   ```bash
+   cd backend
    npm start
    # or for development
    npm run dev
    ```
 
-4. **Open in browser**
+5. **Open in browser**
    ```
    http://localhost:3000
    ```
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite using Jest.
+
+### Running Tests
+
+First, ensure dependencies are installed:
+```bash
+cd backend
+npm install
+```
+
+Then run the tests:
+```bash
+# Run unit tests only (recommended - handles dependencies automatically)
+./test.sh
+
+# Run end-to-end tests (full browser automation)
+./test.sh e2e
+
+# Run ALL tests (unit + e2e with full coverage)
+./test.sh all
+
+# Or run directly with npm:
+npm test              # Unit tests only
+npm run test:e2e      # End-to-end tests only
+npm run test:all      # All tests
+
+# Run with coverage report
+npm run test:coverage        # Unit test coverage
+npm run test:coverage:all    # Full coverage (unit + e2e)
+
+# Run tests in watch mode (for development)
+npm run test:watch
+
+# Run specific test file
+npx jest tests/models/User.test.js
+```
+
+### Test Coverage
+
+The comprehensive test suite covers:
+
+#### **Unit Tests (90%+ Coverage)**
+- **User Model**: Authentication, password hashing, validation
+- **Toilet Model**: CRUD operations, geospatial queries
+- **Review Model**: Rating calculations, aggregations
+- **API Routes**: Authentication, toilet management, review submission, error handling
+- **Middleware**: JWT authentication protection
+- **Integration**: Full application workflows and data consistency
+
+#### **End-to-End Tests (Browser Automation)**
+- **Frontend Navigation**: Page loading, routing, responsive design
+- **User Interactions**: Form submissions, button clicks, navigation
+- **Map Functionality**: Leaflet integration, marker display
+- **Review Workflow**: Complete review submission process
+- **Admin Panel**: Authentication, dashboard functionality
+- **Error Handling**: 404 pages, network failures, validation errors
+- **Performance**: Load times, resource loading, mobile compatibility
+- **Cross-browser**: Responsive design across viewports
+
+### Writing New Tests
+
+See `DEBUG.md` for detailed testing guidelines and templates.
 
 ## 📚 API Documentation
 
@@ -345,6 +462,52 @@ Authorization: Bearer <jwt_token>
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Admin panel not loading:**
+- Open `test.html` first to verify basic functionality
+- Check browser console for JavaScript errors
+- Clear browser cache and localStorage
+- Ensure server is running on port 3000
+
+**Server won't start:**
+- Ensure Node.js and npm are installed
+- Run `npm install` in the backend directory
+- Check that port 3000 is not in use
+- Verify `.env` file exists with correct JWT_SECRET
+
+**API calls failing:**
+- Check browser console for CORS errors
+- Ensure server is running on port 3000
+- Verify API endpoints match the documentation
+- Check network tab for failed requests
+
+**Map not loading:**
+- Check internet connection for tile loading
+- Verify Leaflet library is loading correctly
+- Check browser console for JavaScript errors
+
+**Authentication issues:**
+- Clear browser localStorage and try again
+- Check JWT_SECRET in .env file
+- Verify admin registration worked correctly
+
+**JavaScript errors:**
+- Check browser developer tools console
+- Look for red error messages with stack traces
+- Common issues: missing DOM elements, network failures
+
+**Sample data not showing:**
+- Check server logs for sample data initialization
+- Verify storage arrays are being populated
+- Try restarting the server
+
+### Debug Mode
+
+For detailed logging, check the browser console and server terminal output. The application includes comprehensive logging with prefixes like `[MAP]`, `[ADMIN API]`, `[REVIEW]`, etc.
 
 ## 🤝 Contributing
 

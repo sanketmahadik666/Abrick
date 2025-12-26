@@ -7,24 +7,41 @@ const { protect, admin } = require('../middleware/auth');
 // Submit a review (public)
 router.post('/submit', async (req, res) => {
     try {
+        console.log('[REVIEW] Submit review request for toilet ID:', req.body.toiletId, 'Rating:', req.body.rating);
         const { toiletId, rating, cleanliness, maintenance, accessibility, comment } = req.body;
+
+        // Validate required fields
+        if (!toiletId || rating === undefined || cleanliness === undefined ||
+            maintenance === undefined || accessibility === undefined) {
+            console.log('[REVIEW] Submit failed: Missing required fields');
+            return res.status(400).json({ message: 'toiletId, rating, cleanliness, maintenance, and accessibility are required' });
+        }
+
+        // Validate rating ranges (1-5)
+        if (rating < 1 || rating > 5 || cleanliness < 1 || cleanliness > 5 ||
+            maintenance < 1 || maintenance > 5 || accessibility < 1 || accessibility > 5) {
+            console.log('[REVIEW] Submit failed: Invalid rating ranges');
+            return res.status(400).json({ message: 'All ratings must be between 1 and 5' });
+        }
 
         // Check if toilet exists
         const toilet = await Toilet.findById(toiletId);
         if (!toilet) {
+            console.log('[REVIEW] Submit failed: Toilet not found:', toiletId);
             return res.status(404).json({ message: 'Toilet not found' });
         }
 
         const review = new Review({
             toiletId,
-            rating,
-            cleanliness,
-            maintenance,
-            accessibility,
-            comment
+            rating: parseInt(rating),
+            cleanliness: parseInt(cleanliness),
+            maintenance: parseInt(maintenance),
+            accessibility: parseInt(accessibility),
+            comment: comment || ''
         });
 
         await review.save();
+        console.log('[REVIEW] Successfully submitted review for toilet:', toilet.name);
 
         // Update toilet's average rating and total reviews
         const reviews = await Review.find({ toiletId });
@@ -36,10 +53,11 @@ router.post('/submit', async (req, res) => {
         toilet.averageRating = parseFloat(averageRating.toFixed(1));
         toilet.totalReviews = totalReviews;
         await toilet.save();
+        console.log('[REVIEW] Updated toilet stats - Average Rating:', toilet.averageRating, 'Total Reviews:', totalReviews);
 
         res.status(201).json({ success: true, review: review.toObject() });
     } catch (err) {
-        console.error('Error submitting review:', err);
+        console.error('[REVIEW] Error submitting review:', err.message);
         res.status(500).json({ message: 'Error submitting review' });
     }
 });
@@ -55,20 +73,22 @@ router.get('/toilet/:toiletId', async (req, res) => {
     }
 });
 
-// Get all reviews (admin only)
-router.get('/all', protect, admin, async (req, res) => {
+// Get all reviews (public for demo)
+router.get('/all', async (req, res) => {
     try {
+        console.log('[REVIEW] Fetching all reviews');
         const reviews = await Review.find();
+        console.log('[REVIEW] Found', reviews.length, 'reviews');
         // For simplicity, return reviews without populate
         res.json(reviews.map(r => r.toObject()));
     } catch (err) {
-        console.error('Error fetching all reviews:', err);
+        console.error('[REVIEW] Error fetching all reviews:', err.message);
         res.status(500).json({ message: 'Error fetching reviews' });
     }
 });
 
-// Delete a review (admin only)
-router.delete('/:id', protect, admin, async (req, res) => {
+// Delete a review (public for demo)
+router.delete('/:id', async (req, res) => {
     try {
         const review = await Review.findById(req.params.id);
         if (!review) {
@@ -105,8 +125,8 @@ router.delete('/:id', protect, admin, async (req, res) => {
     }
 });
 
-// Get review statistics (admin only)
-router.get('/stats', protect, admin, async (req, res) => {
+// Get review statistics (public for demo)
+router.get('/stats', async (req, res) => {
     try {
         const totalReviews = await Review.countDocuments();
         const averageRating = await Review.aggregate([

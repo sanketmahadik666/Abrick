@@ -40,6 +40,14 @@
             margin-top: 2rem;
         }
 
+        .login-form {
+            display: block; /* Ensure login form is visible by default */
+        }
+
+        .admin-dashboard {
+            display: none; /* Ensure dashboard is hidden by default */
+        }
+
         .form-group {
             margin-bottom: 1rem;
         }
@@ -601,10 +609,14 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="js/logger.js"></script>
+    <script src="js/utils.js"></script>
     <script>
-        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3000'
-            : window.location.origin;
+        Logger.info('ADMIN', 'Admin panel JavaScript starting...');
+
+        const API_URL = ToiletReviewUtils.getApiUrl();
+
+        Logger.info('ADMIN', 'API URL set to:', { url: API_URL });
 
         // async function makeApiRequest(endpoint, options = {}) {
         //     const token = localStorage.getItem('adminToken');
@@ -642,49 +654,8 @@
         // }
 
 
-        async function makeApiRequest(endpoint, options = {}) {
-    const token = localStorage.getItem('adminToken');
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-    };
-
-    if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
-
-    try {
-        console.log(`Making API request to: ${API_URL}${endpoint}`);
-        const response = await fetch(`${API_URL}${endpoint}`, {
-            ...options,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers,
-            },
-        });
-
-        console.log(`Response status: ${response.status}`);
-
-        let data;
-        const contentType = response.headers.get('content-type');
-
-        if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-            console.log('Response data:', data);
-        } else {
-            data = await response.text(); // fallback if not JSON
-            console.log('Response text:', data);
-        }
-
-        if (!response.ok) {
-            throw new Error((data && data.message) || data || 'API request failed');
-        }
-
-        return data;
-    } catch (error) {
-        console.error('API request error:', error);
-        throw error;
-    }
-}
+        // Use shared API utility
+        const makeApiRequest = ToiletReviewUtils.makeAuthenticatedRequest;
 
         const loginForm = document.getElementById('loginForm');
         const adminDashboard = document.getElementById('adminDashboard');
@@ -695,42 +666,48 @@
         let map;
         let marker;
         let codeReader = null;
-        const scanToiletBtn = document.getElementById('scanToiletBtn');
         const scanToiletForm = document.getElementById('scanToiletForm');
         const scannerVideo = document.getElementById('scanner-video');
         const scannedData = document.getElementById('scanned-data');
         const unknownToiletForm = document.getElementById('unknownToiletForm');
 
-        // Admin loading functions
+        // Use shared utilities directly to avoid any conflicts
+
+        // Admin-specific loading functions
         function hideAdminGlobalLoading() {
-            const globalLoading = document.getElementById('adminGlobalLoading');
-            if (globalLoading) {
-                globalLoading.classList.add('hidden');
+            const overlay = document.getElementById('adminGlobalLoading');
+            if (overlay) {
+                overlay.classList.add('hidden');
             }
         }
 
         function showAdminGlobalLoading() {
-            const globalLoading = document.getElementById('adminGlobalLoading');
-            if (globalLoading) {
-                globalLoading.classList.remove('hidden');
-            }
-        }
-
-        // Button loading states
-        function setButtonLoading(button, loading) {
-            if (loading) {
-                button.classList.add('loading');
-                button.disabled = true;
-            } else {
-                button.classList.remove('loading');
-                button.disabled = false;
+            const overlay = document.getElementById('adminGlobalLoading');
+            if (overlay) {
+                overlay.classList.remove('hidden');
             }
         }
 
         // Check if user is already logged in
         const token = localStorage.getItem('adminToken');
+        Logger.auth('Admin panel initializing, token exists', { hasToken: !!token });
+
         if (token) {
+            Logger.info('ADMIN', 'Token found, attempting to show dashboard');
             showDashboard();
+        } else {
+            Logger.info('ADMIN', 'No token found, showing login form');
+            // Ensure login form is visible
+            if (loginForm) {
+                loginForm.style.display = 'block';
+                console.log('[ADMIN] Login form displayed');
+            }
+            if (adminDashboard) {
+                adminDashboard.style.display = 'none';
+                console.log('[ADMIN] Dashboard hidden');
+            }
+            // Hide loading since we're showing login
+            hideAdminGlobalLoading();
         }
 
         // Initialize map
@@ -766,7 +743,7 @@
             const password = document.getElementById('password').value;
             const loginError = document.getElementById('loginError');
 
-            setButtonLoading(submitBtn, true);
+            ToiletReviewUtils.setButtonLoading(submitBtn, true);
             loginError.style.display = 'none';
 
             try {
@@ -784,7 +761,7 @@
                 loginError.textContent = error.message || 'Login failed. Please check your credentials.';
                 loginError.style.display = 'block';
             } finally {
-                setButtonLoading(submitBtn, false);
+                ToiletReviewUtils.setButtonLoading(submitBtn, false);
             }
         });
 
@@ -795,7 +772,7 @@
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
 
-            setButtonLoading(submitBtn, true);
+            ToiletReviewUtils.setButtonLoading(submitBtn, true);
 
             try {
                 const data = await makeApiRequest('/api/auth/register', {
@@ -813,7 +790,7 @@
                 registerError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
                 registerError.style.display = 'block';
             } finally {
-                setButtonLoading(submitBtn, false);
+                ToiletReviewUtils.setButtonLoading(submitBtn, false);
             }
         });
 
@@ -824,7 +801,7 @@
             const addToiletError = document.getElementById('addToiletError');
             const addToiletSuccess = document.getElementById('addToiletSuccess');
 
-            setButtonLoading(submitBtn, true);
+            ToiletReviewUtils.setButtonLoading(submitBtn, true);
             addToiletError.style.display = 'none';
             addToiletSuccess.style.display = 'none';
 
@@ -897,30 +874,59 @@
                 addToiletError.style.display = 'block';
                 addToiletSuccess.style.display = 'none';
             } finally {
-                setButtonLoading(submitBtn, false);
+                ToiletReviewUtils.setButtonLoading(submitBtn, false);
             }
         });
 
         // Show dashboard and initialize map
         function showDashboard() {
-            loginForm.style.display = 'none';
-            adminDashboard.style.display = 'block';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            initMap();
-            loadToilets();
-            // Hide loading after a short delay to ensure UI is rendered
-            setTimeout(hideAdminGlobalLoading, 500);
+            console.log('[ADMIN] Showing dashboard...');
+            try {
+                if (loginForm) {
+                    loginForm.style.display = 'none';
+                    console.log('[ADMIN] Login form hidden');
+                }
+                if (adminDashboard) {
+                    adminDashboard.style.display = 'block';
+                    console.log('[ADMIN] Dashboard displayed');
+                }
+
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'inline-block';
+                    console.log('[ADMIN] Logout button shown');
+                }
+
+                console.log('[ADMIN] Initializing map...');
+                initMap();
+
+                console.log('[ADMIN] Loading toilets...');
+                loadToilets();
+
+                // Hide loading after a short delay to ensure UI is rendered
+                setTimeout(() => {
+                    hideAdminGlobalLoading();
+                    console.log('[ADMIN] Dashboard initialization complete');
+                }, 500);
+            } catch (error) {
+                console.error('[ADMIN] Error in showDashboard:', error);
+                hideAdminGlobalLoading();
+            }
         }
 
         // Load existing toilets
         async function loadToilets() {
+            console.log('[ADMIN] Loading toilets...');
             try {
                 const toilets = await makeApiRequest('/api/toilet/map');
+                console.log('[ADMIN] Loaded toilets:', toilets);
                 displayToilets(toilets);
             } catch (error) {
-                console.error('Error loading toilets:', error);
+                console.error('[ADMIN] Error loading toilets:', error);
                 const toiletList = document.getElementById('toiletList');
-                toiletList.innerHTML = `<div class="error-message">Error loading toilets: ${error.message}</div>`;
+                if (toiletList) {
+                    toiletList.innerHTML = `<div class="error-message">Error loading toilets: ${error.message}</div>`;
+                }
             }
         }
 
@@ -1095,21 +1101,25 @@
             }
 
             try {
+                Logger.info('REVIEW', 'Loading all reviews and toilets...');
+                
                 const [reviews, toilets] = await Promise.all([
-                    makeApiRequest('/api/review/all', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }),
+                    makeApiRequest('/api/review/all'),
                     makeApiRequest('/api/toilet/map')
                 ]);
 
+                Logger.debug('REVIEW', 'Reviews fetched', { count: reviews?.length });
+                Logger.debug('REVIEW', 'Toilets fetched', { count: toilets?.length });
+
                 if (!reviews || !Array.isArray(reviews)) {
+                    Logger.error('REVIEW', 'Invalid reviews data received', { reviews });
                     throw new Error('Invalid reviews data received');
                 }
 
                 allReviews = reviews;
                 allToilets = toilets;
+
+                Logger.success('REVIEW', 'Successfully loaded reviews and toilets');
 
                 // Populate toilet filter
                 const toiletFilter = document.getElementById('toiletFilter');
@@ -1122,8 +1132,10 @@
 
                 displayReviews();
             } catch (error) {
+                Logger.error('REVIEW', 'Error loading reviews', { message: error.message });
                 console.error('Error loading reviews:', error);
-                if (error.message.includes('401') || error.message.includes('403')) {
+                
+                if (error.message.includes('401') || error.message.includes('403') || error.message.includes('Unauthorized')) {
                     reviewList.innerHTML = `
                         <div class="error-message">
                             Authentication error. Please log in again.
@@ -1223,53 +1235,27 @@
         document.head.appendChild(style);
 
         // Add event listeners for filters
-        document.getElementById('toiletFilter').addEventListener('change', displayReviews);
-        document.getElementById('ratingFilter').addEventListener('change', displayReviews);
+        const toiletFilter = document.getElementById('toiletFilter');
+        const ratingFilter = document.getElementById('ratingFilter');
+        if (toiletFilter) {
+            toiletFilter.addEventListener('change', displayReviews);
+        }
+        if (ratingFilter) {
+            ratingFilter.addEventListener('change', displayReviews);
+        }
 
-        scanToiletBtn.addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                scannerVideo.srcObject = stream;
-                scanToiletForm.style.display = 'block';
-                adminDashboard.style.display = 'none';
-                qrCodesSection.style.display = 'none';
-                reviewsSection.style.display = 'none';
-                addToiletForm.style.display = 'none';
+        // Fallback: ensure login form is visible after a delay if nothing is shown
+        setTimeout(() => {
+            const loginFormVisible = loginForm && loginForm.style.display !== 'none';
+            const dashboardVisible = adminDashboard && adminDashboard.style.display === 'block';
 
-                codeReader = new ZXing.BrowserQRCodeReader();
-                codeReader.getVideoInputDevices()
-                    .then((videoInputDevices) => {
-                        if (videoInputDevices.length > 0) {
-                            codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'scanner-video', (result, err) => {
-                                if (result) {
-                                    try {
-                                        const toiletData = JSON.parse(result.text);
-                                        document.getElementById('scannedName').value = toiletData.name || '';
-                                        document.getElementById('scannedLocation').value = toiletData.location || '';
-                                        document.getElementById('scannedLatitude').value = toiletData.latitude || '';
-                                        document.getElementById('scannedLongitude').value = toiletData.longitude || '';
-                                        scannedData.style.display = 'block';
-                                        codeReader.reset();
-                                    } catch (error) {
-                                        console.error('Invalid QR code data:', error);
-                                        alert('Invalid QR code format');
-                                    }
-                                }
-                                if (err && !(err instanceof ZXing.NotFoundException)) {
-                                    console.error(err);
-                                }
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error accessing camera:', err);
-                        alert('Error accessing camera. Please make sure you have granted camera permissions.');
-                    });
-            } catch (error) {
-                console.error('Error starting scanner:', error);
-                alert('Error starting scanner. Please make sure you have granted camera permissions.');
+            if (!loginFormVisible && !dashboardVisible) {
+                console.log('[ADMIN] Fallback: showing login form');
+                if (loginForm) loginForm.style.display = 'block';
+                if (adminDashboard) adminDashboard.style.display = 'none';
+                hideAdminGlobalLoading();
             }
-        });
+        }, 3000);
 
         unknownToiletForm.addEventListener('submit', async (e) => {
             e.preventDefault();

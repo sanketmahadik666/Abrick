@@ -9,7 +9,7 @@ const qrReaderSection = document.getElementById('qr-reader-section');
 let currentToiletId = null;
 let qrScanner = null;
 
-// Loading functions
+// Loading functions (using shared utilities to avoid conflicts)
 function hideReviewLoading() {
     const loading = document.getElementById('reviewLoading');
     if (loading) {
@@ -24,15 +24,8 @@ function showReviewLoading() {
     }
 }
 
-function setButtonLoading(button, loading) {
-    if (loading) {
-        button.classList.add('loading');
-        button.disabled = true;
-    } else {
-        button.classList.remove('loading');
-        button.disabled = false;
-    }
-}
+// Use shared button loading utility
+const setButtonLoading = ToiletReviewUtils.setButtonLoading;
 
 // Initialize QR Scanner
 function initializeQRScanner() {
@@ -80,12 +73,18 @@ function initializeQRScanner() {
 // Load toilet information
 async function loadToiletInfo(toiletId) {
     try {
+        console.log(`[REVIEW] Loading toilet info for ID: ${toiletId}`);
         const response = await fetch(`/api/toilet/${toiletId}`);
+        console.log(`[REVIEW] Toilet API response: ${response.status}`);
+
         const data = await response.json();
 
         if (!response.ok) {
+            console.error(`[REVIEW] Failed to load toilet: ${data.message || response.statusText}`);
             throw new Error(data.message || 'Failed to load toilet information');
         }
+
+        console.log(`[REVIEW] Loaded toilet: ${data.name} at ${data.location}`);
 
         toiletInfo.innerHTML = `
             <h2>${data.name}</h2>
@@ -100,8 +99,9 @@ async function loadToiletInfo(toiletId) {
         // Show toilet info and review form
         toiletInfo.style.display = 'block';
         reviewFormSection.style.display = 'block';
+        console.log(`[REVIEW] Toilet info displayed, review form ready`);
     } catch (error) {
-        console.error('Error loading toilet info:', error);
+        console.error('[REVIEW] Error loading toilet info:', error);
         alert('Could not load toilet information. Please try scanning again.');
         // Show scanner again if loading fails
         qrReaderSection.style.display = 'block';
@@ -143,6 +143,9 @@ reviewForm.addEventListener('submit', async (e) => {
         comment: document.getElementById('comments').value
     };
 
+    console.log(`[REVIEW] Submitting review for toilet ${currentToiletId}`);
+    console.log(`[REVIEW] Review data:`, reviewData);
+
     setButtonLoading(submitBtn, true);
 
     try {
@@ -154,11 +157,17 @@ reviewForm.addEventListener('submit', async (e) => {
             body: JSON.stringify(reviewData)
         });
 
+        console.log(`[REVIEW] Submit response: ${response.status}`);
+
         const data = await response.json();
+        console.log(`[REVIEW] Response data:`, data);
 
         if (!response.ok) {
+            console.error(`[REVIEW] Submit failed: ${data.message || response.statusText}`);
             throw new Error(data.message || 'Failed to submit review');
         }
+
+        console.log(`[REVIEW] Review submitted successfully`);
 
         // Hide review form and toilet info
         reviewFormSection.style.display = 'none';
@@ -170,10 +179,11 @@ reviewForm.addEventListener('submit', async (e) => {
 
         // Play celebration sound (optional)
     } catch (error) {
-        console.error('Error submitting review:', error);
+        console.error('[REVIEW] Error submitting review:', error);
         alert('Failed to submit review. Please try again.');
     } finally {
         setButtonLoading(submitBtn, false);
+        console.log(`[REVIEW] Submit process completed`);
     }
 });
 
