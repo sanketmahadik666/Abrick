@@ -4,9 +4,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Review - Toilet Review System</title>
+
+    <!-- Bundled CSS from webpack (direct loading) -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="js/css/css/base.0289d2102da9baec409e.css">
+    <link rel="stylesheet" href="js/css/css/components.f7a25e9b232c36b75b16.css">
+    <link rel="stylesheet" href="js/css/css/review.cef7c7b5d66f48763332.css">
+
+    <!-- External Libraries -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
+
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//unpkg.com">
+</head>
+<body class="review-page">
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus-visible">Skip to main content</a>
+
+    <!-- Navigation -->
+    <nav class="review-nav" role="navigation" aria-label="Main navigation">
+        <div class="review-nav__container">
+            <h1 class="review-nav__brand">Toilet Review System</h1>
+            <div class="review-nav__links">
+                <a href="index.html" class="review-nav__link">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading Overlay -->
+    <div id="reviewLoading" class="review-loading-overlay" role="status" aria-live="polite">
+        <div class="review-loading-spinner" aria-hidden="true"></div>
+        <div class="review-loading-text">Loading Review System...</div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+        <!-- Scanner Section -->
+        <section id="qr-reader-section" class="scanner-section" role="region" aria-labelledby="scanner-title">
+            <h2 id="scanner-title" class="scanner-section__title">Scan QR Code</h2>
+            <div id="qr-reader" class="scanner-section__reader" role="application" aria-label="QR code scanner"></div>
+            <div class="scanner-section__instructions">
+                <h3 class="scanner-section__instructions-title">How to Scan</h3>
+                <p class="scanner-section__instructions-text">Point your camera at the toilet's QR code to begin your review.</p>
+            </div>
+        </section>
+
+        <!-- Toilet Information -->
+        <section id="toiletInfo" class="toilet-info" style="display: none;" role="region" aria-labelledby="toilet-info-title">
+            <h2 id="toilet-info-title" class="toilet-info__title">Toilet Information</h2>
+            <div class="toilet-info__content">
+                <div class="toilet-info__group">
+                    <h3 id="toiletName" class="toilet-info__value"></h3>
+                    <p id="toiletLocation" class="toilet-info__value"></p>
+                </div>
+                <div class="toilet-info__group">
+                    <h4 class="toilet-info__label">Current Rating</h4>
+                    <p id="overallRating" class="toilet-info__rating"></p>
+                    <p id="totalReviews" class="toilet-info__value"></p>
+                </div>
+                <div class="toilet-info__group">
+                    <h4 class="toilet-info__label">Facilities</h4>
+                    <div id="facilitiesList" class="toilet-info__facilities"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Review Form -->
+        <section id="reviewFormSection" class="review-form" style="display: none;" role="region" aria-labelledby="review-form-title">
+            <h2 id="review-form-title" class="review-form__title">Submit Your Review</h2>
+            <form id="reviewForm" class="review-form__form" aria-labelledby="review-form-title">
+                <div class="review-form__group">
+                    <label class="review-form__label">Overall Rating:</label>
+                    <div class="star-rating" role="radiogroup" aria-labelledby="overall-rating-label">
+                        <span id="overall-rating-label" class="sr-only">Overall rating out of 5 stars</span>
+                        <input type="radio" name="rating" value="5" id="rating5" class="star-rating__input" required>
+                        <label for="rating5" class="star-rating__label" aria-label="5 stars">★</label>
+                        <input type="radio" name="rating" value="4" id="rating4" class="star-rating__input">
+                        <label for="rating4" class="star-rating__label" aria-label="4 stars">★</label>
+                        <input type="radio" name="rating" value="3" id="rating3" class="star-rating__input">
+                        <label for="rating3" class="star-rating__label" aria-label="3 stars">★</label>
+                        <input type="radio" name="rating" value="2" id="rating2" class="star-rating__input">
+                        <label for="rating2" class="star-rating__label" aria-label="2 stars">★</label>
+                        <input type="radio" name="rating" value="1" id="rating1" class="star-rating__input">
+                        <label for="rating1" class="star-rating__label" aria-label="1 star">★</label>
+                    </div>
+                </div>
+
+                <div class="review-form__group">
+                    <label class="review-form__label">Cleanliness:</label>
+                    <div class="star-rating" role="radiogroup" aria-labelledby="cleanliness-rating-label">
+                        <span id="cleanliness-rating-label" class="sr-only">Cleanliness rating out of 5 stars</span>
+                        <input type="radio" name="cleanliness" value="5" id="cleanliness5" class="star-rating__input" required>
+                        <label for="cleanliness5" class="star-rating__label" aria-label="5 stars">★</label>
+                        <input type="radio" name="cleanliness" value="4" id="cleanliness4" class="star-rating__input">
+                        <label for="cleanliness4" class="star-rating__label" aria-label="4 stars">★</label>
+                        <input type="radio" name="cleanliness" value="3" id="cleanliness3" class="star-rating__input">
+                        <label for="cleanliness3" class="star-rating__label" aria-label="3 stars">★</label>
+                        <input type="radio" name="cleanliness" value="2" id="cleanliness2" class="star-rating__input">
+                        <label for="cleanliness2" class="star-rating__label" aria-label="2 stars">★</label>
+                        <input type="radio" name="cleanliness" value="1" id="cleanliness1" class="star-rating__input">
+                        <label for="cleanliness1" class="star-rating__label" aria-label="1 star">★</label>
+                    </div>
+                </div>
+
+                <div class="review-form__group">
+                    <label class="review-form__label">Maintenance:</label>
+                    <div class="star-rating" role="radiogroup" aria-labelledby="maintenance-rating-label">
+                        <span id="maintenance-rating-label" class="sr-only">Maintenance rating out of 5 stars</span>
+                        <input type="radio" name="maintenance" value="5" id="maintenance5" class="star-rating__input" required>
+                        <label for="maintenance5" class="star-rating__label" aria-label="5 stars">★</label>
+                        <input type="radio" name="maintenance" value="4" id="maintenance4" class="star-rating__input">
+                        <label for="maintenance4" class="star-rating__label" aria-label="4 stars">★</label>
+                        <input type="radio" name="maintenance" value="3" id="maintenance3" class="star-rating__input">
+                        <label for="maintenance3" class="star-rating__label" aria-label="3 stars">★</label>
+                        <input type="radio" name="maintenance" value="2" id="maintenance2" class="star-rating__input">
+                        <label for="maintenance2" class="star-rating__label" aria-label="2 stars">★</label>
+                        <input type="radio" name="maintenance" value="1" id="maintenance1" class="star-rating__input">
+                        <label for="maintenance1" class="star-rating__label" aria-label="1 star">★</label>
+                    </div>
+                </div>
+
+                <div class="review-form__group">
+                    <label class="review-form__label">Accessibility:</label>
+                    <div class="star-rating" role="radiogroup" aria-labelledby="accessibility-rating-label">
+                        <span id="accessibility-rating-label" class="sr-only">Accessibility rating out of 5 stars</span>
+                        <input type="radio" name="accessibility" value="5" id="accessibility5" class="star-rating__input" required>
+                        <label for="accessibility5" class="star-rating__label" aria-label="5 stars">★</label>
+                        <input type="radio" name="accessibility" value="4" id="accessibility4" class="star-rating__input">
+                        <label for="accessibility4" class="star-rating__label" aria-label="4 stars">★</label>
+                        <input type="radio" name="accessibility" value="3" id="accessibility3" class="star-rating__input">
+                        <label for="accessibility3" class="star-rating__label" aria-label="3 stars">★</label>
+                        <input type="radio" name="accessibility" value="2" id="accessibility2" class="star-rating__input">
+                        <label for="accessibility2" class="star-rating__label" aria-label="2 stars">★</label>
+                        <input type="radio" name="accessibility" value="1" id="accessibility1" class="star-rating__input">
+                        <label for="accessibility1" class="star-rating__label" aria-label="1 star">★</label>
+                    </div>
+                </div>
+
+                <div class="review-form__group">
+                    <label for="comments" class="review-form__label">Share your experience:</label>
+                    <textarea id="comments" name="comments" class="form-group__textarea" rows="4" placeholder="Share your experience..." aria-describedby="comments-help" required></textarea>
+                    <small id="comments-help" class="sr-only">Optional: Share additional details about your experience</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Review</button>
+            </form>
+        </section>
+
+        <!-- Success Message -->
+        <section id="successMessage" class="success-message" style="display: none;" role="alert" aria-live="assertive">
+            <span class="success-message__icon" aria-hidden="true">🎉</span>
+            <h2 class="success-message__title">Thank you for your review!</h2>
+            <p class="success-message__text">Your feedback helps improve facilities for everyone.</p>
+            <div class="action-buttons">
+                <button id="scanNewQR" class="action-buttons__button action-buttons__button--primary">Scan Another QR Code</button>
+                <a href="index.html" class="action-buttons__link action-buttons__link--secondary">Return Home</a>
+            </div>
+            <div id="confettiContainer" class="confetti-container" aria-hidden="true"></div>
+        </section>
+    </main>
+
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <!-- Modular Application (Bundled) -->
+    <script src="js/app.2b1c67e5b93c0f89c098.js"></script>
+</body>
+</html>
         /* Loading States for Review Page */
         .review-loading-overlay {
             position: fixed;
@@ -527,8 +692,6 @@
         </div>
     </main>
 
-    <script src="js/utils.js"></script>
-    <script src="js/cache.js"></script>
-    <script src="js/review.js"></script>
+
 </body>
 </html>

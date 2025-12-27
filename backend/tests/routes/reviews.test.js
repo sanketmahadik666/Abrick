@@ -73,9 +73,11 @@ describe('Review Routes', () => {
                 .send(reviewData)
                 .expect(201);
 
-            expect(response.body.id).toBeDefined();
-            expect(response.body.rating).toBe(4);
-            expect(response.body.comment).toBe('Very clean and accessible');
+            expect(response.body.success).toBe(true);
+            expect(response.body.review).toBeDefined();
+            expect(response.body.review.id).toBeDefined();
+            expect(response.body.review.rating).toBe(4);
+            expect(response.body.review.comment).toBe('Very clean and accessible');
         });
 
         test('should validate required fields - missing toiletId', async () => {
@@ -169,7 +171,7 @@ describe('Review Routes', () => {
                 })
                 .expect(201);
 
-            expect(response.body.comment).toBeUndefined();
+            expect(response.body.review.comment).toBeUndefined();
         });
 
         test('should handle empty comment', async () => {
@@ -185,7 +187,7 @@ describe('Review Routes', () => {
                 })
                 .expect(201);
 
-            expect(response.body.comment).toBe('');
+            expect(response.body.review.comment).toBe('');
         });
 
         test('should handle very long comments', async () => {
@@ -202,7 +204,7 @@ describe('Review Routes', () => {
                 })
                 .expect(201);
 
-            expect(response.body.comment).toBe(longComment);
+            expect(response.body.review.comment).toBe(longComment);
         });
 
         test('should return 404 for non-existent toilet', async () => {

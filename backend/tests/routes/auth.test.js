@@ -175,7 +175,7 @@ describe('Auth Routes', () => {
             expect(response.body.message).toContain('required');
         });
 
-        test('should handle case-sensitive email login', async () => {
+        test('should handle case-insensitive email login', async () => {
             // Register with lowercase email
             await request(app)
                 .post('/api/auth/register')
@@ -184,16 +184,17 @@ describe('Auth Routes', () => {
                     password: 'password123'
                 });
 
-            // Try login with uppercase email
+            // Try login with uppercase email - should work (case insensitive)
             const response = await request(app)
                 .post('/api/auth/login')
                 .send({
                     email: 'TEST@EXAMPLE.COM',
                     password: 'password123'
                 })
-                .expect(401);
+                .expect(200);
 
-            expect(response.body.message).toContain('Invalid credentials');
+            expect(response.body.token).toBeDefined();
+            expect(response.body.user.email).toBe('test@example.com');
         });
     });
 

@@ -136,7 +136,14 @@ class Toilet {
     }
 
     static async findById(id) {
-        return storage.toilets.findById(id);
+        const toiletData = storage.toilets.findById(id);
+        if (!toiletData) return null;
+
+        // Return a new Toilet instance with the found data
+        const toilet = new Toilet(toiletData);
+        // Copy additional properties that might not be in constructor
+        Object.assign(toilet, toiletData);
+        return toilet;
     }
 
     static async findOne(query = {}) {

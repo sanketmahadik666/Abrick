@@ -29,11 +29,13 @@ router.post('/submit',
         }
 
         // Check if toilet exists
+        console.log('[REVIEW] Looking up toilet:', toiletId);
         const toilet = await Toilet.findById(toiletId);
         if (!toilet) {
             console.log('[REVIEW] Submit failed: Toilet not found:', toiletId);
             return res.status(404).json({ message: 'Toilet not found' });
         }
+        console.log('[REVIEW] Found toilet:', toilet.name);
 
         // Create new review
         const review = new Review({
@@ -45,12 +47,15 @@ router.post('/submit',
             comment: comment || ''
         });
 
+        console.log('[REVIEW] Saving review...');
         await review.save();
         console.log('[REVIEW] Successfully submitted review for toilet:', toilet.name);
 
         // Update toilet's average rating and total reviews
+        console.log('[REVIEW] Fetching all reviews for toilet stats update...');
         const reviews = await Review.find({ toiletId });
         const totalReviews = reviews.length;
+        console.log('[REVIEW] Found', totalReviews, 'reviews for toilet');
 
         // Calculate average rating considering all rating aspects
         const averageRating = reviews.reduce((acc, review) => {
@@ -59,13 +64,16 @@ router.post('/submit',
 
         toilet.averageRating = parseFloat(averageRating.toFixed(1));
         toilet.totalReviews = totalReviews;
+
+        console.log('[REVIEW] Saving updated toilet stats...');
         await toilet.save();
         console.log('[REVIEW] Updated toilet stats - Average Rating:', toilet.averageRating, 'Total Reviews:', totalReviews);
 
         res.status(201).json({ success: true, review: review.toObject() });
     } catch (err) {
         console.error('[REVIEW] Error submitting review:', err.message);
-        res.status(500).json({ message: 'Error submitting review' });
+        console.error('[REVIEW] Error stack:', err.stack);
+        res.status(500).json({ message: 'Error submitting review', error: err.message });
     }
 });
 

@@ -26,7 +26,9 @@ class Review {
         const index = reviews.findIndex(r => r.id === this.id);
         if (index > -1) {
             reviews.splice(index, 1);
+            return true;
         }
+        return false;
     }
 
     toObject() {
@@ -77,4 +79,4 @@ class Review {
     }
 }
 
-module.exports = Review; 
+module.exports = Review;
