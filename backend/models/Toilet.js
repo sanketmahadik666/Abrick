@@ -36,14 +36,56 @@ class Toilet {
     }
 
     async remove() {
-        const existing = storage.toilets.findById(this.id);
-        if (existing) {
-            // Remove from storage - this is a simplified implementation
-            // In a real system, we'd have a proper remove method
-            const allToilets = storage.toilets.find();
-            const filtered = allToilets.filter(t => t.id !== this.id);
-            // Note: This is a simplified approach - in production you'd use a proper database
-            console.log(`Removed toilet ${this.id}`);
+        try {
+            const existing = storage.toilets.findById(this.id);
+            if (existing) {
+                // Get the toilets array reference from storage
+                const { toilets: storageToilets } = require('./storage');
+                
+                // Remove from main array
+                const index = storageToilets.findIndex(t => t.id === this.id);
+                if (index > -1) {
+                    storageToilets.splice(index, 1);
+                    
+                    // Update indexes if available
+                    if (storage.performanceMonitor && storage.toiletOperations) {
+                        const { toiletIndexes } = require('./storage');
+                        
+                        // Remove from type index
+                        if (toiletIndexes.byType.has(this.type)) {
+                            toiletIndexes.byType.get(this.type).delete(this.id);
+                        }
+                        
+                        // Remove from source index
+                        if (this.source && toiletIndexes.bySource.has(this.source)) {
+                            toiletIndexes.bySource.get(this.source).delete(this.id);
+                        }
+                        
+                        // Extract city and update location index
+                        const { toiletOperations } = require('./storage');
+                        const city = toiletOperations.extractCity(this.location);
+                        if (city && toiletIndexes.byLocation.has(city)) {
+                            toiletIndexes.byLocation.get(city).delete(this.id);
+                        }
+                        
+                        // Remove from search index
+                        toiletIndexes.searchIndex.delete(this.id);
+                        
+                        // Remove from ID map
+                        if (storage.toiletOperations && storage.toiletOperations.idMap) {
+                            storage.toiletOperations.idMap.delete(this.id);
+                        }
+                    }
+                    
+                    console.log(`[TOILET] Successfully removed toilet ${this.id} from storage`);
+                    return true;
+                }
+            }
+            console.log(`[TOILET] Toilet ${this.id} not found for removal`);
+            return false;
+        } catch (error) {
+            console.error(`[TOILET] Error removing toilet ${this.id}:`, error.message);
+            throw error;
         }
     }
 

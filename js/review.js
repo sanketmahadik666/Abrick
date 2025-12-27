@@ -35,8 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Enhanced API request utility
 async function makeApiRequest(endpoint, options = {}) {
     try {
-        console.log(`[REVIEW-API] Making request to: ${endpoint}`);
-        const response = await fetch(endpoint, {
+        const API_URL = ToiletReviewUtils.getApiUrl();
+        const fullUrl = `${API_URL}${endpoint}`;
+        console.log(`[REVIEW-API] Making request to: ${fullUrl}`);
+        const response = await fetch(fullUrl, {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -93,13 +95,13 @@ async function handleReviewSubmission(e) {
         return;
     }
 
-    // Get form data
+    // Get form data from radio button groups
     const reviewData = {
         toiletId: currentToiletId,
-        rating: parseInt(document.getElementById('rating').value),
-        cleanliness: parseInt(document.getElementById('cleanliness').value),
-        maintenance: parseInt(document.getElementById('maintenance').value),
-        accessibility: parseInt(document.getElementById('accessibility').value),
+        rating: parseInt(document.querySelector('input[name="rating"]:checked').value),
+        cleanliness: parseInt(document.querySelector('input[name="cleanliness"]:checked').value),
+        maintenance: parseInt(document.querySelector('input[name="maintenance"]:checked').value),
+        accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
         comment: document.getElementById('comments').value.trim()
     };
 
@@ -129,7 +131,7 @@ async function handleReviewSubmission(e) {
 
     try {
         console.log('[REVIEW] Submitting review to API...');
-        const data = await makeApiRequest('/api/reviews/submit', {
+        const data = await makeApiRequest('/api/review/submit', {
             method: 'POST',
             body: JSON.stringify(reviewData)
         });
@@ -215,15 +217,22 @@ async function loadToiletInfo(toiletId) {
 
     try {
         console.log('[REVIEW] Fetching toilet data from API...');
-        const toilet = await makeApiRequest(`/api/toilet/${toiletId}`);
+        const response = await makeApiRequest(`/api/toilet/${toiletId}`);
+        
+        console.log('[REVIEW] Toilet response received:', response);
 
-        console.log('[REVIEW] Toilet data received:', toilet);
+        // Handle both object and direct response formats
+        const toilet = response && response.success ? response.data : 
+                      (Array.isArray(response) ? response[0] : response);
 
         if (!toilet) {
             throw new Error('No toilet data received');
         }
 
-        // Store toilet data
+        console.log('[REVIEW] Processed toilet data:', toilet);
+
+        // Store toilet data and ID
+        currentToiletId = toilet.id || toiletId; // Use extracted ID as fallback
         currentToiletData = toilet;
 
         // Update info panel
@@ -372,38 +381,45 @@ function onScanSuccess(decodedText, decodedResult) {
     }
 
     try {
-        // Try to parse as JSON first, then fallback to plain text
-        let toiletId;
-        try {
-            const parsedData = JSON.parse(decodedText);
-            toiletId = parsedData.toiletId || parsedData.id;
-        } catch (parseError) {
-            // If not JSON, use the text directly as toilet ID
-            toiletId = decodedText.trim();
+        console.log('[REVIEW] Scanned QR code data:', decodedText);
+
+        // Check if it's a review URL - extract toilet ID from URL
+        if (decodedText.includes('review.html?id=')) {
+            console.log('[REVIEW] QR Code contains review URL:', decodedText);
+
+            try {
+                // Extract toilet ID from URL
+                const url = new URL(decodedText);
+                const toiletId = url.searchParams.get('id');
+
+                console.log('[REVIEW] URL parsing successful, extracted toilet ID:', toiletId);
+
+                if (toiletId) {
+                    console.log('[REVIEW] Loading toilet info for extracted ID:', toiletId);
+                    loadToiletInfo(toiletId);
+                    return;
+                } else {
+                    throw new Error('No toilet ID found in QR code URL');
+                }
+            } catch (urlError) {
+                console.error('[REVIEW] URL parsing failed:', urlError);
+                throw new Error('Invalid QR code URL format');
+            }
         }
 
-        if (!toiletId) {
-            throw new Error('Invalid QR code format - no toilet ID found');
+        // Check if it's a plain toilet ID
+        const toiletId = decodedText.trim();
+        if (toiletId && toiletId.length > 10) { // Basic validation for toilet ID
+            console.log('[REVIEW] QR Code treated as toilet ID:', toiletId);
+            loadToiletInfo(toiletId);
+            return;
         }
 
-        console.log('[REVIEW] Extracted toilet ID:', toiletId);
-
-        // Stop scanner
-        if (scanner) {
-            scanner.clear();
-            scanner = null;
-        }
-
-        // Hide scanner
-        const qrReader = document.getElementById('qr-reader');
-        if (qrReader) qrReader.style.display = 'none';
-
-        // Load toilet information
-        loadToiletInfo(toiletId);
+        throw new Error('Invalid QR code format - not a valid review URL or toilet ID');
 
     } catch (error) {
         console.error('[REVIEW] Error processing QR code:', error);
-        alert('Invalid QR code format. Please scan a valid toilet QR code.');
+        alert('Invalid QR code. Please scan a valid toilet QR code.');
         resetScanner();
     }
 }

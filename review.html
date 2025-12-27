@@ -447,7 +447,7 @@
     </div>
 
     <main>
-        <div id="qr-reader-section" class="scanner-container">
+        <div id="qr-reader-section" class="scanner-container" style="display: block;">
             <div id="qr-reader"></div>
             <div class="scanner-instructions">
                 <h3>Scan QR Code</h3>
@@ -476,33 +476,33 @@
                 <div class="rating-group">
                     <label>Cleanliness:</label>
                     <div class="star-rating">
-                        <input type="radio" name="cleanliness" value="5" id="clean5" required><label for="clean5">★</label>
-                        <input type="radio" name="cleanliness" value="4" id="clean4"><label for="clean4">★</label>
-                        <input type="radio" name="cleanliness" value="3" id="clean3"><label for="clean3">★</label>
-                        <input type="radio" name="cleanliness" value="2" id="clean2"><label for="clean2">★</label>
-                        <input type="radio" name="cleanliness" value="1" id="clean1"><label for="clean1">★</label>
+                        <input type="radio" name="cleanliness" value="5" id="cleanliness5" required><label for="cleanliness5">★</label>
+                        <input type="radio" name="cleanliness" value="4" id="cleanliness4"><label for="cleanliness4">★</label>
+                        <input type="radio" name="cleanliness" value="3" id="cleanliness3"><label for="cleanliness3">★</label>
+                        <input type="radio" name="cleanliness" value="2" id="cleanliness2"><label for="cleanliness2">★</label>
+                        <input type="radio" name="cleanliness" value="1" id="cleanliness1"><label for="cleanliness1">★</label>
                     </div>
                 </div>
 
                 <div class="rating-group">
                     <label>Maintenance:</label>
                     <div class="star-rating">
-                        <input type="radio" name="maintenance" value="5" id="maint5" required><label for="maint5">★</label>
-                        <input type="radio" name="maintenance" value="4" id="maint4"><label for="maint4">★</label>
-                        <input type="radio" name="maintenance" value="3" id="maint3"><label for="maint3">★</label>
-                        <input type="radio" name="maintenance" value="2" id="maint2"><label for="maint2">★</label>
-                        <input type="radio" name="maintenance" value="1" id="maint1"><label for="maint1">★</label>
+                        <input type="radio" name="maintenance" value="5" id="maintenance5" required><label for="maintenance5">★</label>
+                        <input type="radio" name="maintenance" value="4" id="maintenance4"><label for="maintenance4">★</label>
+                        <input type="radio" name="maintenance" value="3" id="maintenance3"><label for="maintenance3">★</label>
+                        <input type="radio" name="maintenance" value="2" id="maintenance2"><label for="maintenance2">★</label>
+                        <input type="radio" name="maintenance" value="1" id="maintenance1"><label for="maintenance1">★</label>
                     </div>
                 </div>
 
                 <div class="rating-group">
                     <label>Accessibility:</label>
                     <div class="star-rating">
-                        <input type="radio" name="accessibility" value="5" id="access5" required><label for="access5">★</label>
-                        <input type="radio" name="accessibility" value="4" id="access4"><label for="access4">★</label>
-                        <input type="radio" name="accessibility" value="3" id="access3"><label for="access3">★</label>
-                        <input type="radio" name="accessibility" value="2" id="access2"><label for="access2">★</label>
-                        <input type="radio" name="accessibility" value="1" id="access1"><label for="access1">★</label>
+                        <input type="radio" name="accessibility" value="5" id="accessibility5" required><label for="accessibility5">★</label>
+                        <input type="radio" name="accessibility" value="4" id="accessibility4"><label for="accessibility4">★</label>
+                        <input type="radio" name="accessibility" value="3" id="accessibility3"><label for="accessibility3">★</label>
+                        <input type="radio" name="accessibility" value="2" id="accessibility2"><label for="accessibility2">★</label>
+                        <input type="radio" name="accessibility" value="1" id="accessibility1"><label for="accessibility1">★</label>
                     </div>
                 </div>
 
@@ -527,6 +527,8 @@
         </div>
     </main>
 
+    <script src="js/utils.js"></script>
+    <script src="js/cache.js"></script>
     <script src="js/review.js"></script>
 </body>
 </html>

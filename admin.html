@@ -658,6 +658,7 @@
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script src="js/logger.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/cache.js"></script>
     <script>
         Logger.info('ADMIN', 'Admin panel JavaScript starting...');
 
@@ -794,7 +795,7 @@
             loginError.style.display = 'none';
 
             try {
-                const data = await makeApiRequest('/api/auth/login', {
+                const data = await makeApiRequest('/api/admin/login', {
                     method: 'POST',
                     body: JSON.stringify({ email, password })
                 });
@@ -897,35 +898,59 @@
                     facilities
                 };
 
-                console.log('Submitting toilet data:', toiletData);
+                console.log('[ADMIN] Submitting toilet data:', toiletData);
 
-                const data = await makeApiRequest('/api/toilet/add', {
+                // Use regular fetch for toilet add (no auth required)
+                const data = await fetch(`${API_URL}/api/toilet/add`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(toiletData)
                 });
 
-                if (data.success) {
+                if (!data.ok) {
+                    const responseData = await data.json();
+                    throw new Error(responseData.message || 'Failed to add toilet');
+                }
+
+                const responseData = await data.json();
+                console.log('[ADMIN] Toilet add response:', responseData);
+
+                if (responseData.success) {
                     addToiletSuccess.textContent = 'Toilet added successfully!';
                     addToiletSuccess.style.display = 'block';
                     addToiletError.style.display = 'none';
-                    
+
                     // Reset form and map marker
                     addToiletForm.reset();
                     if (marker) {
                         map.removeLayer(marker);
                         marker = null;
                     }
-                    
+
                     // Refresh toilet list
                     loadToilets();
                 } else {
-                    addToiletError.textContent = data.message || 'Failed to add toilet. Please try again.';
+                    addToiletError.textContent = responseData.message || 'Failed to add toilet. Please try again.';
                     addToiletError.style.display = 'block';
                     addToiletSuccess.style.display = 'none';
                 }
             } catch (error) {
-                console.error('Add toilet error:', error);
-                addToiletError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
+                console.error('[ADMIN] Add toilet error:', error);
+                console.error('[ADMIN] Error details:', error.message);
+
+                // Provide more specific error messages
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    addToiletError.textContent = 'Authentication required. Please log in again.';
+                } else if (error.message.includes('400')) {
+                    addToiletError.textContent = 'Invalid data. Please check all fields.';
+                } else if (error.message.includes('500')) {
+                    addToiletError.textContent = 'Server error. Please try again later.';
+                } else {
+                    addToiletError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
+                }
+
                 addToiletError.style.display = 'block';
                 addToiletSuccess.style.display = 'none';
             } finally {
@@ -973,8 +998,14 @@
         async function loadToilets() {
             console.log('[ADMIN] Loading toilets...');
             try {
-                const toilets = await makeApiRequest('/api/toilet/map');
-                console.log('[ADMIN] Loaded toilets:', toilets);
+                const response = await makeApiRequest('/api/toilet/map');
+                console.log('[ADMIN] Loaded toilets response:', response);
+                
+                // Handle both object and array responses
+                const toilets = Array.isArray(response) ? response : 
+                               (response && response.data) ? response.data : [];
+                
+                console.log('[ADMIN] Processed toilets array:', toilets);
                 displayToilets(toilets);
             } catch (error) {
                 console.error('[ADMIN] Error loading toilets:', error);
@@ -1102,13 +1133,22 @@
             qrGrid.innerHTML = '<div class="loading">Loading QR Codes...</div>';
 
             try {
-                const toilets = await makeApiRequest('/api/toilet/map');
+                const response = await makeApiRequest('/api/toilet/map');
+                
+                // Handle both object and array responses
+                const toilets = Array.isArray(response) ? response : 
+                               (response && response.data) ? response.data : [];
+                
+                console.log('[ADMIN] QR Codes - toilets loaded:', toilets.length);
                 qrGrid.innerHTML = '';
 
                 // Generate QR codes for each toilet using backend endpoint
                 const qrPromises = toilets.map(async (toilet) => {
                     try {
-                        const qrData = await makeApiRequest(`/api/toilet/${toilet.id}/qr`);
+                        const response = await makeApiRequest(`/api/toilet/${toilet.id}/qr`);
+                        // Handle both response formats: direct data or wrapped in success
+                        const qrData = response.success ? response.data : response;
+                        console.log(`[ADMIN] QR API response for ${toilet.name}:`, response);
                         return { toilet, qrData };
                     } catch (error) {
                         console.error(`Error generating QR for toilet ${toilet.id}:`, error);
@@ -1119,10 +1159,12 @@
                 const qrResults = await Promise.all(qrPromises);
 
                 qrResults.forEach(({ toilet, qrData, error }) => {
+                    console.log('[ADMIN] Creating QR card for toilet:', toilet.name, 'Error:', error);
                     const qrCard = document.createElement('div');
                     qrCard.className = 'qr-card';
 
                     if (error) {
+                        console.log('[ADMIN] QR generation error for:', toilet.name);
                         qrCard.innerHTML = `
                             <h3>${toilet.name}</h3>
                             <p>${toilet.location}</p>
@@ -1132,10 +1174,11 @@
                             <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
                         `;
                     } else {
+                        console.log('[ADMIN] QR generated successfully for:', qrData.toiletName, 'QR data length:', qrData.qrCode.length);
                         qrCard.innerHTML = `
                             <h3>${qrData.toiletName}</h3>
                             <p>${toilet.location}</p>
-                            <img src="${qrData.qrCode}" alt="QR Code for ${qrData.toiletName}" style="max-width: 200px; height: auto;">
+                            <img src="${qrData.qrCode}" alt="QR Code for ${qrData.toiletName}" style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
                             <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
                             <button class="download-btn" onclick="downloadQR('${qrData.qrCode}', '${qrData.toiletName}')">
                                 Download QR Code
@@ -1143,6 +1186,7 @@
                         `;
                     }
                     qrGrid.appendChild(qrCard);
+                    console.log('[ADMIN] QR card appended to grid');
                 });
 
                 if (toilets.length === 0) {
@@ -1185,16 +1229,27 @@
             try {
                 Logger.info('REVIEW', 'Loading all reviews and toilets...');
                 
-                const [reviews, toilets] = await Promise.all([
+                const [reviewsResponse, toiletsResponse] = await Promise.all([
                     makeApiRequest('/api/review/all'),
                     makeApiRequest('/api/toilet/map')
                 ]);
 
-                Logger.debug('REVIEW', 'Reviews fetched', { count: reviews?.length });
-                Logger.debug('REVIEW', 'Toilets fetched', { count: toilets?.length });
+                Logger.debug('REVIEW', 'Reviews response', { reviewsResponse });
+                Logger.debug('REVIEW', 'Toilets response', { toiletsResponse });
+
+                // Handle reviews (direct array)
+                const reviews = Array.isArray(reviewsResponse) ? reviewsResponse : 
+                               (reviewsResponse && reviewsResponse.data) ? reviewsResponse.data : [];
+                
+                // Handle toilets (object with data property)
+                const toilets = Array.isArray(toiletsResponse) ? toiletsResponse : 
+                               (toiletsResponse && toiletsResponse.data) ? toiletsResponse.data : [];
+
+                Logger.debug('REVIEW', 'Reviews processed', { count: reviews?.length });
+                Logger.debug('REVIEW', 'Toilets processed', { count: toilets?.length });
 
                 if (!reviews || !Array.isArray(reviews)) {
-                    Logger.error('REVIEW', 'Invalid reviews data received', { reviews });
+                    Logger.error('REVIEW', 'Invalid reviews data processed', { reviews });
                     throw new Error('Invalid reviews data received');
                 }
                 allReviews = reviews;

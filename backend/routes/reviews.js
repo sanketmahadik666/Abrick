@@ -3,9 +3,13 @@ const router = express.Router();
 const Review = require('../models/Review');
 const Toilet = require('../models/Toilet');
 const { protect, admin } = require('../middleware/auth');
+const { validateBody, validateReviewData, sanitizeString } = require('../middleware/validation');
 
 // Submit a review (public)
-router.post('/submit', async (req, res) => {
+router.post('/submit',
+    sanitizeString('comment', 1000),
+    validateBody(validateReviewData),
+    async (req, res) => {
     try {
         console.log('[REVIEW] Submit review request for toilet ID:', req.body.toiletId, 'Rating:', req.body.rating);
         const { toiletId, rating, cleanliness, maintenance, accessibility, comment } = req.body;
@@ -87,6 +91,62 @@ router.get('/all', async (req, res) => {
     } catch (err) {
         console.error('[REVIEW] Error fetching all reviews:', err.message);
         res.status(500).json({ message: 'Error fetching reviews' });
+    }
+});
+
+// Update a review (public for demo)
+router.put('/:id',
+    sanitizeString('comment', 1000),
+    async (req, res) => {
+    try {
+        const review = await Review.findById(req.params.id);
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        const { rating, cleanliness, maintenance, accessibility, comment } = req.body;
+
+        // Validate rating ranges if provided (1-5)
+        if (rating !== undefined && (rating < 1 || rating > 5)) {
+            return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+        }
+        if (cleanliness !== undefined && (cleanliness < 1 || cleanliness > 5)) {
+            return res.status(400).json({ message: 'Cleanliness rating must be between 1 and 5' });
+        }
+        if (maintenance !== undefined && (maintenance < 1 || maintenance > 5)) {
+            return res.status(400).json({ message: 'Maintenance rating must be between 1 and 5' });
+        }
+        if (accessibility !== undefined && (accessibility < 1 || accessibility > 5)) {
+            return res.status(400).json({ message: 'Accessibility rating must be between 1 and 5' });
+        }
+
+        // Update review fields
+        if (rating !== undefined) review.rating = parseInt(rating);
+        if (cleanliness !== undefined) review.cleanliness = parseInt(cleanliness);
+        if (maintenance !== undefined) review.maintenance = parseInt(maintenance);
+        if (accessibility !== undefined) review.accessibility = parseInt(accessibility);
+        if (comment !== undefined) review.comment = comment;
+
+        await review.save();
+
+        // Update toilet's average rating
+        const toiletId = review.toiletId;
+        const reviews = await Review.find({ toiletId });
+        const totalReviews = reviews.length;
+
+        const averageRating = reviews.reduce((acc, review) => {
+            return acc + (review.rating + review.cleanliness + review.maintenance + review.accessibility) / 4;
+        }, 0) / totalReviews;
+
+        const toilet = await Toilet.findById(toiletId);
+        toilet.averageRating = parseFloat(averageRating.toFixed(1));
+        toilet.totalReviews = totalReviews;
+        await toilet.save();
+
+        res.json({ success: true, review: review.toObject() });
+    } catch (err) {
+        console.error('Error updating review:', err);
+        res.status(500).json({ message: 'Error updating review' });
     }
 });
 

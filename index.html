@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="js/utils.js"></script>
+    <script src="js/cache.js"></script>
     <style>
         /* Global Loading Overlay */
         .global-loading {
@@ -743,10 +744,11 @@
         </div>
 
         <div class="main-content">
-            <div class="map-section">
-                <h2>Toilet Data Map - Live from External APIs</h2>
-                <div class="map-container">
-                    <div id="map"></div>
+        <div class="map-section">
+            <h2>Toilet Data Map - Live from External APIs</h2>
+            <div id="map-error" class="map-error"></div>
+            <div class="map-container">
+                <div id="map"></div>
                     <div class="map-controls">
                         <button onclick="map.locate({setView: true, maxZoom: 16})">📍 Find Near Me</button>
                         <button onclick="syncAllDataSources()">🔄 Sync All APIs</button>
@@ -988,25 +990,15 @@
             <div class="footer-map-container">
                 <div class="map-section">
                     <div id="footer-map-error" class="map-error"></div>
-                    <div class="map-container">
-                        <div id="footer-map"></div>
-                        <div class="map-controls">
-                            <button onclick="map.locate({setView: true, maxZoom: 16})">📍 Find Near Me</button>
-                        </div>
-                        <div class="map-filters">
-                            <label>
-                                <input type="checkbox" id="showPublicToilets" checked onchange="updateToiletFilters()"> 🏛️ Public Toilets
-                            </label>
-                            <label>
-                                <input type="checkbox" id="showPrivateToilets" checked onchange="updateToiletFilters()"> 🏢 Private Toilets
-                            </label>
-                            <button onclick="syncPublicData()" style="margin-left: 10px;">🔄 Sync Public Data</button>
-                        </div>
-                        <div id="map-loading" class="map-loading">
-                            <div class="loading-spinner"></div>
-                            <span class="loading-text">Loading nearby toilets...</span>
+                <div class="map-container">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="text-align: center; color: #666;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+                            <h3 style="margin: 0 0 0.5rem 0; color: #333;">Interactive Map</h3>
+                            <p style="margin: 0; font-size: 0.9rem;">Available in the main map section above</p>
                         </div>
                     </div>
+                </div>
                 </div>
                 <div class="map-info">
                     <h3>Rating Guide</h3>
@@ -1098,32 +1090,44 @@
 
         // Function to create a marker with custom styling
         function createMarker(toilet) {
-            const marker = L.circleMarker(
+            // Create a custom icon for the marker
+            const markerIcon = L.divIcon({
+                className: 'toilet-marker',
+                html: `<div style="
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background-color: ${getMarkerColor(toilet.averageRating)};
+                    border: 3px solid white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    transition: all 0.3s ease;
+                "></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            const marker = L.marker(
                 [toilet.coordinates.latitude, toilet.coordinates.longitude],
-                {
-                    radius: 10,
-                    fillColor: getMarkerColor(toilet.averageRating),
-                    color: '#ffffff',
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 0.9,
-                    className: 'toilet-marker'
-                }
+                { icon: markerIcon }
             );
 
             // Add hover effect
             marker.on('mouseover', function() {
-                this.setStyle({
-                    radius: 12,
-                    weight: 4
-                });
+                const iconDiv = this.getElement().querySelector('div');
+                if (iconDiv) {
+                    iconDiv.style.width = '24px';
+                    iconDiv.style.height = '24px';
+                    iconDiv.style.borderWidth = '4px';
+                }
             });
 
             marker.on('mouseout', function() {
-                this.setStyle({
-                    radius: 10,
-                    weight: 3
-                });
+                const iconDiv = this.getElement().querySelector('div');
+                if (iconDiv) {
+                    iconDiv.style.width = '20px';
+                    iconDiv.style.height = '20px';
+                    iconDiv.style.borderWidth = '3px';
+                }
             });
 
             return marker;
@@ -1169,11 +1173,13 @@
                     throw new Error(`Failed to fetch toilets: ${response.status} - ${response.statusText}`);
                 }
 
-                const toilets = await response.json();
-                console.log('[MAP] Fetched toilets:', toilets);
+                const responseData = await response.json();
+                console.log('[MAP] Fetched toilets:', responseData);
+
+                const toilets = responseData.success ? responseData.data : responseData;
 
                 if (!toilets || !Array.isArray(toilets)) {
-                    console.warn('[MAP] Invalid toilets data received:', toilets);
+                    console.warn('[MAP] Invalid toilets data received:', responseData);
                     throw new Error('Invalid data received from server.');
                 }
 
@@ -1201,7 +1207,8 @@
                             // Reload toilets after sync
                             const retryResponse = await fetch(`${API_URL}/api/toilet/map?${params}`);
                             if (retryResponse.ok) {
-                                const retryToilets = await retryResponse.json();
+                                const retryResponseData = await retryResponse.json();
+                                const retryToilets = retryResponseData.success ? retryResponseData.data : retryResponseData;
 
                                 if (retryToilets && retryToilets.length > 0) {
                                     console.log('[MAP] Found toilets after auto-sync, processing...');
@@ -1265,12 +1272,22 @@
                         return;
                     }
 
-                    validToilets++;
-                    const marker = createMarker(toilet);
-                    const popupContent = createPopupContent(toilet);
+                    try {
+                        validToilets++;
+                        const marker = createMarker(toilet);
+                        const popupContent = createPopupContent(toilet);
 
-                    marker.bindPopup(popupContent);
-                    markers.addLayer(marker);
+                        marker.bindPopup(popupContent);
+
+                        // Add marker to cluster group with error handling
+                        if (marker && typeof marker.addTo === 'function') {
+                            markers.addLayer(marker);
+                        } else {
+                            console.warn(`[MAP] Invalid marker created for toilet ${toilet.id}`);
+                        }
+                    } catch (markerError) {
+                        console.error(`[MAP] Error creating marker for toilet ${toilet.id}:`, markerError);
+                    }
                 });
 
                 console.log(`[MAP] Added ${validToilets} valid toilet markers`);
@@ -1291,11 +1308,13 @@
                     console.log('[MAP] Set default map view');
                 }
 
-                setTimeout(() => {
-                    mapLoading.style.display = 'none';
-                    hideLoadingOverlay(); // Hide global loading when map is ready
-                    console.log('[MAP] Loading complete, UI updated');
-                }, 500);
+                    setTimeout(() => {
+                        mapLoading.style.display = 'none';
+                        if (typeof hideLoadingOverlay === 'function') {
+                            hideLoadingOverlay(); // Hide global loading when map is ready
+                        }
+                        console.log('[MAP] Loading complete, UI updated');
+                    }, 500);
 
             } catch (error) {
                 console.error('[MAP] Error loading toilets:', error);
@@ -1304,7 +1323,9 @@
                 mapError.style.display = 'block';
                 mapLoading.style.display = 'none';
                 map.setView([18.5204, 73.8567], 13);
-                hideLoadingOverlay();
+                if (typeof hideLoadingOverlay === 'function') {
+                    hideLoadingOverlay();
+                }
             }
         }
 
@@ -1637,7 +1658,7 @@
             }
 
             isProcessingScan = true;
-            console.log('QR Code scanned:', decodedText);
+            console.log('[QR] QR Code scanned successfully:', decodedText);
 
             try {
                 // Stop the scanner
@@ -1649,24 +1670,44 @@
                 // Hide scanner
                 document.getElementById('qr-reader').style.display = 'none';
 
-                // Parse QR code data
-                let toiletId;
-                try {
-                    const parsedData = JSON.parse(decodedText);
-                    toiletId = parsedData.toiletId;
-                } catch (e) {
-                    toiletId = decodedText.trim();
+                console.log('[QR] Scanned QR code data:', decodedText);
+
+                // Check if it's a review URL - extract toilet ID from URL
+                if (decodedText.includes('review.html?id=')) {
+                    console.log('[QR] QR Code contains review URL:', decodedText);
+
+                    try {
+                        // Extract toilet ID from URL
+                        const url = new URL(decodedText);
+                        const toiletId = url.searchParams.get('id');
+
+                        console.log('[QR] URL parsing successful, extracted toilet ID:', toiletId);
+
+                        if (toiletId) {
+                            console.log('[QR] Loading toilet info for extracted ID:', toiletId);
+                            loadToiletInfo(toiletId);
+                            return;
+                        } else {
+                            throw new Error('No toilet ID found in QR code URL');
+                        }
+                    } catch (urlError) {
+                        console.error('[QR] URL parsing failed:', urlError);
+                        throw new Error('Invalid QR code URL format');
+                    }
                 }
 
-                if (!toiletId) {
-                    throw new Error('Invalid QR code format');
+                // Check if it's a plain toilet ID
+                const toiletId = decodedText.trim();
+                if (toiletId && toiletId.length > 10) { // Basic validation for toilet ID
+                    console.log('[QR] QR Code treated as toilet ID:', toiletId);
+                    loadToiletInfo(toiletId);
+                    return;
                 }
 
-                // Load toilet information
-                loadToiletInfo(toiletId);
+                throw new Error('Invalid QR code format - not a valid review URL or toilet ID');
 
             } catch (error) {
-                console.error('Error processing QR code:', error);
+                console.error('[QR] Error processing QR code:', error);
                 alert('Invalid QR code. Please scan a valid toilet QR code.');
                 resetScanner();
             } finally {
@@ -1779,10 +1820,10 @@
                     comment: document.getElementById('comments').value.trim()
                 };
 
-                console.log('Submitting review to:', `${API_URL}/api/reviews/submit`);
+                console.log('Submitting review to:', `${API_URL}/api/review/submit`);
                 console.log('Review data:', reviewData);
 
-                const response = await fetch(`${API_URL}/api/reviews/submit`, {
+                const response = await fetch(`${API_URL}/api/review/submit`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

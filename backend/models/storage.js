@@ -61,9 +61,8 @@ const toiletOperations = {
     // Fast lookup by ID using Map for O(1) access
     idMap: new Map(),
 
-    // Add toilet with indexing
+    // Add toilet with indexing (assumes toilet is already in array)
     add(toilet) {
-        toilets.push(toilet);
         this.idMap.set(toilet.id, toilet);
 
         // Update indexes asynchronously
@@ -194,6 +193,41 @@ const toiletOperations = {
         }
 
         return results;
+    },
+
+    // Find toilets near a point within max distance (simplified)
+    findNear(centerLat, centerLng, maxDistanceMeters, limit = 100) {
+        const results = [];
+
+        for (const toilet of toilets) {
+            if (toilet.coordinates) {
+                const { latitude: lat, longitude: lng } = toilet.coordinates;
+
+                // Simple distance calculation (Haversine approximation)
+                const distance = this.calculateDistance(centerLat, centerLng, lat, lng);
+
+                if (distance <= maxDistanceMeters) {
+                    results.push(toilet);
+                    if (results.length >= limit) break;
+                }
+            }
+        }
+
+        return results;
+    },
+
+    // Calculate distance between two points in meters (Haversine formula approximation)
+    calculateDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371000; // Earth's radius in meters
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
     }
 };
 
@@ -221,11 +255,16 @@ const performanceMonitor = {
     }
 };
 
+// Store reference to original array push method
+const originalPush = Array.prototype.push;
+
 // Optimized exports with performance monitoring
 const optimizedToilets = {
     // Core operations
     push(toilet) {
-        toiletOperations.add(toilet);
+        const result = originalPush.call(toilets, toilet); // Use original array push to avoid recursion
+        toiletOperations.add(toilet); // Then perform indexing operations
+        return result;
     },
 
     find(query = {}) {
@@ -235,7 +274,18 @@ const optimizedToilets = {
 
         // Apply filters efficiently using indexes
         if (query.type) {
-            results = toiletOperations.findByType(query.type);
+            if (query.type.$in) {
+                // Handle $in operator for multiple types
+                const allResults = [];
+                for (const type of query.type.$in) {
+                    const typeResults = toiletOperations.findByType(type);
+                    allResults.push(...typeResults);
+                }
+                results = allResults;
+            } else {
+                // Handle single type
+                results = toiletOperations.findByType(query.type);
+            }
         }
 
         if (query.source) {
@@ -249,6 +299,15 @@ const optimizedToilets = {
         if (query.coordinates && query.coordinates.$geoWithin) {
             const bounds = query.coordinates.$geoWithin.$box;
             results = toiletOperations.findInBounds(bounds[0][1], bounds[0][0], bounds[1][1], bounds[1][0]);
+        }
+
+        // Handle $near queries (simplified distance check)
+        if (query.coordinates && query.coordinates.$near) {
+            const { $geometry, $maxDistance } = query.coordinates.$near;
+            if ($geometry && $geometry.type === 'Point' && $geometry.coordinates) {
+                const [centerLng, centerLat] = $geometry.coordinates;
+                results = toiletOperations.findNear(centerLat, centerLng, $maxDistance);
+            }
         }
 
         // Sorting (optimized)
@@ -352,12 +411,46 @@ const optimizedToilets = {
     }
 };
 
+// Create a proper proxy that maintains array functionality
+const enhancedToilets = new Proxy(toilets, {
+    get(target, prop) {
+        // Prioritize optimized methods over native array methods
+        if (typeof optimizedToilets[prop] === 'function') {
+            return optimizedToilets[prop];
+        }
+
+        // Special handling for push to add indexing
+        if (prop === 'push') {
+            return function(...items) {
+                const result = Array.prototype.push.apply(target, items);
+                // Index the new items
+                items.forEach(item => {
+                    if (item && typeof item === 'object') {
+                        toiletOperations.add(item);
+                    }
+                });
+                return result;
+            };
+        }
+
+        // For other array methods and properties, use the original array
+        if (typeof target[prop] === 'function' || prop in target) {
+            return target[prop];
+        }
+
+        // Otherwise use the optimized methods as properties
+        return optimizedToilets[prop];
+    }
+});
+
 // Enhanced exports with performance monitoring
 module.exports = {
     users,
-    toilets: optimizedToilets,
+    toilets: enhancedToilets, // Export enhanced array with both array methods and optimized operations
     reviews,
     performanceMonitor,
+    toiletOperations,
+    toiletIndexes,
     getStorageStats() {
         return {
             toilets: performanceMonitor.getStats(),
