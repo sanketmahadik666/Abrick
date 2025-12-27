@@ -19,7 +19,7 @@ beforeEach(() => {
     reviews.splice(0, reviews.length);
 
     // Reset any environment variables that might affect tests
-    delete process.env.JWT_SECRET;
+    process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only';
     process.env.NODE_ENV = 'test';
 });
 

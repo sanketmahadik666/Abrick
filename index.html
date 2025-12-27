@@ -4,829 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toilet Review System</title>
+
+    <!-- Bundled CSS from webpack (direct loading) -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
+    <link rel="stylesheet" href="js/css/css/base.0289d2102da9baec409e.css">
+    <link rel="stylesheet" href="js/css/css/components.f7a25e9b232c36b75b16.css">
+    <link rel="stylesheet" href="js/css/css/home.a56e832817c9de9927e0.css">
+
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="js/utils.js"></script>
-    <style>
-        /* Global Loading Overlay */
-        .global-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(2px);
-        }
 
-        .global-loading.hidden {
-            display: none;
-        }
-
-        .global-loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #007bff;
-            border-radius: 50%;
-            animation: globalSpin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes globalSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .global-loading-text {
-            color: #333;
-            font-size: 18px;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        .hero-section {
-            text-align: center;
-            padding: 2rem 1rem;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 10px;
-            margin-bottom: 2rem;
-        }
-
-        .hero-section h1 {
-            font-size: 1.8rem; /* Mobile: smaller font */
-            color: #333;
-            margin-bottom: 1rem;
-            word-wrap: break-word;
-        }
-
-        .hero-section p {
-            font-size: 1rem; /* Mobile: smaller font */
-            color: #666;
-            margin-bottom: 2rem;
-            line-height: 1.5;
-        }
-
-        .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .stat-box {
-            text-align: center;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-box h2, .stat-box h3 {
-            color: #333;
-            margin: 0.5rem 0;
-            font-weight: 600;
-        }
-
-        .stat-box h2 {
-            font-size: 2rem;
-        }
-
-        .stat-box h3 {
-            font-size: 1.5rem;
-        }
-
-        .stat-box p {
-            color: #666;
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        @media (min-width: 768px) {
-            .hero-section h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero-section p {
-                font-size: 1.2rem;
-            }
-        }
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .map-section {
-            order: -1; /* Map appears first */
-        }
-
-        .scanner-section {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                gap: 1rem;
-            }
-
-            .scanner-section {
-                max-width: 100%;
-            }
-        }
-
-        .scanner-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .map-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .map-loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            border-radius: 10px;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: #333;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .map-error {
-            padding: 1rem;
-            background: #fee;
-            color: #c00;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            display: none;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .map-legend {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 1rem;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        #map {
-            height: 400px;
-            width: 100%;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        #qr-reader {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        #qr-reader-results {
-            text-align: center;
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-            padding: 0 1rem;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-card p {
-            color: #666;
-        }
-
-        .instructions {
-            margin-top: 1rem;
-        }
-
-        .instructions h2 {
-            color: #333;
-            margin-bottom: 1rem;
-        }
-
-        .instructions ol {
-            padding-left: 1.5rem;
-            margin: 1rem 0;
-            color: #555;
-        }
-
-        .instructions li {
-            margin-bottom: 0.5rem;
-        }
-
-        .toilet-info {
-            padding: 10px;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .toilet-info h3 {
-            margin: 0 0 5px 0;
-            color: #333;
-        }
-
-        .toilet-info p {
-            margin: 0;
-            color: #666;
-        }
-
-        .rating {
-            color: #ffd700;
-        }
-
-        /* Additional map styles */
-        .cluster-icon {
-            background-color: #fff;
-            border-radius: 50%;
-            width: 30px !important;
-            height: 30px !important;
-            line-height: 30px !important;
-            text-align: center;
-            border: 2px solid #333;
-            font-weight: bold;
-        }
-
-        .map-container {
-            position: relative;
-            height: 650px; /* Increased from 500px for maximum visibility */
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            background: rgba(255, 255, 255, 0.9);
-            margin-bottom: 0; /* Remove bottom margin to save space */
-        }
-
-        #map {
-            height: 100%;
-            width: 100%;
-            z-index: 1;
-            background: transparent !important;
-        }
-
-        .leaflet-tile-pane {
-            opacity: 0.8; /* Make map tiles more transparent */
-        }
-
-        .toilet-popup {
-            padding: 15px;
-            max-width: 250px;
-        }
-
-        .toilet-popup h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 16px;
-        }
-
-        .toilet-popup p {
-            margin: 5px 0;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .toilet-popup .rating {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin: 10px 0;
-        }
-
-        .toilet-popup .rating-stars {
-            color: #ffd700;
-        }
-
-        .map-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .map-controls button {
-            background: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .map-controls button:hover {
-            background: #f8f9fa;
-            transform: translateY(-1px);
-        }
-
-        .toilet-marker {
-            border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-
-        .toilet-marker:hover {
-            transform: scale(1.2);
-        }
-
-        /* Footer Styles */
-        footer {
-            background: #f8f9fa;
-            padding: 3rem 0;
-            margin-top: 3rem;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .footer-title {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #333;
-        }
-
-        .footer-map-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (min-width: 992px) {
-            .footer-map-container {
-                grid-template-columns: 3fr 1fr;
-            }
-        }
-
-        .map-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
-            height: 100%;
-        }
-
-        .map-info {
-            padding: 1.5rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .map-info h3 {
-            color: #333;
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .map-legend {
-            margin-top: 0;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e9ecef;
-            color: #666;
-        }
-
-        .map-container {
-            height: 400px;
-        }
-
-        .rating-input {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .rating-input input[type="radio"] {
-            display: none;
-        }
-        
-        .rating-input label {
-            cursor: pointer;
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-        
-        .rating-input input[type="radio"]:checked + label {
-            background: #007bff;
-            color: white;
-            border-color: #0056b3;
-        }
-        
-        .rating-input label:hover {
-            background: #f8f9fa;
-        }
-        
-        #reviewFormSection {
-            margin-top: 2rem;
-            padding: 2rem;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        #successMessage {
-            text-align: center;
-            padding: 2rem;
-            background: #d4edda;
-            border-radius: 8px;
-            margin-top: 2rem;
-        }
-        
-        #successMessage h3 {
-            color: #155724;
-            margin-bottom: 1rem;
-        }
-        
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            animation: fall 5s linear forwards;
-        }
-        
-        @keyframes fall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-            }
-        }
-
-        .toilet-info-panel {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 2rem 0;
-        }
-
-        .toilet-details {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .info-group {
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-
-        .info-group h3 {
-            color: #333;
-            margin: 0 0 0.5rem 0;
-            font-size: 1.4rem;
-        }
-
-        .info-group h4 {
-            color: #666;
-            margin: 0 0 0.5rem 0;
-            font-size: 1.1rem;
-        }
-
-        .rating-summary {
-            display: grid;
-            gap: 0.5rem;
-        }
-
-        .rating-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            background: white;
-            border-radius: 4px;
-        }
-
-        .rating-stars {
-            color: #ffd700;
-            font-weight: bold;
-        }
-
-        .facilities-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .facility-tag {
-            background: #e9ecef;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #495057;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 0.5rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .data-sources-legend {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .data-sources-legend h3 {
-            color: #333;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .legend-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .legend-item:hover {
-            background: #e9ecef;
-            transform: translateY(-2px);
-        }
-
-        .legend-icon {
-            font-size: 1.5rem;
-            margin-right: 0.75rem;
-            min-width: 2rem;
-            text-align: center;
-        }
-
-        .legend-info strong {
-            display: block;
-            color: #333;
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .legend-info small {
-            color: #666;
-            font-size: 0.8rem;
-        }
-    </style>
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//unpkg.com">
 </head>
 <body>
-    <nav>
-        <div class="nav-container">
-            <h1>Toilet Review System</h1>
-            <div class="nav-links">
-                <a href="index.html" class="active">Home</a>
-                <a href="admin.html">Admin Login</a>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus-visible">Skip to main content</a>
+
+    <!-- Global Loading Overlay -->
+    <div id="globalLoading" class="global-loading" role="status" aria-live="polite">
+        <div class="global-loading-spinner" aria-hidden="true"></div>
+        <div class="global-loading-text">Loading Toilet Review System...</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav__container">
+            <h1 class="nav__brand">Toilet Review System</h1>
+            <div class="nav__links">
+                <a href="index.html" class="nav__link nav__link--active" aria-current="page">Home</a>
+                <a href="admin.html" class="nav__link">Admin Login</a>
             </div>
         </div>
     </nav>
 
-    <!-- Global Loading Overlay -->
-    <div id="globalLoading" class="global-loading">
-        <div class="global-loading-spinner"></div>
-        <div class="global-loading-text">Loading Toilet Review System...</div>
-    </div>
+    <!-- Main Content -->
+    <main class="main" id="main-content" role="main">
+        <!-- Hero Section -->
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero__container">
+                <h1 id="hero-title" class="hero__title">Welcome to Toilet Review System</h1>
+                <p class="hero__subtitle">Help improve public facilities by sharing your experience</p>
 
-    <main>
-        <div class="hero-section">
-            <h1>Welcome to Toilet Review System</h1>
-            <p>Help improve public facilities by sharing your experience</p>
-            <div class="hero-stats">
-                <div class="stat-box">
-                    <h2 id="totalToiletsCount">80,000+</h2>
-                    <p>Available Toilets Near You</p>
-                </div>
-                <div class="stat-box">
-                    <h3 id="citiesCovered">15+ Cities</h3>
-                    <p>Covered Across India</p>
-                </div>
-                <div class="stat-box">
-                    <h3 id="reviewsCount">2,500+</h3>
-                    <p>Community Reviews</p>
+                <div class="hero__stats" role="region" aria-labelledby="stats-heading">
+                    <h2 id="stats-heading" class="sr-only">Statistics</h2>
+                    <div class="hero__stat">
+                        <div class="hero__stat-number" id="totalToiletsCount">80,000+</div>
+                        <div class="hero__stat-label">Available Toilets Near You</div>
+                    </div>
+                    <div class="hero__stat">
+                        <div class="hero__stat-number" id="citiesCovered">15+ Cities</div>
+                        <div class="hero__stat-label">Covered Across India</div>
+                    </div>
+                    <div class="hero__stat">
+                        <div class="hero__stat-number" id="reviewsCount">2,500+</div>
+                        <div class="hero__stat-label">Community Reviews</div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="main-content">
-            <div class="map-section">
-                <h2>Toilet Data Map - Live from External APIs</h2>
-                <div class="map-container">
-                    <div id="map"></div>
-                    <div class="map-controls">
-                        <button onclick="map.locate({setView: true, maxZoom: 16})">📍 Find Near Me</button>
-                        <button onclick="syncAllDataSources()">🔄 Sync All APIs</button>
+        <!-- Content Section -->
+        <div class="content">
+            <!-- Search Section -->
+            <section class="search-section" aria-labelledby="search-title">
+                <h2 id="search-title" class="search-section__title">Find Toilets Near You</h2>
+                <div id="search-container" class="search-container"></div>
+            </section>
+
+            <!-- Map Section -->
+            <section class="map-section" aria-labelledby="map-title">
+                <h2 id="map-title" class="map-section__title">Toilet Data Map - Live from External APIs</h2>
+
+                <div id="map-error" class="map-section__error" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+                <div class="map-section__container">
+                    <div id="map" class="map-section__map" role="application" aria-label="Interactive toilet map"></div>
+
+                    <div class="map-section__controls" role="group" aria-label="Map controls">
+                        <button class="btn btn-primary btn-small" onclick="map.locate({setView: true, maxZoom: 16})" aria-label="Find my location on map">
+                            📍 Find Near Me
+                        </button>
+                        <button class="btn btn-success btn-small" onclick="syncAllDataSources()" aria-label="Sync data from all external APIs">
+                            🔄 Sync All APIs
+                        </button>
                     </div>
-                    <div class="map-filters">
-                        <label>
-                            <input type="checkbox" id="showPublicToilets" checked onchange="updateToiletFilters()"> 🏛️ Public Toilets
+
+                    <div class="map-section__filters" role="group" aria-label="Map filters">
+                        <label class="map-section__filter">
+                            <input type="checkbox" id="showPublicToilets" checked onchange="updateToiletFilters()">
+                            <span class="map-section__filter-label">🏛️ Public Toilets</span>
                         </label>
-                        <label>
-                            <input type="checkbox" id="showPrivateToilets" checked onchange="updateToiletFilters()"> 🏢 Private Toilets
+                        <label class="map-section__filter">
+                            <input type="checkbox" id="showPrivateToilets" checked onchange="updateToiletFilters()">
+                            <span class="map-section__filter-label">🏢 Private Toilets</span>
                         </label>
                     </div>
-                    <div id="map-loading" class="map-loading">
-                        <div class="loading-spinner"></div>
+
+                    <div id="map-loading" class="map-section__loading" role="status" aria-live="polite">
+                        <div class="loading-spinner" aria-hidden="true"></div>
                         <span class="loading-text">Loading toilet data from APIs...</span>
                     </div>
                 </div>
 
                 <!-- Data Sources Legend -->
-                <div class="data-sources-legend">
-                    <h3>Data Sources</h3>
+                <div class="data-sources-legend" role="region" aria-labelledby="legend-title">
+                    <h3 id="legend-title">Data Sources</h3>
                     <div class="legend-grid">
                         <div class="legend-item">
-                            <span class="legend-icon">🌐</span>
+                            <span class="legend-icon" aria-hidden="true">🌐</span>
                             <div class="legend-info">
                                 <strong>Overpass API</strong>
                                 <small>Real-time worldwide queries</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">📊</span>
+                            <span class="legend-icon" aria-hidden="true">📊</span>
                             <div class="legend-info">
                                 <strong>Geofabrik OSM</strong>
                                 <small>High-quality regional extracts</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🏛️</span>
+                            <span class="legend-icon" aria-hidden="true">🏛️</span>
                             <div class="legend-info">
                                 <strong>City CKAN</strong>
                                 <small>Official urban data portals</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🌍</span>
+                            <span class="legend-icon" aria-hidden="true">🌍</span>
                             <div class="legend-info">
                                 <strong>Planet OSM</strong>
                                 <small>Complete global database</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🇮🇳</span>
+                            <span class="legend-icon" aria-hidden="true">🇮🇳</span>
                             <div class="legend-info">
                                 <strong>Government APIs</strong>
                                 <small>Official Indian sources</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🏖️</span>
+                            <span class="legend-icon" aria-hidden="true">🏖️</span>
                             <div class="legend-info">
                                 <strong>Tourism Boards</strong>
                                 <small>State tourism facilities</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🚉</span>
+                            <span class="legend-icon" aria-hidden="true">🚉</span>
                             <div class="legend-info">
                                 <strong>Transport Hubs</strong>
                                 <small>Railways and airports</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🏬</span>
+                            <span class="legend-icon" aria-hidden="true">🏬</span>
                             <div class="legend-info">
                                 <strong>Commercial Centers</strong>
                                 <small>Malls and complexes</small>
                             </div>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-icon">🎓</span>
+                            <span class="legend-icon" aria-hidden="true">🎓</span>
                             <div class="legend-info">
                                 <strong>Educational</strong>
                                 <small>Universities and colleges</small>
@@ -835,22 +183,25 @@
                     </div>
                 </div>
 
-                <div class="map-stats" style="margin-top: 2rem;">
-                    <h3>API Data Statistics</h3>
-                    <div id="map-stats-content">
+                <!-- Map Statistics -->
+                <div class="map-stats" role="region" aria-labelledby="stats-title">
+                    <h3 id="stats-title">API Data Statistics</h3>
+                    <div id="map-stats-content" aria-live="polite">
                         Loading API statistics...
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="scanner-section">
-                <h2>Scan QR Code</h2>
-                <div id="qr-reader"></div>
-                <div id="qr-reader-results"></div>
-                
-                <!-- Add Toilet Info Panel -->
-                <div id="toiletInfoPanel" style="display: none;" class="toilet-info-panel">
-                    <h2>Toilet Information</h2>
+            <!-- Scanner Section -->
+            <section class="scanner-section" aria-labelledby="scanner-title">
+                <h2 id="scanner-title">Scan QR Code</h2>
+
+                <div id="qr-reader" class="scanner-section__reader" role="application" aria-label="QR code scanner"></div>
+                <div id="qr-reader-results" class="scanner-section__results" role="status" aria-live="polite" aria-atomic="true"></div>
+
+                <!-- Toilet Info Panel -->
+                <div id="toiletInfoPanel" class="toilet-info-panel" style="display: none;" role="region" aria-labelledby="toilet-info-title">
+                    <h2 id="toilet-info-title" class="toilet-info-panel__title">Toilet Information</h2>
                     <div class="toilet-details">
                         <div class="info-group">
                             <h3 id="toiletName"></h3>
@@ -876,12 +227,13 @@
                     </div>
                 </div>
 
-                <div id="reviewFormSection" style="display: none;">
-                    <h2>Submit Your Review</h2>
-                    <form id="reviewForm">
-                        <div class="form-group">
-                            <label>Overall Rating:</label>
-                            <div class="rating-input">
+                <!-- Review Form -->
+                <div id="reviewFormSection" class="review-form" style="display: none;" role="region" aria-labelledby="review-form-title">
+                    <h2 id="review-form-title">Submit Your Review</h2>
+                    <form id="reviewForm" class="form" aria-labelledby="review-form-title">
+                        <div class="form__group">
+                            <label class="form__label" for="rating">Overall Rating:</label>
+                            <div class="rating-input" role="radiogroup" aria-labelledby="rating">
                                 <input type="radio" name="rating" value="5" id="rating5" required>
                                 <label for="rating5">5 ⭐</label>
                                 <input type="radio" name="rating" value="4" id="rating4">
@@ -894,9 +246,10 @@
                                 <label for="rating1">1 ⭐</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Cleanliness:</label>
-                            <div class="rating-input">
+
+                        <div class="form__group">
+                            <label class="form__label" for="cleanliness">Cleanliness:</label>
+                            <div class="rating-input" role="radiogroup" aria-labelledby="cleanliness">
                                 <input type="radio" name="cleanliness" value="5" id="clean5" required>
                                 <label for="clean5">5 ⭐</label>
                                 <input type="radio" name="cleanliness" value="4" id="clean4">
@@ -909,9 +262,10 @@
                                 <label for="clean1">1 ⭐</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Maintenance:</label>
-                            <div class="rating-input">
+
+                        <div class="form__group">
+                            <label class="form__label" for="maintenance">Maintenance:</label>
+                            <div class="rating-input" role="radiogroup" aria-labelledby="maintenance">
                                 <input type="radio" name="maintenance" value="5" id="main5" required>
                                 <label for="main5">5 ⭐</label>
                                 <input type="radio" name="maintenance" value="4" id="main4">
@@ -924,9 +278,10 @@
                                 <label for="main1">1 ⭐</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Accessibility:</label>
-                            <div class="rating-input">
+
+                        <div class="form__group">
+                            <label class="form__label" for="accessibility">Accessibility:</label>
+                            <div class="rating-input" role="radiogroup" aria-labelledby="accessibility">
                                 <input type="radio" name="accessibility" value="5" id="acc5" required>
                                 <label for="acc5">5 ⭐</label>
                                 <input type="radio" name="accessibility" value="4" id="acc4">
@@ -939,20 +294,27 @@
                                 <label for="acc1">1 ⭐</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="comments">Comments:</label>
-                            <textarea id="comments" rows="4" placeholder="Share your experience..."></textarea>
+
+                        <div class="form__group">
+                            <label for="comments" class="form__label">Comments:</label>
+                            <textarea id="comments" class="form__textarea" rows="4" placeholder="Share your experience..." aria-describedby="comments-help"></textarea>
+                            <small id="comments-help" class="sr-only">Optional: Share additional details about your experience</small>
                         </div>
-                        <button type="submit" class="btn">Submit Review</button>
+
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
                     </form>
                 </div>
-                <div id="successMessage" style="display: none;">
+
+                <!-- Success Message -->
+                <div id="successMessage" class="success-message" style="display: none;" role="alert" aria-live="assertive">
                     <h3>Thank you for your review!</h3>
                     <p>Your feedback helps improve public facilities.</p>
-                    <button id="scanNewQR" class="btn">Scan Another QR Code</button>
+                    <button id="scanNewQR" class="btn btn-secondary">Scan Another QR Code</button>
                 </div>
-                <div class="instructions">
-                    <h2>How to use:</h2>
+
+                <!-- Instructions -->
+                <div class="instructions" role="region" aria-labelledby="instructions-title">
+                    <h2 id="instructions-title">How to use:</h2>
                     <ol>
                         <li>Allow camera access when prompted</li>
                         <li>Point your camera at the toilet's QR code</li>
@@ -960,55 +322,48 @@
                         <li>You'll be redirected to submit your review</li>
                     </ol>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>Easy to Use</h3>
-                <p>Simply scan the QR code at any registered toilet facility to start your review</p>
+        <!-- Features Section -->
+        <section class="features" aria-labelledby="features-title">
+            <h2 id="features-title" class="sr-only">Features</h2>
+            <div class="features__grid">
+                <article class="feature-card">
+                    <div class="feature-card__icon" aria-hidden="true">📱</div>
+                    <h3 class="feature-card__title">Easy to Use</h3>
+                    <p class="feature-card__description">Simply scan the QR code at any registered toilet facility to start your review</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-card__icon" aria-hidden="true">⭐</div>
+                    <h3 class="feature-card__title">Rate & Review</h3>
+                    <p class="feature-card__description">Share your experience and rate cleanliness, maintenance, and accessibility</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-card__icon" aria-hidden="true">📊</div>
+                    <h3 class="feature-card__title">Help Others</h3>
+                    <p class="feature-card__description">Your feedback helps maintain and improve public toilet facilities</p>
+                </article>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⭐</div>
-                <h3>Rate & Review</h3>
-                <p>Share your experience and rate cleanliness, maintenance, and accessibility</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Help Others</h3>
-                <p>Your feedback helps maintain and improve public toilet facilities</p>
-            </div>
-        </div>
+        </section>
     </main>
 
-    <footer>
-        <div class="footer-content">
-            <h2 class="footer-title">Available Toilets Near You</h2>
-            <div class="footer-map-container">
-                <div class="map-section">
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer__container">
+            <h2 class="footer__title">Available Toilets Near You</h2>
+            <div class="footer__content">
+                <div class="footer__map-section">
                     <div id="footer-map-error" class="map-error"></div>
-                    <div class="map-container">
-                        <div id="footer-map"></div>
-                        <div class="map-controls">
-                            <button onclick="map.locate({setView: true, maxZoom: 16})">📍 Find Near Me</button>
-                        </div>
-                        <div class="map-filters">
-                            <label>
-                                <input type="checkbox" id="showPublicToilets" checked onchange="updateToiletFilters()"> 🏛️ Public Toilets
-                            </label>
-                            <label>
-                                <input type="checkbox" id="showPrivateToilets" checked onchange="updateToiletFilters()"> 🏢 Private Toilets
-                            </label>
-                            <button onclick="syncPublicData()" style="margin-left: 10px;">🔄 Sync Public Data</button>
-                        </div>
-                        <div id="map-loading" class="map-loading">
-                            <div class="loading-spinner"></div>
-                            <span class="loading-text">Loading nearby toilets...</span>
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="text-align: center; color: #666;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;" aria-hidden="true">🗺️</div>
+                            <h3 style="margin: 0 0 0.5rem 0; color: #333;">Interactive Map</h3>
+                            <p style="margin: 0; font-size: 0.9rem;">Available in the main map section above</p>
                         </div>
                     </div>
                 </div>
-                <div class="map-info">
+                <div class="footer__info">
                     <h3>Rating Guide</h3>
                     <div class="map-legend">
                         <div class="legend-item">
@@ -1028,907 +383,30 @@
                             <span>No Ratings Yet</span>
                         </div>
                     </div>
-                    <div class="map-stats" style="margin-top: 2rem;">
-                        <h3>Statistics</h3>
-                        <div id="map-stats-content">
+                    <div class="map-stats" role="region" aria-labelledby="footer-stats-title">
+                        <h3 id="footer-stats-title">Statistics</h3>
+                        <div id="footer-map-stats-content" aria-live="polite">
                             Loading statistics...
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>© 2024 Toilet Review System. All rights reserved , Powered by SANKET.</p>
+            <div class="footer__bottom">
+                <p>© 2024 Toilet Review System. All rights reserved, Powered by SANKET.</p>
             </div>
         </div>
     </footer>
 
-    <script>
-        // Initialize main map with better default settings (centered on Mumbai for demo)
-        const map = L.map('map', {
-            center: [18.9700, 72.8200], // Mumbai center to show seed data
-            zoom: 12, // Lower zoom to show more area
-            minZoom: 3,
-            maxZoom: 18,
-            zoomControl: true,
-            preferCanvas: true,
-            zoomAnimation: true,
-            markerZoomAnimation: true
-        });
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
-        // Note: Footer map is disabled to prevent conflicts with main map
-        // const footerMap = L.map('footer-map', {
-        //     center: [18.9700, 72.8200],
-        //     zoom: 10,
-        //     zoomControl: false,
-        //     scrollWheelZoom: false,
-        //     dragging: false
-        // });
-        
-        const mapLoading = document.getElementById('map-loading');
-        const mapError = document.getElementById('map-error');
+    <!-- Legacy Scripts Removed - Using Modern Webpack Bundle Only -->
 
-        // Create markers layer group with better clustering options
-        const markers = L.markerClusterGroup({
-            chunkedLoading: true,
-            maxClusterRadius: 50,
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: true,
-            zoomToBoundsOnClick: true,
-            animate: true,
-            animateAddingMarkers: true,
-            disableClusteringAtZoom: 16 // Disable clustering at high zoom levels
-        });
+    <!-- Test Scripts Removed - Debugging scripts causing variable conflicts -->
 
-        // Add a nicer map style
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '©OpenStreetMap, ©CartoDB',
-            subdomains: 'abcd',
-            maxZoom: 19,
-            updateWhenIdle: true,
-            keepBuffer: 2
-        }).addTo(map);
-
-        // Helper function to get marker color based on rating
-        function getMarkerColor(rating) {
-            if (!rating) return '#808080'; // Grey for no rating
-            if (rating >= 4) return '#4caf50'; // Green for high rating
-            if (rating >= 3) return '#ffc107'; // Yellow for medium rating
-            return '#f44336'; // Red for low rating
-        }
-
-        // Function to create a marker with custom styling
-        function createMarker(toilet) {
-            const marker = L.circleMarker(
-                [toilet.coordinates.latitude, toilet.coordinates.longitude],
-                {
-                    radius: 10,
-                    fillColor: getMarkerColor(toilet.averageRating),
-                    color: '#ffffff',
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 0.9,
-                    className: 'toilet-marker'
-                }
-            );
-
-            // Add hover effect
-            marker.on('mouseover', function() {
-                this.setStyle({
-                    radius: 12,
-                    weight: 4
-                });
-            });
-
-            marker.on('mouseout', function() {
-                this.setStyle({
-                    radius: 10,
-                    weight: 3
-                });
-            });
-
-            return marker;
-        }
-
-        // Function to load and display toilets on the map (hybrid system)
-        async function loadToilets() {
-            try {
-                console.log('[MAP] Starting to load toilets...');
-                mapError.style.display = 'none';
-                mapLoading.style.display = 'flex';
-
-                // Clear existing markers
-                markers.clearLayers();
-                console.log('[MAP] Cleared existing markers');
-
-                // Get filter preferences
-                const showPublic = document.getElementById('showPublicToilets').checked;
-                const showPrivate = document.getElementById('showPrivateToilets').checked;
-
-                console.log(`[MAP] Filters - Public: ${showPublic}, Private: ${showPrivate}`);
-
-                // Use the shared API URL utility
-                const API_URL = ToiletReviewUtils.getApiUrl();
-
-                // Build query parameters
-                const params = new URLSearchParams({
-                    showPublic: showPublic.toString(),
-                    showPrivate: showPrivate.toString()
-                });
-
-                // Add map bounds for potential public data sync
-                const bounds = map.getBounds();
-                const boundsString = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-                params.append('bounds', boundsString);
-
-                console.log('[MAP] Using API URL:', API_URL || 'same origin');
-                const response = await fetch(`${API_URL}/api/toilet/map?${params}`);
-                console.log('[MAP] API Response:', response.status, response.statusText);
-
-                if (!response.ok) {
-                    console.error('[MAP] API request failed:', response.status, response.statusText);
-                    throw new Error(`Failed to fetch toilets: ${response.status} - ${response.statusText}`);
-                }
-
-                const toilets = await response.json();
-                console.log('[MAP] Fetched toilets:', toilets);
-
-                if (!toilets || !Array.isArray(toilets)) {
-                    console.warn('[MAP] Invalid toilets data received:', toilets);
-                    throw new Error('Invalid data received from server.');
-                }
-
-                if (toilets.length === 0) {
-                    console.log('[MAP] No toilets available yet - attempting automatic API sync...');
-
-                    // Attempt automatic sync from external APIs
-                    try {
-                        const boundsString = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-
-                        const syncResponse = await fetch(`${API_URL}/api/toilet/sync-public`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                bounds: `(${boundsString})`,
-                                sources: ['osm', 'government', 'geofabrik'],
-                                city: getCurrentCityFromBounds(bounds)
-                            })
-                        });
-
-                        if (syncResponse.ok) {
-                            const syncResult = await syncResponse.json();
-                            console.log('[MAP] Auto-sync completed:', syncResult);
-
-                            // Reload toilets after sync
-                            const retryResponse = await fetch(`${API_URL}/api/toilet/map?${params}`);
-                            if (retryResponse.ok) {
-                                const retryToilets = await retryResponse.json();
-
-                                if (retryToilets && retryToilets.length > 0) {
-                                    console.log('[MAP] Found toilets after auto-sync, processing...');
-                                    toilets = retryToilets;
-                                } else {
-                                    throw new Error('No toilets found even after sync');
-                                }
-                            }
-                        } else {
-                            throw new Error(`Auto-sync failed: ${syncResponse.status}`);
-                        }
-                    } catch (syncError) {
-                        console.warn('[MAP] Auto-sync failed:', syncError.message);
-                        // Continue with empty map but show helpful message
-                        mapError.textContent = 'Loading toilet data from external APIs... This may take a moment on first load.';
-                        mapError.style.display = 'block';
-                        map.setView([18.5204, 73.8567], 13);
-
-                        // Update stats for empty state
-                        updateMapStats([]);
-
-                        setTimeout(() => {
-                            mapLoading.style.display = 'none';
-                            hideLoadingOverlay();
-                        }, 500);
-                        return;
-                    }
-                }
-
-                if (toilets.length === 0) {
-                    console.log('[MAP] Still no toilets after sync attempt');
-                    mapError.textContent = 'No toilets match your current filters. Try adjusting the filters or check back later.';
-                    mapError.style.display = 'block';
-                    map.setView([18.5204, 73.8567], 13);
-
-                    // Update stats for empty state
-                    updateMapStats([]);
-
-                    setTimeout(() => {
-                        mapLoading.style.display = 'none';
-                        hideLoadingOverlay();
-                    }, 500);
-                    return;
-                }
-
-                console.log(`[MAP] Processing ${toilets.length} toilets (${showPublic && showPrivate ? 'public+private' : showPublic ? 'public' : 'private'})`);
-
-                // Update statistics
-                updateMapStats(toilets);
-
-                // Add markers with different styling for public vs private
-                let validToilets = 0;
-                toilets.forEach((toilet, index) => {
-                    if (!toilet.coordinates?.latitude || !toilet.coordinates?.longitude) {
-                        console.warn(`[MAP] Invalid coordinates for toilet ${index}:`, toilet);
-                        return;
-                    }
-
-                    if (!toilet.name || !toilet.location) {
-                        console.warn(`[MAP] Missing required fields for toilet ${index}:`, toilet);
-                        return;
-                    }
-
-                    validToilets++;
-                    const marker = createMarker(toilet);
-                    const popupContent = createPopupContent(toilet);
-
-                    marker.bindPopup(popupContent);
-                    markers.addLayer(marker);
-                });
-
-                console.log(`[MAP] Added ${validToilets} valid toilet markers`);
-
-                map.addLayer(markers);
-
-                // Fit bounds with animation
-                if (markers.getLayers().length > 0) {
-                    map.fitBounds(markers.getBounds(), {
-                        padding: [50, 50],
-                        maxZoom: 15,
-                        animate: true,
-                        duration: 1
-                    });
-                    console.log('[MAP] Fitted map bounds to markers');
-                } else {
-                    map.setView([18.5204, 73.8567], 13);
-                    console.log('[MAP] Set default map view');
-                }
-
-                setTimeout(() => {
-                    mapLoading.style.display = 'none';
-                    hideLoadingOverlay(); // Hide global loading when map is ready
-                    console.log('[MAP] Loading complete, UI updated');
-                }, 500);
-
-            } catch (error) {
-                console.error('[MAP] Error loading toilets:', error);
-                console.error('[MAP] Error stack:', error.stack);
-                mapError.textContent = `${error.message} Please make sure the server is running on port 3000.`;
-                mapError.style.display = 'block';
-                mapLoading.style.display = 'none';
-                map.setView([18.5204, 73.8567], 13);
-                hideLoadingOverlay();
-            }
-        }
-
-        // Helper function to get marker color based on rating
-        function getMarkerColor(rating) {
-            if (!rating) return '#808080'; // Grey for no rating
-            if (rating >= 4) return '#4caf50'; // Green for high rating
-            if (rating >= 3) return '#ffc107'; // Yellow for medium rating
-            return '#f44336'; // Red for low rating
-        }
-
-        // Helper function to create star rating display
-        function getStarRating(rating) {
-            if (!rating) return 'No ratings yet';
-            const fullStars = Math.floor(rating);
-            const halfStar = rating % 1 >= 0.5;
-            let stars = '★'.repeat(fullStars);
-            if (halfStar) stars += '½';
-            stars += '☆'.repeat(5 - Math.ceil(rating));
-            return stars;
-        }
-
-        // Update home page statistics with dynamic data fetching
-        async function updateHomePageStats() {
-            try {
-                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:3000'
-                    : window.location.origin;
-
-                // Get toilet statistics from multiple sources
-                const [toiletResponse, syncResponse] = await Promise.allSettled([
-                    fetch(`${API_URL}/api/toilet/map?limit=1000`), // Sample current data
-                    fetch(`${API_URL}/api/toilet/sync-public`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            bounds: '((18.4,73.8,18.6,73.9))',
-                            sources: ['osm', 'government'],
-                            city: 'mumbai'
-                        })
-                    }) // Trigger background sync
-                ]);
-
-                let totalToilets = 0;
-                let cities = new Set();
-                let totalReviews = 0;
-
-                // Process current toilet data
-                if (toiletResponse.status === 'fulfilled' && toiletResponse.value.ok) {
-                    const toilets = await toiletResponse.value.json();
-                    totalToilets = toilets.length;
-
-                    toilets.forEach(toilet => {
-                        // Extract city from location string
-                        const locationParts = toilet.location.split(',');
-                        if (locationParts.length > 0) {
-                            const city = locationParts[0].trim().toLowerCase();
-                            cities.add(city);
-                        }
-                        totalReviews += toilet.totalReviews || 0;
-                    });
-                }
-
-                // Process sync results (background data fetching)
-                let syncedCount = 0;
-                if (syncResponse.status === 'fulfilled' && syncResponse.value.ok) {
-                    const syncResult = await syncResponse.value.json();
-                    syncedCount = syncResult.synced || 0;
-                    console.log(`[STATS] Background sync added ${syncedCount} toilets`);
-                }
-
-                // Update the display with dynamic data
-                const totalToiletsElement = document.getElementById('totalToiletsCount');
-                const citiesCoveredElement = document.getElementById('citiesCovered');
-                const reviewsCountElement = document.getElementById('reviewsCount');
-
-                if (totalToiletsElement) {
-                    // Show actual count + indicate dynamic fetching capability
-                    const displayCount = Math.max(totalToilets + syncedCount, 1000);
-                    totalToiletsElement.textContent = displayCount.toLocaleString() + '+';
-                }
-
-                if (citiesCoveredElement) {
-                    const cityCount = Math.max(cities.size, 9); // At least 9 major cities
-                    citiesCoveredElement.textContent = cityCount + '+ Cities';
-                }
-
-                if (reviewsCountElement) {
-                    reviewsCountElement.textContent = Math.max(totalReviews, 500).toLocaleString() + '+';
-                }
-
-                console.log(`[STATS] Updated home page: ${totalToilets + syncedCount} toilets, ${cities.size} cities, ${totalReviews} reviews`);
-
-            } catch (error) {
-                console.log('Could not update home page stats:', error.message);
-                // Keep default values if API fails - shows the system can handle API failures gracefully
-            }
-        }
-
-        // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[HOME] Initializing home page...');
-
-            // Update stats when page loads
-            updateHomePageStats();
-
-            // Hide global loading overlay
-            const globalLoading = document.getElementById('globalLoading');
-            if (globalLoading) {
-                setTimeout(() => {
-                    globalLoading.classList.add('hidden');
-                }, 1000);
-            }
-
-            console.log('[HOME] Initialization complete');
-        });
-
-        // Create popup content based on toilet type
-        function createPopupContent(toilet) {
-            const isPublic = toilet.type === 'public';
-
-            return `
-                <div class="toilet-popup ${isPublic ? 'public-popup' : 'private-popup'}">
-                    <h3>${toilet.name}</h3>
-                    <div class="toilet-type ${isPublic ? 'public-badge' : 'private-badge'}">
-                        ${isPublic ? '🏛️ Public Facility' : '🏢 Private Toilet'}
-                    </div>
-                    <p>${toilet.location}</p>
-                    ${toilet.description ? `<p>${toilet.description}</p>` : ''}
-
-                    ${isPublic ? `
-                        <div class="public-notice">
-                            ℹ️ Public facility - General information only
-                        </div>
-                    ` : `
-                        <div class="rating">
-                            <span class="rating-stars">${getStarRating(toilet.averageRating)}</span>
-                            <span>(${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No'} / 5)</span>
-                        </div>
-                        <p>Total Reviews: ${toilet.totalReviews || 0}</p>
-                    `}
-
-                    ${toilet.facilities ? `
-                        <p>Facilities: ${toilet.facilities.map(f => f.replace('_', ' ')).join(', ')}</p>
-                    ` : ''}
-
-                    ${!isPublic ? `<button onclick="reviewToilet('${toilet.id}')">Write Review</button>` : ''}
-                </div>
-            `;
-        }
-
-        // Update toilet filters and reload map
-        function updateToiletFilters() {
-            console.log('[FILTER] Updating toilet filters');
-            loadToilets(); // Reload toilets with new filter settings
-        }
-
-        // Sync all data sources from external APIs
-        async function syncAllDataSources() {
-            try {
-                const syncButton = document.querySelector('button[onclick="syncAllDataSources()"]');
-                const originalText = syncButton.textContent;
-                syncButton.textContent = '🔄 Syncing All APIs...';
-                syncButton.disabled = true;
-
-                const API_URL = ToiletReviewUtils.getApiUrl();
-                const bounds = map.getBounds();
-                const boundsString = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-
-                console.log('[SYNC] Syncing all data sources for bounds:', boundsString);
-
-                // Sync from all available sources
-                const sources = [
-                    'osm', 'government', 'geofabrik', 'city_ckan', 'planet_osm',
-                    'data.gov.in', 'swachh_bharat', 'municipal', 'tourism_boards',
-                    'transport_hubs', 'commercial_centers', 'educational_institutions'
-                ];
-
-                const syncPromises = sources.map(source =>
-                    fetch(`${API_URL}/api/toilet/sync-public`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            bounds: boundsString,
-                            sources: [source],
-                            city: getCurrentCityFromBounds(bounds)
-                        })
-                    }).then(res => res.ok ? res.json() : { synced: 0, source })
-                      .catch(() => ({ synced: 0, source }))
-                );
-
-                const results = await Promise.allSettled(syncPromises);
-                const totalSynced = results.reduce((sum, result) => {
-                    if (result.status === 'fulfilled') {
-                        return sum + (result.value.synced || 0);
-                    }
-                    return sum;
-                }, 0);
-
-                console.log('[SYNC] All API sync completed, total toilets added:', totalSynced);
-
-                // Reload toilets to show new data from all sources
-                loadToilets();
-
-                // Update home page stats
-                updateHomePageStats();
-
-                // Show success message
-                alert(`🎉 Successfully synced ${totalSynced} new toilets from all external APIs!\n\nData sources: Overpass API, Geofabrik, City CKAN, Planet OSM, Government APIs, Tourism Boards, Transport Hubs, Commercial Centers, Educational Institutions`);
-
-            } catch (error) {
-                console.error('[SYNC] Error syncing all data sources:', error);
-                alert('Failed to sync data from external APIs. Please try again.');
-            } finally {
-                const syncButton = document.querySelector('button[onclick="syncAllDataSources()"]');
-                syncButton.textContent = '🔄 Sync All APIs';
-                syncButton.disabled = false;
-            }
-        }
-
-        // Helper function to determine current city from map bounds
-        function getCurrentCityFromBounds(bounds) {
-            const center = bounds.getCenter();
-            const lat = center.lat;
-            const lng = center.lng;
-
-            // Simple city detection based on coordinates (can be enhanced)
-            if (lat > 28.4 && lat < 28.9 && lng > 76.8 && lng < 77.4) return 'delhi';
-            if (lat > 18.8 && lat < 19.3 && lng > 72.7 && lng < 73.0) return 'mumbai';
-            if (lat > 12.7 && lat < 13.2 && lng > 77.3 && lng < 77.9) return 'bangalore';
-            if (lat > 12.9 && lat < 13.3 && lng > 80.1 && lng < 80.4) return 'chennai';
-            if (lat > 18.3 && lat < 18.7 && lng > 73.7 && lng < 74.0) return 'pune';
-
-            return 'mumbai'; // Default fallback
-        }
-
-        // Sync public toilet data (legacy function for backward compatibility)
-        async function syncPublicData() {
-            try {
-                const syncButton = document.querySelector('button[onclick="syncPublicData()"]');
-                const originalText = syncButton.textContent;
-                syncButton.textContent = '🔄 Syncing...';
-                syncButton.disabled = true;
-
-                const API_URL = ToiletReviewUtils.getApiUrl();
-                const bounds = map.getBounds();
-                const boundsString = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-
-                console.log('[SYNC] Syncing public data for bounds:', boundsString);
-
-                const response = await fetch(`${API_URL}/api/toilet/sync-public`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        bounds: boundsString,
-                        sources: ['osm', 'government']
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Sync failed: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('[SYNC] Sync completed:', result);
-
-                // Reload toilets to show new data
-                loadToilets();
-
-                // Show success message
-                alert(`Successfully synced ${result.synced} new public toilets!`);
-
-            } catch (error) {
-                console.error('[SYNC] Error syncing public data:', error);
-                alert('Failed to sync public toilet data. Please try again.');
-            } finally {
-                const syncButton = document.querySelector('button[onclick="syncPublicData()"]');
-                syncButton.textContent = '🔄 Sync Public Data';
-                syncButton.disabled = false;
-            }
-        }
-
-        // Placeholder function for reviewing private toilets
-        function reviewToilet(toiletId) {
-            alert(`Review functionality for toilet ${toiletId} would open here.\n\nIn a full implementation, this would redirect to the review page or open a review modal.`);
-        }
-
-        // Load toilets when the map is ready
-        map.whenReady(() => {
-            loadToilets();
-        });
-
-        // Loading utilities are already available globally from utils.js
-
-        // Add error handler for tile loading
-        map.on('tileerror', function(e) {
-            console.error('Tile loading error:', e);
-            mapError.textContent = 'Map tiles failed to load. Please check your internet connection.';
-            mapError.style.display = 'block';
-        });
-
-        let html5QrcodeScanner = null;
-        let isProcessingScan = false;
-
-        // Initialize QR Scanner
-        function initializeQRScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
-            }
-
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "qr-reader",
-                { 
-                    fps: 10, 
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0
-                },
-                false
-            );
-
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-        }
-
-        // Handle successful QR scan
-        function onScanSuccess(decodedText, decodedResult) {
-            if (isProcessingScan) {
-                return; // Prevent multiple processing
-            }
-
-            isProcessingScan = true;
-            console.log('QR Code scanned:', decodedText);
-
-            try {
-                // Stop the scanner
-                if (html5QrcodeScanner) {
-                    html5QrcodeScanner.clear();
-                    html5QrcodeScanner = null;
-                }
-
-                // Hide scanner
-                document.getElementById('qr-reader').style.display = 'none';
-
-                // Parse QR code data
-                let toiletId;
-                try {
-                    const parsedData = JSON.parse(decodedText);
-                    toiletId = parsedData.toiletId;
-                } catch (e) {
-                    toiletId = decodedText.trim();
-                }
-
-                if (!toiletId) {
-                    throw new Error('Invalid QR code format');
-                }
-
-                // Load toilet information
-                loadToiletInfo(toiletId);
-
-            } catch (error) {
-                console.error('Error processing QR code:', error);
-                alert('Invalid QR code. Please scan a valid toilet QR code.');
-                resetScanner();
-            } finally {
-                isProcessingScan = false;
-            }
-        }
-
-        // Handle scan failure
-        function onScanFailure(error) {
-            // Only log errors that aren't "No QR code found"
-            if (error && !error.includes('No QR code found')) {
-                console.warn(`QR scan error: ${error}`);
-            }
-        }
-
-        // Reset scanner function
-        function resetScanner() {
-            // Reset processing flag
-            isProcessingScan = false;
-
-            // Clear existing scanner
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
-                html5QrcodeScanner = null;
-            }
-
-            // Reset UI elements
-            document.getElementById('toiletInfoPanel').style.display = 'none';
-            document.getElementById('reviewFormSection').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
-            document.getElementById('qr-reader').style.display = 'block';
-            
-            // Reset form
-            document.getElementById('reviewForm').reset();
-            
-            // Reset current toilet ID
-            currentToiletId = null;
-
-            // Initialize new scanner
-            initializeQRScanner();
-        }
-
-        // Update the scanNewQRButton click handler
-        document.getElementById('scanNewQR').addEventListener('click', resetScanner);
-
-        // Initialize scanner when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeQRScanner();
-        });
-
-        // Update map stats
-        function updateMapStats(toilets) {
-            console.log('[STATS] Updating map statistics for', toilets?.length || 0, 'toilets');
-            const statsContent = document.getElementById('map-stats-content');
-
-            if (!toilets || toilets.length === 0) {
-                console.log('[STATS] No toilets to display statistics for');
-                statsContent.innerHTML = `
-                    <p>No toilets available yet</p>
-                    <p>Add toilets via the admin panel</p>
-                `;
-                return;
-            }
-
-            const totalToilets = toilets.length;
-            const avgRating = toilets.reduce((sum, t) => sum + (t.averageRating || 0), 0) / totalToilets;
-            const highRated = toilets.filter(t => t.averageRating >= 4).length;
-            const reviewedToilets = toilets.filter(t => t.totalReviews > 0).length;
-
-            console.log(`[STATS] Calculated: total=${totalToilets}, avg=${avgRating.toFixed(1)}, highRated=${highRated}, reviewed=${reviewedToilets}`);
-
-            statsContent.innerHTML = `
-                <p>Total Toilets: ${totalToilets}</p>
-                <p>Average Rating: ${avgRating.toFixed(1)} ⭐</p>
-                <p>High Rated (4+): ${highRated}</p>
-                <p>Reviewed: ${reviewedToilets}/${totalToilets}</p>
-            `;
-        }
-
-        let currentToiletId = null;
-        const reviewForm = document.getElementById('reviewForm');
-        const reviewFormSection = document.getElementById('reviewFormSection');
-        const successMessage = document.getElementById('successMessage');
-        const scanNewQRButton = document.getElementById('scanNewQR');
-
-        // Handle review form submission
-        reviewForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!currentToiletId) {
-                alert('No toilet selected. Please scan a QR code first.');
-                return;
-            }
-
-            const submitButton = reviewForm.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
-
-            try {
-                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:3000'
-                    : window.location.origin;
-
-                const reviewData = {
-                    toiletId: currentToiletId,
-                    rating: parseInt(document.querySelector('input[name="rating"]:checked').value),
-                    cleanliness: parseInt(document.querySelector('input[name="cleanliness"]:checked').value),
-                    maintenance: parseInt(document.querySelector('input[name="maintenance"]:checked').value),
-                    accessibility: parseInt(document.querySelector('input[name="accessibility"]:checked').value),
-                    comment: document.getElementById('comments').value.trim()
-                };
-
-                console.log('Submitting review to:', `${API_URL}/api/reviews/submit`);
-                console.log('Review data:', reviewData);
-
-                const response = await fetch(`${API_URL}/api/reviews/submit`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(reviewData)
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || 'Failed to submit review');
-                }
-
-                // Show success message
-                reviewFormSection.style.display = 'none';
-                successMessage.style.display = 'block';
-                createConfetti();
-
-            } catch (error) {
-                console.error('Error submitting review:', error);
-                alert(error.message || 'Failed to submit review. Please try again.');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Submit Review';
-            }
-        });
-
-        function createConfetti() {
-            const colors = ['#ff69b4', '#ffd700', '#00ff00', '#ff0000', '#0000ff'];
-            
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.animationDelay = Math.random() * 2 + 's';
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                document.body.appendChild(confetti);
-                
-                // Remove confetti after animation
-                setTimeout(() => {
-                    confetti.remove();
-                }, 5000);
-            }
-        }
-
-        async function loadToiletInfo(toiletId) {
-            const toiletInfoPanel = document.getElementById('toiletInfoPanel');
-            const reviewFormSection = document.getElementById('reviewFormSection');
-            
-            // Show loading state
-            toiletInfoPanel.style.display = 'block';
-            toiletInfoPanel.innerHTML = `
-                <div style="text-align: center; padding: 2rem;">
-                    <div class="loading-spinner"></div>
-                    <p>Loading toilet information...</p>
-                </div>
-            `;
-
-            try {
-                // Update API URL to match backend route
-                const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:3000'
-                    : window.location.origin;
-
-                console.log('Fetching toilet info from:', `${API_URL}/api/toilet/${toiletId}`);
-                
-                const response = await fetch(`${API_URL}/api/toilet/${toiletId}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Server responded with status: ${response.status}`);
-                }
-
-                const toilet = await response.json();
-                console.log('Received toilet data:', toilet);
-
-                if (!toilet) {
-                    throw new Error('No toilet data received');
-                }
-
-                // Update toilet information panel
-                toiletInfoPanel.innerHTML = `
-                    <div class="toilet-details">
-                        <div class="info-group">
-                            <h3>${toilet.name || 'Unknown Toilet'}</h3>
-                            <p>${toilet.location || 'Location not specified'}</p>
-                            ${toilet.description ? `<p>${toilet.description}</p>` : ''}
-                        </div>
-                        <div class="info-group">
-                            <h4>Current Ratings</h4>
-                            <div class="rating-summary">
-                                <div class="rating-item">
-                                    <span>Overall Rating:</span>
-                                    <span class="rating-stars">${getStarRating(toilet.averageRating)}</span>
-                                </div>
-                                <div class="rating-item">
-                                    <span>Total Reviews:</span>
-                                    <span>${toilet.totalReviews || 0}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-group">
-                            <h4>Facilities</h4>
-                            <div class="facilities-list">
-                                ${toilet.facilities && toilet.facilities.length > 0 
-                                    ? toilet.facilities.map(facility => `
-                                        <span class="facility-tag">
-                                            ${facility.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                        </span>
-                                    `).join('')
-                                    : '<p>No facilities listed</p>'
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // Show review form
-                reviewFormSection.style.display = 'block';
-
-            } catch (error) {
-                console.error('Error loading toilet info:', error);
-                toiletInfoPanel.innerHTML = `
-                    <div style="color: #dc3545; text-align: center; padding: 2rem;">
-                        <h3>Error Loading Toilet Information</h3>
-                        <p>${error.message}</p>
-                        <p>Please make sure:</p>
-                        <ul style="text-align: left; margin: 1rem 0;">
-                            <li>The backend server is running</li>
-                            <li>You have a stable internet connection</li>
-                            <li>The toilet ID is valid</li>
-                        </ul>
-                        <button onclick="resetScanner()" class="btn">Try Again</button>
-                    </div>
-                `;
-            }
-        }
-
-        function getStarRating(rating) {
-            if (!rating) return 'No ratings yet';
-            const fullStars = Math.floor(rating);
-            const halfStar = rating % 1 >= 0.5;
-            let stars = '★'.repeat(fullStars);
-            if (halfStar) stars += '½';
-            stars += '☆'.repeat(5 - Math.ceil(rating));
-            return stars;
-        }
-    </script>
+    <!-- Modular Application (Bundled) -->
+    <script src="js/app.2b1c67e5b93c0f89c098.js"></script>
 </body>
 </html>

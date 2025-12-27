@@ -6,9 +6,751 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Toilet Review System</title>
+
+    <!-- Bundled CSS from webpack (direct loading) -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
+    <link rel="stylesheet" href="js/css/css/base.0289d2102da9baec409e.css">
+    <link rel="stylesheet" href="js/css/css/components.f7a25e9b232c36b75b16.css">
+    <link rel="stylesheet" href="js/css/css/admin.ca2faac4202b9d7b0e5e.css">
+
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//unpkg.com">
+</head>
+<body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus-visible">Skip to main content</a>
+
+    <!-- Global Loading Overlay -->
+    <div id="adminGlobalLoading" class="admin-global-loading" role="status" aria-live="polite">
+        <div class="admin-global-loading-spinner" aria-hidden="true"></div>
+        <div class="admin-global-loading-text">Loading Admin Dashboard...</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="admin-nav" role="navigation" aria-label="Admin navigation">
+        <div class="admin-nav__container">
+            <h1 class="admin-nav__brand">Admin Dashboard</h1>
+            <div class="admin-nav__links">
+                <a href="index.html" class="admin-nav__link">Home</a>
+                <button id="showDashboardBtn" class="admin-nav__link admin-nav__link--active" aria-current="page">Dashboard</button>
+                <button id="showReviewsBtn" class="admin-nav__link">Reviews</button>
+                <button id="showQRCodesBtn" class="admin-nav__link">QR Codes</button>
+                <button id="logoutBtn" class="btn btn-danger" style="display: none;" aria-label="Logout from admin panel">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-container" id="main-content" role="main">
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form" role="region" aria-labelledby="login-title">
+            <h2 id="login-title" class="login-form__title">Admin Login</h2>
+            <form id="adminLoginForm" class="form" aria-labelledby="login-title">
+                <div class="login-form__group">
+                    <label for="email" class="login-form__label">Email:</label>
+                    <input type="email" id="email" class="login-form__input" required aria-describedby="email-help">
+                    <small id="email-help" class="sr-only">Enter your admin email address</small>
+                </div>
+                <div class="login-form__group">
+                    <label for="password" class="login-form__label">Password:</label>
+                    <input type="password" id="password" class="login-form__input" required aria-describedby="password-help">
+                    <small id="password-help" class="sr-only">Enter your admin password</small>
+                </div>
+                <div class="login-form__actions">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+                <div id="loginError" class="login-form__error" role="alert" aria-live="polite"></div>
+            </form>
+
+            <!-- Register Section -->
+            <div class="register-section" role="region" aria-labelledby="register-title">
+                <h3 id="register-title" class="register-section__title">First Time? Register Admin Account</h3>
+                <form id="adminRegisterForm" class="form" aria-labelledby="register-title">
+                    <div class="form__group">
+                        <label for="registerEmail" class="form__label">Email:</label>
+                        <input type="email" id="registerEmail" class="form__input" required aria-describedby="register-email-help">
+                        <small id="register-email-help" class="sr-only">Enter email for new admin account</small>
+                    </div>
+                    <div class="form__group">
+                        <label for="registerPassword" class="form__label">Password:</label>
+                        <input type="password" id="registerPassword" class="form__input" required minlength="6" aria-describedby="register-password-help">
+                        <small id="register-password-help" class="sr-only">Enter password (minimum 6 characters)</small>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Register</button>
+                    <div id="registerError" class="login-form__error" role="alert" aria-live="polite"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="admin-dashboard" style="display: none;" role="region" aria-labelledby="dashboard-title">
+            <h2 id="dashboard-title" class="admin-dashboard__title">Add New Toilet</h2>
+
+            <div id="addToiletError" class="admin-dashboard__error" role="alert" aria-live="polite" aria-atomic="true"></div>
+            <div id="addToiletSuccess" class="admin-dashboard__success" role="alert" aria-live="polite" aria-atomic="true"></div>
+
+            <form id="addToiletForm" class="add-toilet-form" aria-labelledby="dashboard-title">
+                <div class="add-toilet-form__group">
+                    <label for="toiletName" class="add-toilet-form__label">Toilet Name:</label>
+                    <input type="text" id="toiletName" class="add-toilet-form__input" required aria-describedby="toilet-name-help">
+                    <small id="toilet-name-help" class="sr-only">Enter the name of the toilet facility</small>
+                </div>
+
+                <div class="add-toilet-form__group">
+                    <label for="toiletLocation" class="add-toilet-form__label">Location:</label>
+                    <input type="text" id="toiletLocation" class="add-toilet-form__input" required aria-describedby="toilet-location-help">
+                    <small id="toilet-location-help" class="sr-only">Enter the address or location description</small>
+                </div>
+
+                <div class="add-toilet-form__group">
+                    <label for="toiletDescription" class="add-toilet-form__label">Description:</label>
+                    <textarea id="toiletDescription" class="add-toilet-form__textarea" rows="3" aria-describedby="toilet-description-help"></textarea>
+                    <small id="toilet-description-help" class="sr-only">Optional: Provide additional details about the facility</small>
+                </div>
+
+                <div class="add-toilet-form__group">
+                    <label class="add-toilet-form__label">Select Location on Map:</label>
+                    <div class="map-section">
+                        <div class="map-section__container">
+                            <div id="map" class="map-section__map" role="application" aria-label="Interactive map for selecting toilet location"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="coordinates-group" role="group" aria-labelledby="coordinates-label">
+                    <span id="coordinates-label" class="sr-only">Coordinate inputs</span>
+                    <div class="add-toilet-form__group">
+                        <label for="latitude" class="add-toilet-form__label">Latitude:</label>
+                        <input type="number" id="latitude" class="add-toilet-form__input" step="any" required aria-describedby="latitude-help">
+                        <small id="latitude-help" class="sr-only">Latitude coordinate from map selection</small>
+                    </div>
+                    <div class="add-toilet-form__group">
+                        <label for="longitude" class="add-toilet-form__label">Longitude:</label>
+                        <input type="number" id="longitude" class="add-toilet-form__input" step="any" required aria-describedby="longitude-help">
+                        <small id="longitude-help" class="sr-only">Longitude coordinate from map selection</small>
+                    </div>
+                </div>
+
+                <div class="add-toilet-form__group" role="group" aria-labelledby="facilities-label">
+                    <span id="facilities-label" class="add-toilet-form__label">Facilities:</span>
+                    <div class="facilities-group">
+                        <div class="facility-item">
+                            <input type="checkbox" id="handicap" name="facilities" value="handicap_accessible">
+                            <label for="handicap">🏛️ Handicap Accessible</label>
+                        </div>
+                        <div class="facility-item">
+                            <input type="checkbox" id="baby_change" name="facilities" value="baby_change">
+                            <label for="baby_change">👶 Baby Change</label>
+                        </div>
+                        <div class="facility-item">
+                            <input type="checkbox" id="shower" name="facilities" value="shower">
+                            <label for="shower">🚿 Shower</label>
+                        </div>
+                        <div class="facility-item">
+                            <input type="checkbox" id="bidet" name="facilities" value="bidet">
+                            <label for="bidet">🪣 Bidet</label>
+                        </div>
+                        <div class="facility-item">
+                            <input type="checkbox" id="paper_towel" name="facilities" value="paper_towel">
+                            <label for="paper_towel">📄 Paper Towel</label>
+                        </div>
+                        <div class="facility-item">
+                            <input type="checkbox" id="hand_dryer" name="facilities" value="hand_dryer">
+                            <label for="hand_dryer">💨 Hand Dryer</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Add Toilet</button>
+            </form>
+
+            <!-- Scanner Form (Hidden by default) -->
+            <div id="scanToiletForm" class="scanner-section" style="display: none;" role="region" aria-labelledby="scanner-title">
+                <h2 id="scanner-title">Scan Toilet QR Code</h2>
+                <div class="scanner-container">
+                    <video id="scanner-video" class="scanner-video" aria-label="QR code scanner camera feed"></video>
+                </div>
+                <div id="scanned-data" class="scanned-data" role="region" aria-labelledby="scanned-title">
+                    <h3 id="scanned-title" class="scanned-data__title">Scanned Toilet Data</h3>
+                    <form id="unknownToiletForm" class="form">
+                        <div class="form__group">
+                            <label for="scannedName" class="form__label">Toilet Name:</label>
+                            <input type="text" id="scannedName" class="form__input" required>
+                        </div>
+                        <div class="form__group">
+                            <label for="scannedLocation" class="form__label">Location:</label>
+                            <input type="text" id="scannedLocation" class="form__input" required>
+                        </div>
+                        <div class="form__group">
+                            <label for="scannedLatitude" class="form__label">Latitude:</label>
+                            <input type="number" id="scannedLatitude" class="form__input" step="any" required>
+                        </div>
+                        <div class="form__group">
+                            <label for="scannedLongitude" class="form__label">Longitude:</label>
+                            <input type="number" id="scannedLongitude" class="form__input" step="any" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Register Unknown Toilet</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Toilet List -->
+            <section class="toilet-list" role="region" aria-labelledby="toilet-list-title">
+                <h2 id="toilet-list-title" class="toilet-list__title">Registered Toilets</h2>
+                <div id="toiletListContainer" aria-live="polite" aria-atomic="false">
+                    <!-- Toilets will be loaded here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- QR Codes Section -->
+        <div id="qrCodesSection" class="qr-codes-section" style="display: none;" role="region" aria-labelledby="qr-codes-title">
+            <h2 id="qr-codes-title" class="qr-codes-section__title">QR Codes for Toilets</h2>
+            <div class="qr-grid" id="qrGrid" aria-live="polite" aria-atomic="false">
+                <!-- QR codes will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div id="reviewsSection" class="reviews-section" style="display: none;" role="region" aria-labelledby="reviews-title">
+            <h2 id="reviews-title" class="reviews-section__title">Toilet Reviews</h2>
+
+            <div class="reviews-filters" role="group" aria-labelledby="filters-title">
+                <span id="filters-title" class="sr-only">Review filters</span>
+                <select id="toiletFilter" class="reviews-filters__select" aria-label="Filter by toilet">
+                    <option value="">All Toilets</option>
+                </select>
+                <select id="ratingFilter" class="reviews-filters__select" aria-label="Filter by rating">
+                    <option value="">All Ratings</option>
+                    <option value="5">5 Stars</option>
+                    <option value="4">4 Stars</option>
+                    <option value="3">3 Stars</option>
+                    <option value="2">2 Stars</option>
+                    <option value="1">1 Star</option>
+                </select>
+            </div>
+
+            <div class="review-list" id="reviewList" aria-live="polite" aria-atomic="false">
+                <!-- Reviews will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+
+    <!-- Legacy Scripts Removed - Using Modern Webpack Bundle Only -->
+
+    <!-- Modular Application (Bundled) -->
+    <script src="js/admin.57bac18b2140d95d6aac.js"></script>
+
+    <script>
+        // Initialize admin page when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[ADMIN] Admin page DOM loaded');
+
+            // Initialize Leaflet map if dashboard is shown
+            if (document.getElementById('adminDashboard').style.display !== 'none') {
+                initializeMap();
+            }
+
+            // Set up navigation event listeners
+            setupNavigation();
+
+            // Check authentication status
+            checkAuthStatus();
+        });
+
+        // Initialize Leaflet map for admin (only once)
+        function initializeMap() {
+            console.log('[ADMIN] Initializing Leaflet map');
+
+            // Check if map is already initialized
+            if (window.adminMap) {
+                console.log('[ADMIN] Map already initialized, skipping');
+                return;
+            }
+
+            const mapElement = document.getElementById('map');
+            if (!mapElement) {
+                console.warn('[ADMIN] Map element not found');
+                return;
+            }
+
+            try {
+                // Initialize map centered on Mumbai
+                const map = L.map('map').setView([18.5204, 73.8567], 13);
+
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Add click handler for coordinate selection
+                map.on('click', function(e) {
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+
+                    // Update form fields
+                    document.getElementById('latitude').value = lat.toFixed(6);
+                    document.getElementById('longitude').value = lng.toFixed(6);
+
+                    // Add/update marker
+                    if (window.currentMarker) {
+                        window.currentMarker.setLatLng(e.latlng);
+                    } else {
+                        window.currentMarker = L.marker(e.latlng).addTo(map);
+                    }
+                });
+
+                // Store map reference globally for admin functions
+                window.adminMap = map;
+
+                console.log('[ADMIN] Map initialized successfully');
+
+            } catch (error) {
+                console.error('[ADMIN] Failed to initialize map:', error);
+            }
+        }
+
+        // Set up navigation between sections
+        function setupNavigation() {
+            console.log('[ADMIN] Setting up navigation');
+
+            const showDashboardBtn = document.getElementById('showDashboardBtn');
+            const showReviewsBtn = document.getElementById('showReviewsBtn');
+            const showQRCodesBtn = document.getElementById('showQRCodesBtn');
+
+            // Dashboard navigation
+            showDashboardBtn.addEventListener('click', function() {
+                showSection('adminDashboard');
+                updateActiveNav('showDashboardBtn');
+
+                // Initialize map if not already done
+                if (!window.adminMap) {
+                    setTimeout(initializeMap, 100);
+                }
+            });
+
+            // Reviews navigation
+            showReviewsBtn.addEventListener('click', function() {
+                if (!isAuthenticated()) {
+                    showLoginError('Please log in to view reviews');
+                    return;
+                }
+                showSection('reviewsSection');
+                updateActiveNav('showReviewsBtn');
+                loadReviews();
+            });
+
+            // QR Codes navigation
+            showQRCodesBtn.addEventListener('click', function() {
+                if (!isAuthenticated()) {
+                    showLoginError('Please log in to view QR codes');
+                    return;
+                }
+                showSection('qrCodesSection');
+                updateActiveNav('showQRCodesBtn');
+                loadQRCodes();
+            });
+        }
+
+        // Update active navigation state
+        function updateActiveNav(activeId) {
+            const navButtons = ['showDashboardBtn', 'showReviewsBtn', 'showQRCodesBtn'];
+
+            navButtons.forEach(id => {
+                const element = document.getElementById(id);
+                if (id === activeId) {
+                    element.classList.add('admin-nav__link--active');
+                    element.setAttribute('aria-current', 'page');
+                } else {
+                    element.classList.remove('admin-nav__link--active');
+                    element.removeAttribute('aria-current');
+                }
+            });
+        }
+
+        // Show specific section and hide others
+        function showSection(sectionId) {
+            const sections = ['loginForm', 'adminDashboard', 'reviewsSection', 'qrCodesSection'];
+
+            sections.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = (id === sectionId) ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Check if user is authenticated
+        function isAuthenticated() {
+            return localStorage.getItem('adminToken') !== null;
+        }
+
+        // Show login error
+        function showLoginError(message) {
+            const errorElement = document.getElementById('loginError');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                errorElement.setAttribute('aria-live', 'assertive');
+            }
+        }
+
+        // Check authentication status on page load
+        function checkAuthStatus() {
+            console.log('[ADMIN] Checking authentication status');
+
+            const token = localStorage.getItem('adminToken');
+
+            if (token) {
+                console.log('[ADMIN] Token found, attempting to show dashboard');
+                showDashboard();
+            } else {
+                console.log('[ADMIN] No token found, showing login form');
+                showLoginForm();
+            }
+        }
+
+        // Show login form
+        function showLoginForm() {
+            showSection('loginForm');
+            document.getElementById('logoutBtn').style.display = 'none';
+        }
+
+        // Show admin dashboard
+        function showDashboard() {
+            console.log('[ADMIN] Showing dashboard');
+
+            showSection('adminDashboard');
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+
+            // Initialize map if needed
+            setTimeout(() => {
+                if (!window.adminMap) {
+                    initializeMap();
+                }
+                loadToilets();
+            }, 100);
+        }
+
+        // Load toilets list
+        async function loadToilets() {
+            try {
+                console.log('[ADMIN] Loading toilets');
+
+                const response = await fetch('/api/toilet/map', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load toilets: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const toilets = Array.isArray(data) ? data : (data.data || []);
+
+                console.log(`[ADMIN] Loaded ${toilets.length} toilets`);
+
+                displayToilets(toilets);
+
+            } catch (error) {
+                console.error('[ADMIN] Error loading toilets:', error);
+                const container = document.getElementById('toiletListContainer');
+                if (container) {
+                    container.innerHTML = '<div class="error-message" role="alert">Error loading toilets. Please try again.</div>';
+                }
+            }
+        }
+
+        // Display toilets in the admin list
+        function displayToilets(toilets) {
+            const container = document.getElementById('toiletListContainer');
+
+            if (!toilets || toilets.length === 0) {
+                container.innerHTML = '<div class="no-reviews">No toilets registered yet.</div>';
+                return;
+            }
+
+            container.innerHTML = toilets.map(toilet => `
+                <article class="toilet-item" role="article" aria-labelledby="toilet-${toilet.id}-name">
+                    <div class="toilet-item__info">
+                        <h3 id="toilet-${toilet.id}-name" class="toilet-item__name">${toilet.name || 'Unnamed Toilet'}</h3>
+                        <p class="toilet-item__location">${toilet.location || 'Location not specified'}</p>
+                        <p class="toilet-item__rating">Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
+                    </div>
+                    <div class="toilet-item__actions" role="group" aria-label="Toilet actions">
+                        <button class="toilet-item__action toilet-item__action--edit" onclick="editToilet('${toilet.id}')" aria-label="Edit toilet ${toilet.name}">Edit</button>
+                        <button class="toilet-item__action toilet-item__action--delete" onclick="deleteToilet('${toilet.id}')" aria-label="Delete toilet ${toilet.name}">Delete</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        // Load reviews for admin
+        async function loadReviews() {
+            const reviewList = document.getElementById('reviewList');
+
+            try {
+                console.log('[ADMIN] Loading reviews');
+
+                reviewList.innerHTML = '<div class="loading" aria-live="polite">Loading reviews...</div>';
+
+                const response = await fetch('/api/review/all', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load reviews: ${response.status}`);
+                }
+
+                const reviews = await response.json();
+                const reviewsArray = Array.isArray(reviews) ? reviews : (reviews.data || []);
+
+                console.log(`[ADMIN] Loaded ${reviewsArray.length} reviews`);
+
+                // Populate toilet filter
+                populateToiletFilter(reviewsArray);
+
+                displayReviews(reviewsArray);
+
+            } catch (error) {
+                console.error('[ADMIN] Error loading reviews:', error);
+                reviewList.innerHTML = '<div class="error-message" role="alert">Error loading reviews. Please try again.</div>';
+            }
+        }
+
+        // Populate toilet filter dropdown
+        function populateToiletFilter(reviews) {
+            const toiletFilter = document.getElementById('toiletFilter');
+            const toilets = [...new Set(reviews.map(r => r.toiletId))];
+
+            toiletFilter.innerHTML = '<option value="">All Toilets</option>';
+
+            toilets.forEach(toiletId => {
+                const review = reviews.find(r => r.toiletId === toiletId);
+                if (review && review.toiletName) {
+                    toiletFilter.innerHTML += `<option value="${toiletId}">${review.toiletName}</option>`;
+                }
+            });
+        }
+
+        // Display reviews in admin panel
+        function displayReviews(reviews) {
+            const reviewList = document.getElementById('reviewList');
+            const toiletFilter = document.getElementById('toiletFilter').value;
+            const ratingFilter = document.getElementById('ratingFilter').value;
+
+            let filteredReviews = [...reviews];
+
+            if (toiletFilter) {
+                filteredReviews = filteredReviews.filter(review => review.toiletId === toiletFilter);
+            }
+
+            if (ratingFilter) {
+                filteredReviews = filteredReviews.filter(review => review.rating === parseInt(ratingFilter));
+            }
+
+            if (filteredReviews.length === 0) {
+                reviewList.innerHTML = '<div class="no-reviews">No reviews found matching the current filters.</div>';
+                return;
+            }
+
+            // Sort reviews by date (newest first)
+            filteredReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            reviewList.innerHTML = filteredReviews.map(review => `
+                <article class="review-card" role="article">
+                    <header class="review-header">
+                        <h3 class="review-toilet-name">${review.toiletName || 'Unknown Toilet'}</h3>
+                        <div class="review-rating" aria-label="${review.rating} out of 5 stars">
+                            ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+                        </div>
+                    </header>
+                    <div class="review-comment">${review.comment || 'No comment provided'}</div>
+                    <footer class="review-meta">
+                        <time datetime="${review.createdAt}">Posted: ${new Date(review.createdAt).toLocaleString()}</time>
+                        <span>${review.rating}/5 stars</span>
+                    </footer>
+                </article>
+            `).join('');
+        }
+
+        // Load QR codes for admin
+        async function loadQRCodes() {
+            const qrGrid = document.getElementById('qrGrid');
+
+            try {
+                console.log('[ADMIN] Loading QR codes');
+
+                qrGrid.innerHTML = '<div class="loading" aria-live="polite">Loading QR Codes...</div>';
+
+                const response = await fetch('/api/toilet/map', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load toilets: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const toilets = Array.isArray(data) ? data : (data.data || []);
+
+                console.log(`[ADMIN] Loaded ${toilets.length} toilets for QR codes`);
+
+                if (toilets.length === 0) {
+                    qrGrid.innerHTML = '<div class="no-reviews">No toilets found. Add toilets to generate QR codes.</div>';
+                    return;
+                }
+
+                // Generate QR codes for each toilet
+                const qrPromises = toilets.map(async (toilet) => {
+                    try {
+                        const qrResponse = await fetch(`/api/toilet/${toilet.id}/qr`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                            }
+                        });
+
+                        if (qrResponse.ok) {
+                            const qrData = await qrResponse.json();
+                            return { toilet, qrData: qrData.success ? qrData.data : qrData };
+                        } else {
+                            return { toilet, error: true };
+                        }
+                    } catch (error) {
+                        console.error(`Error generating QR for toilet ${toilet.id}:`, error);
+                        return { toilet, error: true };
+                    }
+                });
+
+                const qrResults = await Promise.all(qrPromises);
+
+                qrGrid.innerHTML = '';
+                qrResults.forEach(({ toilet, qrData, error }) => {
+                    const qrCard = document.createElement('article');
+                    qrCard.className = 'qr-card';
+                    qrCard.setAttribute('role', 'article');
+                    qrCard.setAttribute('aria-labelledby', `qr-${toilet.id}-title`);
+
+                    if (error) {
+                        qrCard.innerHTML = `
+                            <h3 id="qr-${toilet.id}-title" class="qr-card__title">${toilet.name || 'Unknown Toilet'}</h3>
+                            <p class="qr-card__location">${toilet.location || 'Location not specified'}</p>
+                            <div style="color: #dc3545; text-align: center; padding: 20px;" role="alert">
+                                Error generating QR code
+                            </div>
+                        `;
+                    } else {
+                        qrCard.innerHTML = `
+                            <h3 id="qr-${toilet.id}-title" class="qr-card__title">${qrData.toiletName || toilet.name}</h3>
+                            <p class="qr-card__location">${toilet.location || 'Location not specified'}</p>
+                            <img src="${qrData.qrCode}" alt="QR Code for ${qrData.toiletName || toilet.name}" class="qr-card__image">
+                            <p class="qr-card__rating">Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐</p>
+                            <button class="qr-card__download" onclick="downloadQR('${qrData.qrCode}', '${qrData.toiletName || toilet.name}')" aria-label="Download QR code for ${qrData.toiletName || toilet.name}">
+                                Download QR Code
+                            </button>
+                        `;
+                    }
+
+                    qrGrid.appendChild(qrCard);
+                });
+
+            } catch (error) {
+                console.error('[ADMIN] Error loading QR codes:', error);
+                qrGrid.innerHTML = '<div class="error-message" role="alert">Error loading QR codes. Please try again.</div>';
+            }
+        }
+
+        // Download QR code function
+        function downloadQR(dataURL, toiletName) {
+            try {
+                fetch(dataURL)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${toiletName.replace(/[^a-zA-Z0-9]/g, '_')}_QR.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    })
+                    .catch(error => {
+                        console.error('Error downloading QR code:', error);
+                        alert('Failed to download QR code. Please try again.');
+                    });
+            } catch (error) {
+                console.error('Error in downloadQR:', error);
+                alert('Failed to download QR code. Please try again.');
+            }
+        }
+
+        // Global functions for onclick handlers
+        window.editToilet = function(id) {
+            console.log('Edit toilet:', id);
+            alert(`Edit functionality for toilet ${id} would be implemented here.`);
+        };
+
+        window.deleteToilet = async function(id) {
+            if (!confirm('Are you sure you want to delete this toilet?')) return;
+
+            try {
+                const response = await fetch(`/api/toilet/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    loadToilets();
+                    alert('Toilet deleted successfully.');
+                } else {
+                    throw new Error('Failed to delete toilet');
+                }
+            } catch (error) {
+                console.error('Error deleting toilet:', error);
+                alert('Failed to delete toilet. Please try again.');
+            }
+        };
+
+        // Set up filter event listeners
+        document.getElementById('toiletFilter')?.addEventListener('change', () => {
+            // Re-display reviews with current filters
+            const reviewList = document.getElementById('reviewList');
+            if (reviewList && reviewList.children.length > 0) {
+                displayReviews(window.currentReviews || []);
+            }
+        });
+
+        document.getElementById('ratingFilter')?.addEventListener('change', () => {
+            // Re-display reviews with current filters
+            const reviewList = document.getElementById('reviewList');
+            if (reviewList && reviewList.children.length > 0) {
+                displayReviews(window.currentReviews || []);
+            }
+        });
+
+        console.log('[ADMIN] Admin page JavaScript loaded successfully');
+    </script>
+</body>
+</html>
         .admin-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -656,8 +1398,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <script src="js/logger.js"></script>
-    <script src="js/utils.js"></script>
     <script>
         Logger.info('ADMIN', 'Admin panel JavaScript starting...');
 
@@ -759,6 +1499,13 @@
 
         // Initialize map
         function initMap() {
+            // Check if map is already initialized
+            if (map) {
+                console.log('[ADMIN] Map already initialized, skipping');
+                return;
+            }
+
+            console.log('[ADMIN] Initializing map in initMap function');
             map = L.map('map').setView([18.5204, 73.8567], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
@@ -768,7 +1515,7 @@
             map.on('click', function(e) {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
-                
+
                 // Update form fields
                 document.getElementById('latitude').value = lat;
                 document.getElementById('longitude').value = lng;
@@ -780,6 +1527,8 @@
                     marker = L.marker(e.latlng).addTo(map);
                 }
             });
+
+            console.log('[ADMIN] Map initialized successfully in initMap');
         }
 
         // Login form submission
@@ -794,7 +1543,7 @@
             loginError.style.display = 'none';
 
             try {
-                const data = await makeApiRequest('/api/auth/login', {
+                const data = await makeApiRequest('/api/admin/login', {
                     method: 'POST',
                     body: JSON.stringify({ email, password })
                 });
@@ -897,35 +1646,59 @@
                     facilities
                 };
 
-                console.log('Submitting toilet data:', toiletData);
+                console.log('[ADMIN] Submitting toilet data:', toiletData);
 
-                const data = await makeApiRequest('/api/toilet/add', {
+                // Use regular fetch for toilet add (no auth required)
+                const data = await fetch(`${API_URL}/api/toilet/add`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(toiletData)
                 });
 
-                if (data.success) {
+                if (!data.ok) {
+                    const responseData = await data.json();
+                    throw new Error(responseData.message || 'Failed to add toilet');
+                }
+
+                const responseData = await data.json();
+                console.log('[ADMIN] Toilet add response:', responseData);
+
+                if (responseData.success) {
                     addToiletSuccess.textContent = 'Toilet added successfully!';
                     addToiletSuccess.style.display = 'block';
                     addToiletError.style.display = 'none';
-                    
+
                     // Reset form and map marker
                     addToiletForm.reset();
                     if (marker) {
                         map.removeLayer(marker);
                         marker = null;
                     }
-                    
+
                     // Refresh toilet list
                     loadToilets();
                 } else {
-                    addToiletError.textContent = data.message || 'Failed to add toilet. Please try again.';
+                    addToiletError.textContent = responseData.message || 'Failed to add toilet. Please try again.';
                     addToiletError.style.display = 'block';
                     addToiletSuccess.style.display = 'none';
                 }
             } catch (error) {
-                console.error('Add toilet error:', error);
-                addToiletError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
+                console.error('[ADMIN] Add toilet error:', error);
+                console.error('[ADMIN] Error details:', error.message);
+
+                // Provide more specific error messages
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    addToiletError.textContent = 'Authentication required. Please log in again.';
+                } else if (error.message.includes('400')) {
+                    addToiletError.textContent = 'Invalid data. Please check all fields.';
+                } else if (error.message.includes('500')) {
+                    addToiletError.textContent = 'Server error. Please try again later.';
+                } else {
+                    addToiletError.textContent = 'Failed to connect to the server. Please make sure the server is running.';
+                }
+
                 addToiletError.style.display = 'block';
                 addToiletSuccess.style.display = 'none';
             } finally {
@@ -973,8 +1746,14 @@
         async function loadToilets() {
             console.log('[ADMIN] Loading toilets...');
             try {
-                const toilets = await makeApiRequest('/api/toilet/map');
-                console.log('[ADMIN] Loaded toilets:', toilets);
+                const response = await makeApiRequest('/api/toilet/map');
+                console.log('[ADMIN] Loaded toilets response:', response);
+                
+                // Handle both object and array responses
+                const toilets = Array.isArray(response) ? response : 
+                               (response && response.data) ? response.data : [];
+                
+                console.log('[ADMIN] Processed toilets array:', toilets);
                 displayToilets(toilets);
             } catch (error) {
                 console.error('[ADMIN] Error loading toilets:', error);
@@ -1102,13 +1881,22 @@
             qrGrid.innerHTML = '<div class="loading">Loading QR Codes...</div>';
 
             try {
-                const toilets = await makeApiRequest('/api/toilet/map');
+                const response = await makeApiRequest('/api/toilet/map');
+                
+                // Handle both object and array responses
+                const toilets = Array.isArray(response) ? response : 
+                               (response && response.data) ? response.data : [];
+                
+                console.log('[ADMIN] QR Codes - toilets loaded:', toilets.length);
                 qrGrid.innerHTML = '';
 
                 // Generate QR codes for each toilet using backend endpoint
                 const qrPromises = toilets.map(async (toilet) => {
                     try {
-                        const qrData = await makeApiRequest(`/api/toilet/${toilet.id}/qr`);
+                        const response = await makeApiRequest(`/api/toilet/${toilet.id}/qr`);
+                        // Handle both response formats: direct data or wrapped in success
+                        const qrData = response.success ? response.data : response;
+                        console.log(`[ADMIN] QR API response for ${toilet.name}:`, response);
                         return { toilet, qrData };
                     } catch (error) {
                         console.error(`Error generating QR for toilet ${toilet.id}:`, error);
@@ -1119,10 +1907,12 @@
                 const qrResults = await Promise.all(qrPromises);
 
                 qrResults.forEach(({ toilet, qrData, error }) => {
+                    console.log('[ADMIN] Creating QR card for toilet:', toilet.name, 'Error:', error);
                     const qrCard = document.createElement('div');
                     qrCard.className = 'qr-card';
 
                     if (error) {
+                        console.log('[ADMIN] QR generation error for:', toilet.name);
                         qrCard.innerHTML = `
                             <h3>${toilet.name}</h3>
                             <p>${toilet.location}</p>
@@ -1132,10 +1922,11 @@
                             <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
                         `;
                     } else {
+                        console.log('[ADMIN] QR generated successfully for:', qrData.toiletName, 'QR data length:', qrData.qrCode.length);
                         qrCard.innerHTML = `
                             <h3>${qrData.toiletName}</h3>
                             <p>${toilet.location}</p>
-                            <img src="${qrData.qrCode}" alt="QR Code for ${qrData.toiletName}" style="max-width: 200px; height: auto;">
+                            <img src="${qrData.qrCode}" alt="QR Code for ${qrData.toiletName}" style="max-width: 200px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
                             <p>Rating: ${toilet.averageRating ? toilet.averageRating.toFixed(1) : 'No ratings'} ⭐ (${toilet.totalReviews || 0} reviews)</p>
                             <button class="download-btn" onclick="downloadQR('${qrData.qrCode}', '${qrData.toiletName}')">
                                 Download QR Code
@@ -1143,6 +1934,7 @@
                         `;
                     }
                     qrGrid.appendChild(qrCard);
+                    console.log('[ADMIN] QR card appended to grid');
                 });
 
                 if (toilets.length === 0) {
@@ -1185,16 +1977,27 @@
             try {
                 Logger.info('REVIEW', 'Loading all reviews and toilets...');
                 
-                const [reviews, toilets] = await Promise.all([
+                const [reviewsResponse, toiletsResponse] = await Promise.all([
                     makeApiRequest('/api/review/all'),
                     makeApiRequest('/api/toilet/map')
                 ]);
 
-                Logger.debug('REVIEW', 'Reviews fetched', { count: reviews?.length });
-                Logger.debug('REVIEW', 'Toilets fetched', { count: toilets?.length });
+                Logger.debug('REVIEW', 'Reviews response', { reviewsResponse });
+                Logger.debug('REVIEW', 'Toilets response', { toiletsResponse });
+
+                // Handle reviews (direct array)
+                const reviews = Array.isArray(reviewsResponse) ? reviewsResponse : 
+                               (reviewsResponse && reviewsResponse.data) ? reviewsResponse.data : [];
+                
+                // Handle toilets (object with data property)
+                const toilets = Array.isArray(toiletsResponse) ? toiletsResponse : 
+                               (toiletsResponse && toiletsResponse.data) ? toiletsResponse.data : [];
+
+                Logger.debug('REVIEW', 'Reviews processed', { count: reviews?.length });
+                Logger.debug('REVIEW', 'Toilets processed', { count: toilets?.length });
 
                 if (!reviews || !Array.isArray(reviews)) {
-                    Logger.error('REVIEW', 'Invalid reviews data received', { reviews });
+                    Logger.error('REVIEW', 'Invalid reviews data processed', { reviews });
                     throw new Error('Invalid reviews data received');
                 }
                 allReviews = reviews;

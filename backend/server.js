@@ -7,15 +7,23 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const toiletRoutes = require('./routes/toilets');
 const reviewRoutes = require('./routes/reviews');
+const maximumDataRoutes = require('./routes/maximumData');
 
 // Services
 const SLOService = require('./services/SLOService');
 const sloServiceInstance = SLOService; // This is the singleton instance
 const { middleware } = SLOService;
 
+// Middleware
+const { authLimiter, apiLimiter, syncLimiter } = require('./middleware/rateLimiter');
+const { CacheManager, CacheWarming } = require('./middleware/cache');
+
 // Models for sample data
 const storage = require('./models/storage');
 const Toilet = require('./models/Toilet');
+
+// Auth middleware
+const { protect, admin } = require('./middleware/auth');
 
 // Load environment variables
 dotenv.config();
@@ -51,11 +59,15 @@ app.use((req, res, next) => {
 // Serve static files from the frontend
 app.use(express.static(path.join(__dirname, '../')));
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', authRoutes);
-app.use('/api/toilet', toiletRoutes);
-app.use('/api/review', reviewRoutes);
+// API Routes with rate limiting
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/admin', authLimiter, authRoutes);
+app.use('/api/toilet', apiLimiter, toiletRoutes);
+app.use('/api/review', apiLimiter, reviewRoutes);
+app.use('/api/maximum', apiLimiter, maximumDataRoutes);
+
+// Special rate limiting for sync operations
+app.use('/api/toilet/sync-public', syncLimiter);
 
 // SLO Metrics Endpoint
 app.get('/api/slo/metrics', (req, res) => {
@@ -68,8 +80,65 @@ app.get('/api/slo/metrics', (req, res) => {
     }
 });
 
-// Serve frontend for any other routes
+// Cache Statistics Endpoint
+app.get('/api/cache/stats', (req, res) => {
+    try {
+        const cacheStats = CacheManager.getStats();
+        res.json({
+            success: true,
+            data: cacheStats,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[CACHE] Error getting cache stats:', error.message);
+        res.status(500).json({ message: 'Error fetching cache statistics' });
+    }
+});
+
+// Cache Invalidation Endpoint (Admin only)
+app.post('/api/cache/invalidate', protect, admin, (req, res) => {
+    try {
+        const { pattern, type } = req.body;
+        
+        if (pattern) {
+            CacheManager.clearPattern(pattern);
+            console.log(`[CACHE] Invalidated cache pattern: ${pattern}`);
+        }
+        
+        if (type) {
+            // Implement type-based invalidation
+            switch (type) {
+                case 'toilets':
+                    CacheManager.clearPattern('toilets:*');
+                    break;
+                case 'reviews':
+                    CacheManager.clearPattern('reviews:*');
+                    break;
+                case 'stats':
+                    CacheManager.clearPattern('stats:*');
+                    break;
+            }
+            console.log(`[CACHE] Invalidated cache type: ${type}`);
+        }
+        
+        res.json({ success: true, message: 'Cache invalidated successfully' });
+    } catch (error) {
+        console.error('[CACHE] Error invalidating cache:', error.message);
+        res.status(500).json({ message: 'Error invalidating cache' });
+    }
+});
+
+// Serve frontend for any other routes (excluding static files and API routes)
 app.get('*', (req, res) => {
+    // Don't serve index.html for API routes, static files, or known assets
+    const requestPath = req.path.toLowerCase();
+    const isStaticFile = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/.test(requestPath);
+    const isApiRoute = requestPath.startsWith('/api/');
+
+    if (isStaticFile || isApiRoute) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
@@ -173,12 +242,49 @@ async function initializeDynamicDataSystem() {
     }
 }
 
-// Error handling middleware
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
-    console.error(`[ERROR] ${req.method} ${req.path}`);
-    console.error(`[ERROR] Stack:`, err.stack);
-    console.error(`[ERROR] Message:`, err.message);
-    res.status(500).json({ message: 'Something went wrong!' });
+    const timestamp = new Date().toISOString();
+    const errorId = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+    
+    console.error(`[ERROR] ${errorId} ${req.method} ${req.path}`);
+    console.error(`[ERROR] ${errorId} Stack:`, err.stack);
+    console.error(`[ERROR] ${errorId} Message:`, err.message);
+    
+    // Don't expose internal error details in production
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    
+    let statusCode = err.statusCode || 500;
+    let message = err.message || 'Internal server error';
+    
+    // Handle specific error types
+    if (err.name === 'ValidationError') {
+        statusCode = 400;
+        message = 'Validation error';
+    } else if (err.name === 'CastError') {
+        statusCode = 400;
+        message = 'Invalid data format';
+    } else if (err.code === 'ENOENT') {
+        statusCode = 404;
+        message = 'Resource not found';
+    }
+    
+    const errorResponse = {
+        error: {
+            id: errorId,
+            message,
+            timestamp,
+            path: req.path,
+            method: req.method
+        }
+    };
+    
+    if (isDevelopment) {
+        errorResponse.error.stack = err.stack;
+        errorResponse.error.details = err;
+    }
+    
+    res.status(statusCode).json(errorResponse);
 });
 
 const PORT = process.env.PORT || 3000;
@@ -196,6 +302,9 @@ console.log('[CONFIG] NODE_ENV:', process.env.NODE_ENV || 'development');
 
 // Initialize dynamic data fetching system with seed data
 initializeDynamicDataSystem().catch(console.error);
+
+// Start cache warming
+CacheWarming.warmCriticalData().catch(console.error);
 
 app.listen(PORT, () => {
     console.log(`\n[SERVER] ✓ Toilet Review System server is running on port ${PORT}`);

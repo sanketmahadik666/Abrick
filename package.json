@@ -1,0 +1,89 @@
+{
+  "name": "toilet-review-system-frontend",
+  "version": "1.0.0",
+  "description": "Modular Frontend Architecture for Toilet Review System",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "npm run serve",
+    "build": "webpack --mode=production",
+    "build:dev": "webpack --mode=development",
+    "build:watch": "webpack --mode=development --watch",
+    "serve": "webpack serve --mode=development",
+    "serve:prod": "webpack serve --mode=production",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "analyze": "webpack --mode=production --analyze",
+    "lint": "eslint src --ext .js",
+    "lint:fix": "eslint src --ext .js --fix",
+    "test": "npm run test:unit",
+    "test:unit": "jest --config jest.config.js --coverage",
+    "test:e2e": "playwright test",
+    "test:css": "stylelint 'src/assets/styles/**/*.css'",
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:all": "npm run test:unit && npm run test:css && npm run build",
+    "docs": "echo \"Documentation available at MODULAR_ARCHITECTURE_GUIDE.md\""
+  },
+  "keywords": [
+    "modular",
+    "frontend",
+    "architecture",
+    "solid",
+    "design-patterns",
+    "toilet",
+    "review",
+    "system"
+  ],
+  "author": "Sanket Mahadik",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/runtime": "^7.22.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.22.0",
+    "@babel/plugin-transform-runtime": "^7.22.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.0",
+    "autoprefixer": "^10.4.0",
+    "babel-loader": "^9.1.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.0",
+    "css-minimizer-webpack-plugin": "^5.0.0",
+    "cssnano": "^6.0.0",
+    "eslint": "^8.50.0",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.7.0",
+    "postcss": "^8.4.0",
+    "postcss-loader": "^7.3.0",
+    "postcss-preset-env": "^9.1.0",
+    "style-loader": "^3.3.0",
+    "terser-webpack-plugin": "^5.3.0",
+    "webpack": "^5.88.0",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "webpack-cli": "^5.1.0",
+    "webpack-dev-server": "^4.15.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/dom": "^9.3.3",
+    "@testing-library/user-event": "^14.5.1",
+    "playwright": "^1.40.0",
+    "stylelint": "^15.11.0",
+    "stylelint-config-standard": "^34.0.0",
+    "stylelint-order": "^6.0.3",
+    "jsdom": "^22.1.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanketmahadik666/Abrick.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sanketmahadik666/Abrick/issues"
+  },
+  "homepage": "https://github.com/sanketmahadik666/Abrick#readme"
+}

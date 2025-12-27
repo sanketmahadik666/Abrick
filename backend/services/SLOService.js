@@ -104,15 +104,33 @@ class SLOService {
     getCurrentSLOs() {
         const now = Date.now();
 
-        return {
+        const slos = {
             apiResponseTime: this.calculateResponseTimeSLO(now),
             apiAvailability: this.calculateAvailabilitySLO(now),
             errorRate: this.calculateErrorRateSLO(now),
             dataFreshness: this.calculateDataFreshnessSLO(now),
             mapLoadTime: this.calculateMapLoadSLO(now),
-            searchResponseTime: this.calculateSearchSLO(now),
-            overall: this.calculateOverallSLO(now)
+            searchResponseTime: this.calculateSearchSLO(now)
         };
+        
+        // Calculate overall SLO without circular reference
+        const individualSLOs = [
+            slos.apiResponseTime.compliance,
+            slos.apiAvailability.compliance,
+            slos.errorRate.compliance,
+            slos.dataFreshness.compliance,
+            slos.mapLoadTime.compliance,
+            slos.searchResponseTime.compliance
+        ];
+
+        const overallCompliance = individualSLOs.reduce((sum, compliance) => sum + compliance, 0) / individualSLOs.length;
+
+        slos.overall = {
+            compliance: Math.round(overallCompliance),
+            breakdown: slos
+        };
+        
+        return slos;
     }
 
     // Calculate API response time SLO
@@ -229,25 +247,7 @@ class SLOService {
         };
     }
 
-    // Calculate overall SLO compliance
-    calculateOverallSLO(now) {
-        const slos = this.getCurrentSLOs();
-        const individualSLOs = [
-            slos.apiResponseTime.compliance,
-            slos.apiAvailability.compliance,
-            slos.errorRate.compliance,
-            slos.dataFreshness.compliance,
-            slos.mapLoadTime.compliance,
-            slos.searchResponseTime.compliance
-        ];
 
-        const overallCompliance = individualSLOs.reduce((sum, compliance) => sum + compliance, 0) / individualSLOs.length;
-
-        return {
-            compliance: Math.round(overallCompliance),
-            breakdown: slos
-        };
-    }
 
     // Clean up old measurements to prevent memory leaks
     cleanupOldMeasurements() {
