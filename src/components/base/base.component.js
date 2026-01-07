@@ -26,6 +26,7 @@ export class BaseComponent {
         this.element = null;
         this.children = new Map();
         this.eventListeners = new Map();
+        this.activeRequests = new Set();
         this.destroyed = false;
 
         // Bind methods
@@ -78,6 +79,7 @@ export class BaseComponent {
             this.preDestroy();
             this.cleanupEventListeners();
             this.cleanupStateObservers();
+            this.cancelAllRequests();
             this.cleanupChildren();
             this.detachFromDOM();
             this.postDestroy();
@@ -521,6 +523,49 @@ export class BaseComponent {
      */
     getComponentName() {
         return this.constructor.name.replace('Component', '').toLowerCase();
+    }
+
+    /**
+     * Create an AbortController for a request and track it
+     * @returns {AbortController} The created controller
+     */
+    createRequestController() {
+        const controller = new AbortController();
+        this.activeRequests.add(controller);
+        
+        // Remove from set when signal is aborted to avoid leaks
+        // Note: This relies on the user of the controller triggering abort
+        // or the request completing. For strict cleanup, we rely on manual removal
+        // or bulk cancellation on destroy.
+        
+        return controller;
+    }
+
+    /**
+     * Remove a request controller from tracking (e.g. when request completes)
+     * @param {AbortController} controller - The controller to remove
+     */
+    removeRequestController(controller) {
+        if (this.activeRequests.has(controller)) {
+            this.activeRequests.delete(controller);
+        }
+    }
+
+    /**
+     * Cancel all active requests
+     */
+    cancelAllRequests() {
+        if (this.activeRequests.size > 0) {
+            console.log(`[COMPONENT] Cancelling ${this.activeRequests.size} active requests for ${this.constructor.name}`);
+            this.activeRequests.forEach(controller => {
+                try {
+                    controller.abort();
+                } catch (e) {
+                    // Ignore errors during abort
+                }
+            });
+            this.activeRequests.clear();
+        }
     }
 
     /**
