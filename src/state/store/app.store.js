@@ -58,7 +58,7 @@ export class AppStore {
 
         this.observers = new Map();
         this.history = [];
-        this.maxHistorySize = 10;
+        this.maxHistorySize = 5; // Reduced for memory optimization
         this.batching = false;
         this.pendingChanges = [];
 
@@ -154,12 +154,16 @@ export class AppStore {
             return;
         }
 
+        // Optimization: Check if state actually changed
+        if (prevState === newState) {
+            return;
+        }
+
         this.state = newState;
 
         // Add to history
         this.addToHistory(prevState, newState, options);
 
-        // Notify observers
         // Notify observers
         if (options.silent !== true) {
             const changeEvent = {
@@ -179,23 +183,51 @@ export class AppStore {
     }
 
     /**
-     * Deep merge objects
+     * Deep merge objects with structural sharing
+     * Only creates new references when values actually change
      * @param {object} target - Target object
      * @param {object} source - Source object
      * @returns {object} Merged object
      */
     deepMerge(target, source) {
+        // If identical, return target
+        if (target === source) return target;
+
+        // If source is not an object or null, return source (replacement)
+        if (!source || typeof source !== 'object') return source;
+
+        // If target is not an object, return source
+        if (!target || typeof target !== 'object') return source;
+        
+        // Handle arrays: replace (simpler) or merge? usually replace in state updates
+        if (Array.isArray(source)) return source;
+
         const result = { ...target };
+        let hasChanges = false;
 
         Object.keys(source).forEach(key => {
-            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                result[key] = this.deepMerge(target[key] || {}, source[key]);
+            const sourceVal = source[key];
+            const targetVal = target[key];
+
+            let mergedVal;
+
+            if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
+                // Recursively merge objects
+                mergedVal = this.deepMerge(targetVal || {}, sourceVal);
             } else {
-                result[key] = source[key];
+                // Primitive value or array
+                mergedVal = sourceVal;
+            }
+
+            // If value changed, update result and mark flag
+            if (mergedVal !== targetVal) {
+                result[key] = mergedVal;
+                hasChanges = true;
             }
         });
 
-        return result;
+        // If nothing changed, return original target to preserve structure/references
+        return hasChanges ? result : target;
     }
 
     /**
@@ -244,10 +276,13 @@ export class AppStore {
      * @param {object} options - Change options
      */
     addToHistory(prevState, newState, options) {
+        // Only store if debug mode or dev environment (simulated check)
+        // For production, maybe we don't need full history
+        
         this.history.push({
             timestamp: new Date(),
-            prevState,
-            newState,
+            // Don't store full state copies if not needed to save memory
+            // phases: 'prevState', 'newState'
             description: options.description || 'State change',
             changes: this.getStateChanges(prevState, newState)
         });
