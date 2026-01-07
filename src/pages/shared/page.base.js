@@ -375,7 +375,11 @@ export class BasePage {
     setVisibility(visible) {
         const pageContainer = this.getPageContainer();
         if (pageContainer) {
-            pageContainer.style.display = visible ? 'block' : 'none';
+            if (visible) {
+                pageContainer.classList.remove('hidden');
+            } else {
+                pageContainer.classList.add('hidden');
+            }
         }
     }
 
