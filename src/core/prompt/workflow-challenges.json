@@ -1,0 +1,680 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "metadata": {
+    "description": "Frontend workflow challenges and debugging prompt system",
+    "created": "2024",
+    "purpose": "AI-assisted debugging and workflow resumption with token optimization"
+  },
+  "critical_challenges": {
+    "component_initialization": {
+      "priority": "CRITICAL",
+      "frequency": "HIGH",
+      "description": "Components failing to initialize properly, lifecycle issues",
+      "affected_files": [
+        "src/components/base/base.component.js",
+        "src/pages/shared/page.base.js",
+        "src/components/ui/*.component.js"
+      ],
+      "common_symptoms": [
+        "Component initialization failed errors",
+        "Element not found warnings",
+        "Event listeners not attaching",
+        "Components not rendering",
+        "Memory leaks from incomplete cleanup"
+      ],
+      "root_causes": [
+        "DOM elements not ready when component init() called",
+        "Async operations completing out of order",
+        "Missing error handling in lifecycle hooks",
+        "Event listeners not properly cleaned up",
+        "State observers not unsubscribed on destroy"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging component initialization issues. The codebase uses ES6 modules with async/await patterns and a BaseComponent class.",
+        "user_prompt_template": "Component {component_name} is failing to initialize. Error: {error_message}. Check initialization order, DOM readiness, and lifecycle hooks. Provide fix with proper error handling.",
+        "required_context": [
+          "Component class name",
+          "Initialization error message",
+          "Console logs before failure",
+          "Parent component if applicable",
+          "DOM element selector"
+        ],
+        "optimization_hints": [
+          "Use component.getComponentName() for logging",
+          "Check element existence before DOM operations",
+          "Use try/catch in init() methods",
+          "Verify async operations with Promise.all()",
+          "Clean up subscriptions in destroy()"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Verify DOM element exists before attachToDOM()",
+          "Add defensive checks: if (!this.element) return",
+          "Wrap async operations in try/catch",
+          "Ensure all promises are awaited",
+          "Add cleanup in destroy() method",
+          "Verify parent component initialized before child"
+        ],
+        "code_pattern": "async init() {\n  try {\n    if (!this.element) await this.createElement();\n    await Promise.all([this.setupData(), this.setupEventListeners()]);\n    await this.render();\n  } catch (error) {\n    this.logError('Initialization failed', error);\n    throw error;\n  }\n}"
+      }
+    },
+    "api_service_integration": {
+      "priority": "CRITICAL",
+      "frequency": "HIGH",
+      "description": "API calls failing, authentication issues, response parsing errors",
+      "affected_files": [
+        "src/services/api/base-api.service.js",
+        "src/services/api/*-api.service.js",
+        "src/app.js"
+      ],
+      "common_symptoms": [
+        "Failed to fetch errors",
+        "401 Unauthorized errors",
+        "Response parsing failures",
+        "Timeout errors",
+        "CORS issues in development",
+        "Token not included in headers"
+      ],
+      "root_causes": [
+        "Token not retrieved from localStorage before request",
+        "Interceptors not properly chained",
+        "Response format mismatch (success wrapper vs direct data)",
+        "AbortController timeout issues",
+        "Missing error handling for network failures",
+        "Base URL configuration incorrect"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging API service integration. The app uses BaseApiService with interceptors for auth and response processing.",
+        "user_prompt_template": "API call to {endpoint} is failing with {error_type}: {error_message}. Check token retrieval, interceptor chain, and response format. Endpoint: {endpoint}, Method: {method}.",
+        "required_context": [
+          "Full endpoint path",
+          "HTTP method",
+          "Error status code",
+          "Request payload if POST/PUT",
+          "Token presence in localStorage",
+          "Network tab response details"
+        ],
+        "optimization_hints": [
+          "Use baseApiService.get()/post() methods",
+          "Check AppConfig.api.baseUrl",
+          "Verify token in appStore.getState().user.token",
+          "Handle both {success: true, data: ...} and direct data formats",
+          "Add retry logic for network errors",
+          "Log request/response for debugging"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Verify baseUrl in AppConfig",
+          "Check token exists before making authenticated requests",
+          "Handle both response formats (wrapped and direct)",
+          "Add timeout handling with AbortController",
+          "Implement retry logic for transient failures",
+          "Add proper error messages for 401/403/404/500"
+        ],
+        "code_pattern": "async request(endpoint, options) {\n  const token = appStore.getState().user.token;\n  if (token) options.headers.Authorization = `Bearer ${token}`;\n  try {\n    const response = await fetch(url, options);\n    const data = await response.json();\n    return data.success ? data.data : data;\n  } catch (error) {\n    this.handleError(error);\n  }\n}"
+      }
+    },
+    "state_management_sync": {
+      "priority": "HIGH",
+      "frequency": "MEDIUM",
+      "description": "State not updating, observers not firing, stale state issues",
+      "affected_files": [
+        "src/state/store/app.store.js",
+        "src/components/base/base.component.js",
+        "src/pages/**/*.page.js"
+      ],
+      "common_symptoms": [
+        "UI not updating after state change",
+        "Observers not being called",
+        "State changes not triggering re-renders",
+        "Memory leaks from unsubscribed observers",
+        "Stale state being used in components"
+      ],
+      "root_causes": [
+        "Observers not subscribed properly",
+        "State updates using silent: true",
+        "Deep object mutations instead of immutable updates",
+        "Observers not cleaned up on component destroy",
+        "Race conditions in state updates",
+        "JSON.parse(JSON.stringify()) performance issues"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging state management. The app uses AppStore with observer pattern for state updates.",
+        "user_prompt_template": "State change for {state_path} is not updating UI. Check observer subscriptions, state update method, and component re-render logic. State path: {state_path}, Expected value: {expected_value}.",
+        "required_context": [
+          "State path being updated (e.g., 'data.toilets')",
+          "How state is being updated (setState call)",
+          "Component observing the change",
+          "Observer subscription code",
+          "Expected vs actual state value"
+        ],
+        "optimization_hints": [
+          "Use appStore.subscribe('state:changed', observer)",
+          "Filter changes in observer: if (!data.changes['data.toilets']) return",
+          "Unsubscribe in component.destroy()",
+          "Use immutable updates: {...prevState, data: {...prevState.data, toilets: newToilets}}",
+          "Avoid silent: true unless necessary",
+          "Check observer is called in component lifecycle"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Verify observer subscription in setupStateObservers()",
+          "Check observer filters for correct state paths",
+          "Ensure unsubscribe called in cleanupStateObservers()",
+          "Use immutable state updates",
+          "Trigger component update() after state changes",
+          "Avoid JSON.parse(JSON.stringify()) in hot paths"
+        ],
+        "code_pattern": "setupStateObservers() {\n  this.unsubscribers = [];\n  const unsubscribe = appStore.subscribe('state:changed', (event, data) => {\n    if (data.changes['data.toilets']) {\n      this.update({ toilets: data.changes['data.toilets'].to });\n    }\n  });\n  this.unsubscribers.push(unsubscribe);\n}\ncleanupStateObservers() {\n  this.unsubscribers.forEach(fn => fn());\n}"
+      }
+    },
+    "map_initialization_failures": {
+      "priority": "HIGH",
+      "frequency": "MEDIUM",
+      "description": "Leaflet map not rendering, markers not appearing, cluster issues",
+      "affected_files": [
+        "src/pages/home/home.page.js",
+        "src/pages/admin/admin.page.js"
+      ],
+      "common_symptoms": [
+        "Map container empty or gray",
+        "Markers not displaying",
+        "Cluster groups not working",
+        "Map resize issues",
+        "Tile loading errors",
+        "MarkerCluster plugin errors"
+      ],
+      "root_causes": [
+        "Leaflet library not loaded before map init",
+        "Map container has no dimensions (height/width)",
+        "map.invalidateSize() not called after container resize",
+        "MarkerClusterGroup plugin not available",
+        "Coordinates invalid (null, undefined, NaN)",
+        "Map bounds calculation errors"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging Leaflet map initialization. The app uses Leaflet with MarkerClusterGroup plugin.",
+        "user_prompt_template": "Map in {page_name} is not displaying. Check Leaflet availability, container dimensions, and marker data. Error: {error_message}, Container: {container_selector}.",
+        "required_context": [
+          "Page name (home/admin)",
+          "Container element selector",
+          "Container computed dimensions",
+          "Leaflet library loaded check",
+          "Toilet data with coordinates",
+          "Console errors related to map"
+        ],
+        "optimization_hints": [
+          "Check typeof L !== 'undefined' before map creation",
+          "Set explicit height on map container: element.style.height = '500px'",
+          "Call map.invalidateSize() after DOM changes",
+          "Verify coordinates: toilet.coordinates?.latitude && toilet.coordinates?.longitude",
+          "Use L.markerClusterGroup() if available, fallback to L.layerGroup()",
+          "Handle tile loading errors gracefully"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Verify Leaflet loaded: if (typeof L === 'undefined') throw",
+          "Set map container dimensions before init",
+          "Call map.invalidateSize() after initialization",
+          "Validate coordinates before creating markers",
+          "Check MarkerClusterGroup plugin availability",
+          "Add error handlers for tile loading"
+        ],
+        "code_pattern": "async initializeMap() {\n  if (typeof L === 'undefined') throw new Error('Leaflet not loaded');\n  const mapElement = $('#map');\n  mapElement.style.height = '500px';\n  this.map = L.map(mapElement, {...config});\n  L.tileLayer(url, options).addTo(this.map);\n  setTimeout(() => this.map.invalidateSize(), 100);\n}"
+      }
+    },
+    "qr_scanner_issues": {
+      "priority": "MEDIUM",
+      "frequency": "LOW",
+      "description": "QR scanner not initializing, camera permission issues, scan failures",
+      "affected_files": [
+        "src/pages/home/home.page.js",
+        "src/pages/review/review.page.js"
+      ],
+      "common_symptoms": [
+        "QR scanner not starting",
+        "Camera permission denied",
+        "Scanner library not found",
+        "Scan callback not firing",
+        "Scanner not stopping properly",
+        "Memory leaks from scanner instances"
+      ],
+      "root_causes": [
+        "Html5Qrcode library not loaded",
+        "Camera permissions not granted",
+        "Scanner not cleaned up on page destroy",
+        "Multiple scanner instances created",
+        "Scan callback errors not handled",
+        "Invalid QR code format handling"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging QR scanner issues. The app uses Html5Qrcode library for QR code scanning.",
+        "user_prompt_template": "QR scanner in {page_name} is not working. Check library availability, camera permissions, and scanner lifecycle. Error: {error_message}.",
+        "required_context": [
+          "Page name (home/review)",
+          "Scanner element ID",
+          "Browser console errors",
+          "Camera permission status",
+          "Library loading check",
+          "Scanner initialization code"
+        ],
+        "optimization_hints": [
+          "Check typeof Html5Qrcode !== 'undefined'",
+          "Handle camera permission errors gracefully",
+          "Stop scanner in component.destroy()",
+          "Check for existing scanner before creating new",
+          "Validate scanned data format before processing",
+          "Use try/catch around scanner.start()"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Verify Html5Qrcode library loaded",
+          "Handle camera permission requests",
+          "Stop scanner before creating new instance",
+          "Clean up scanner in destroy() method",
+          "Validate QR code format (URL vs ID)",
+          "Handle scan errors without breaking flow"
+        ],
+        "code_pattern": "async initializeQRScanner() {\n  if (typeof Html5Qrcode === 'undefined') throw new Error('Library not loaded');\n  if (this.qrScanner) await this.qrScanner.clear();\n  this.qrScanner = new Html5QrcodeScanner(id, config);\n  try {\n    this.qrScanner.render(onSuccess, onFailure);\n  } catch (error) {\n    this.handleScannerError(error);\n  }\n}"
+      }
+    },
+    "event_listener_leaks": {
+      "priority": "MEDIUM",
+      "frequency": "MEDIUM",
+      "description": "Event listeners not removed, memory leaks, duplicate handlers",
+      "affected_files": [
+        "src/components/base/base.component.js",
+        "src/pages/**/*.page.js",
+        "src/core/utils/dom.utils.js"
+      ],
+      "common_symptoms": [
+        "Multiple event handlers firing",
+        "Memory usage increasing over time",
+        "Event handlers still active after destroy",
+        "Duplicate event listeners",
+        "Performance degradation"
+      ],
+      "root_causes": [
+        "Event listeners not cleaned up in destroy()",
+        "addEventListener called multiple times",
+        "Anonymous functions not tracked for removal",
+        "Global event listeners not removed",
+        "Event delegation not properly managed"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging event listener leaks. Components must track and clean up all event listeners.",
+        "user_prompt_template": "Event listener leak detected in {component_name}. Check cleanup in destroy() method and event listener tracking. Component: {component_name}, Event: {event_type}.",
+        "required_context": [
+          "Component name",
+          "Event type (click, submit, etc.)",
+          "Where listener is added",
+          "Whether cleanup exists",
+          "Memory profiler results if available"
+        ],
+        "optimization_hints": [
+          "Store listener cleanup functions in this.eventListeners Map",
+          "Use component.addEventListener() which returns cleanup function",
+          "Call cleanup in cleanupEventListeners()",
+          "Remove global listeners in destroy()",
+          "Use once: true for one-time listeners",
+          "Check for duplicate subscriptions before adding"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Store all cleanup functions in this.eventListeners",
+          "Call cleanup in component.destroy()",
+          "Remove global window/document listeners",
+          "Check for existing listeners before adding",
+          "Use addEventListener from dom.utils with cleanup",
+          "Test memory usage in dev tools"
+        ],
+        "code_pattern": "async setupEventListeners() {\n  const cleanup = this.addEventListener('click', handler);\n  this.eventListeners.set('click_handler', cleanup);\n}\ncleanupEventListeners() {\n  this.eventListeners.forEach(cleanup => cleanup());\n  this.eventListeners.clear();\n}"
+      }
+    },
+    "async_operation_race_conditions": {
+      "priority": "HIGH",
+      "frequency": "MEDIUM",
+      "description": "Async operations completing out of order, stale data, race conditions",
+      "affected_files": [
+        "src/pages/home/home.page.js",
+        "src/pages/admin/admin.page.js",
+        "src/services/api/*.service.js"
+      ],
+      "common_symptoms": [
+        "UI showing stale data",
+        "Multiple API calls overriding each other",
+        "Component state out of sync",
+        "Loading states not clearing",
+        "Updates applied to wrong component instance"
+      ],
+      "root_causes": [
+        "Multiple async operations not awaited together",
+        "No cancellation tokens for in-flight requests",
+        "State updates based on stale data",
+        "Component destroyed but async operation continues",
+        "No request deduplication",
+        "Race conditions in parallel Promise.all() calls"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging async race conditions. The app uses async/await extensively.",
+        "user_prompt_template": "Race condition in {function_name}. Multiple async operations completing out of order. Function: {function_name}, Operations: {operation_list}.",
+        "required_context": [
+          "Function name with race condition",
+          "List of async operations",
+          "Expected execution order",
+          "Actual execution order",
+          "Whether component can be destroyed during operation"
+        ],
+        "optimization_hints": [
+          "Use Promise.all() for parallel independent operations",
+          "Use AbortController for cancellable requests",
+          "Check component.destroyed before state updates",
+          "Deduplicate concurrent requests",
+          "Use request IDs to track and cancel stale requests",
+          "Await all dependencies before dependent operations"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Use AbortController for cancellable fetch requests",
+          "Check this.destroyed before setState",
+          "Deduplicate concurrent API calls",
+          "Use Promise.all() for parallel operations",
+          "Track request IDs to ignore stale responses",
+          "Cancel requests in component.destroy()"
+        ],
+        "code_pattern": "async loadData() {\n  const abortController = new AbortController();\n  this.currentRequest = abortController;\n  try {\n    const data = await fetch(url, { signal: abortController.signal });\n    if (!this.destroyed) this.setState({ data });\n  } catch (error) {\n    if (error.name !== 'AbortError') throw error;\n  }\n}\ndestroy() {\n  if (this.currentRequest) this.currentRequest.abort();\n}"
+      }
+    },
+    "form_validation_and_submission": {
+      "priority": "MEDIUM",
+      "frequency": "LOW",
+      "description": "Form validation errors, submission failures, state not clearing",
+      "affected_files": [
+        "src/pages/admin/admin.page.js",
+        "src/pages/review/review.page.js"
+      ],
+      "common_symptoms": [
+        "Form validation not working",
+        "Form submitting with invalid data",
+        "Loading state not clearing on error",
+        "Form not resetting after submission",
+        "Error messages not displaying",
+        "Duplicate submissions"
+      ],
+      "root_causes": [
+        "Validation not called before submission",
+        "Form state not reset after success",
+        "Loading state not managed properly",
+        "Error handling missing in catch blocks",
+        "No debounce on submit button",
+        "Form data extraction errors"
+      ],
+      "debug_prompt": {
+        "system_context": "You are debugging form submission issues. Forms use preventDefault() and async submission.",
+        "user_prompt_template": "Form {form_id} submission failing. Check validation, loading state, and error handling. Form: {form_id}, Error: {error_message}.",
+        "required_context": [
+          "Form element ID",
+          "Validation rules",
+          "Submission handler code",
+          "Error message display element",
+          "Loading state management",
+          "Success/failure callbacks"
+        ],
+        "optimization_hints": [
+          "Validate before preventDefault()",
+          "Set button disabled during submission",
+          "Clear form.reset() on success",
+          "Display errors in catch block",
+          "Use try/catch/finally for loading state",
+          "Debounce submit button clicks"
+        ]
+      },
+      "fix_template": {
+        "checklist": [
+          "Add validation before submission",
+          "Set button disabled/loading during submit",
+          "Reset form on successful submission",
+          "Display errors in UI element",
+          "Use finally block to clear loading state",
+          "Prevent double submission with flag"
+        ],
+        "code_pattern": "async handleSubmit(event) {\n  event.preventDefault();\n  if (!this.validateForm()) return;\n  const btn = event.target.querySelector('button[type=\"submit\"]');\n  btn.disabled = true;\n  try {\n    await this.submitForm();\n    event.target.reset();\n    this.showSuccess();\n  } catch (error) {\n    this.showError(error.message);\n  } finally {\n    btn.disabled = false;\n  }\n}"
+      }
+    }
+  },
+  "prompt_guidelines": {
+    "token_optimization": {
+      "max_context_tokens": 4000,
+      "max_response_tokens": 2000,
+      "strategies": [
+        "Only include relevant file paths, not full file contents",
+        "Use line number ranges for large files",
+        "Reference component names instead of full code",
+        "Focus on specific error messages, not full stack traces",
+        "Use abbreviations: comp=component, init=initialization, etc."
+      ],
+      "context_compression": {
+        "include": [
+          "Error message",
+          "Component/function name",
+          "Relevant line numbers",
+          "Console logs before error",
+          "Expected vs actual behavior"
+        ],
+        "exclude": [
+          "Full file contents",
+          "Unrelated error messages",
+          "Complete stack traces (use first 3 lines)",
+          "All console.log statements",
+          "Comments and documentation"
+        ]
+      }
+    },
+    "prompt_chaining": {
+      "description": "Break complex debugging into sequential prompts",
+      "rules": [
+        "Start with symptom identification prompt",
+        "Follow with root cause analysis prompt",
+        "End with implementation fix prompt",
+        "Each prompt should reference previous results",
+        "Maintain context between prompts using session summary"
+      ],
+      "chain_template": [
+        {
+          "step": 1,
+          "type": "diagnosis",
+          "prompt": "Identify the issue: {symptom}. Check {relevant_files}. What is the root cause?",
+          "expected_output": "Root cause analysis with file:line references"
+        },
+        {
+          "step": 2,
+          "type": "solution",
+          "prompt": "Based on diagnosis: {root_cause}, provide fix for {component/file}. Include error handling.",
+          "expected_output": "Complete code fix with context"
+        },
+        {
+          "step": 3,
+          "type": "verification",
+          "prompt": "Verify fix for {component} handles edge cases: {edge_cases}. Add tests if needed.",
+          "expected_output": "Edge case handling and test suggestions"
+        }
+      ]
+    },
+    "simultaneous_calls": {
+      "description": "When debugging multiple unrelated issues",
+      "guidelines": [
+        "Separate issues into independent prompts",
+        "Each prompt should be self-contained",
+        "Use issue IDs to track parallel debugging",
+        "Merge fixes after individual resolutions",
+        "Avoid dependencies between parallel prompts"
+      ],
+      "example": {
+        "issue_1": "Fix component initialization in ButtonComponent",
+        "issue_2": "Fix API authentication in base-api.service.js",
+        "note": "These can be debugged simultaneously as they are independent"
+      }
+    },
+    "component_specific_prompts": {
+      "description": "Optimized prompts for component-level debugging",
+      "template": {
+        "header": "Debug {component_name} component issue",
+        "context": [
+          "Component class: {component_name}",
+          "Extends: {base_class}",
+          "File: {file_path}:{line_range}",
+          "Error: {error_message}"
+        ],
+        "optimization_needs": [
+          "Check init() lifecycle hook",
+          "Verify DOM element attachment",
+          "Ensure event listener cleanup",
+          "Validate state subscriptions",
+          "Check async operation completion"
+        ],
+        "expected_output": "Fixed component code with proper lifecycle management"
+      }
+    },
+    "error_recovery_prompts": {
+      "description": "Prompts for resuming workflow after errors",
+      "resume_template": "Workflow interrupted at {step}. Error: {error}. Current state: {state}. Resume from: {resume_point}. Fix error and continue.",
+      "checkpoint_system": {
+        "checkpoints": [
+          "After component initialization",
+          "After API service setup",
+          "After page module loading",
+          "After state store initialization"
+        ],
+        "save_state": [
+          "Component initialization status",
+          "API endpoints loaded",
+          "State store current state",
+          "Error logs"
+        ]
+      }
+    }
+  },
+  "optimization_recommendations": {
+    "components": {
+      "base_component": {
+        "issues": [
+          "JSON.parse(JSON.stringify()) in getState() is expensive",
+          "No request deduplication",
+          "Missing AbortController for async operations",
+          "Event listeners not efficiently tracked"
+        ],
+        "optimizations": [
+          "Use structuredClone() or immutable patterns instead of JSON serialization",
+          "Implement request caching and deduplication",
+          "Add AbortController support for all async operations",
+          "Use WeakMap for event listener tracking"
+        ]
+      },
+      "page_base": {
+        "issues": [
+          "Synchronous require() in addEventListener method",
+          "No request cancellation on page destroy",
+          "State observers not efficiently filtered"
+        ],
+        "optimizations": [
+          "Import dom.utils at top level, not in method",
+          "Cancel all in-flight requests on destroy",
+          "Filter state changes in observer before processing"
+        ]
+      },
+      "api_service": {
+        "issues": [
+          "No request deduplication",
+          "Retry logic not optimized",
+          "No response caching",
+          "Interceptors can be inefficient"
+        ],
+        "optimizations": [
+          "Cache GET requests with TTL",
+          "Deduplicate concurrent identical requests",
+          "Optimize retry with exponential backoff",
+          "Lazy load interceptors"
+        ]
+      }
+    },
+    "state_management": {
+      "issues": [
+        "getState() uses expensive JSON serialization",
+        "No state change batching",
+        "History array can grow unbounded",
+        "Deep merge can be slow for large state"
+      ],
+      "optimizations": [
+        "Use immutable data structures (Immer.js pattern)",
+        "Batch state updates in single setState call",
+        "Limit history size more aggressively",
+        "Optimize deep merge for performance"
+      ]
+    },
+    "performance": {
+      "issues": [
+        "No code splitting for pages",
+        "Large bundle sizes",
+        "No lazy loading for components",
+        "Map initialization blocks main thread"
+      ],
+      "optimizations": [
+        "Dynamic imports for page modules (already done)",
+        "Tree shake unused code",
+        "Lazy load heavy components (QR scanner, map)",
+        "Use requestIdleCallback for non-critical init"
+      ]
+    }
+  },
+  "workflow_resume_guide": {
+    "when_to_use": [
+      "After component initialization fails",
+      "After API integration errors",
+      "After state management issues",
+      "When workflow is interrupted"
+    ],
+    "steps": [
+      "1. Identify last successful checkpoint",
+      "2. Review error logs and console output",
+      "3. Use appropriate debug prompt from critical_challenges",
+      "4. Apply fix incrementally",
+      "5. Verify fix with minimal reproduction",
+      "6. Continue from checkpoint",
+      "7. Update workflow state"
+    ],
+    "checkpoint_format": {
+      "checkpoint_id": "unique_id",
+      "timestamp": "ISO8601",
+      "component": "component_name",
+      "state": "initialized|failed|partial",
+      "error": "error_message_if_any",
+      "next_step": "what_should_happen_next"
+    }
+  },
+  "usage_examples": {
+    "example_1_component_init": {
+      "symptom": "ButtonComponent failing to initialize",
+      "prompt": "Component ButtonComponent is failing to initialize. Error: Cannot read property 'appendChild' of null. Check initialization order, DOM readiness, and lifecycle hooks. Component extends BaseComponent. File: src/components/ui/button.component.js:46.",
+      "expected_fix": "Add null check before appendChild, ensure element created before render"
+    },
+    "example_2_api_auth": {
+      "symptom": "API calls returning 401",
+      "prompt": "API call to /api/toilet/map is failing with 401: Unauthorized. Check token retrieval, interceptor chain, and response format. Token present in localStorage: yes. Endpoint: /api/toilet/map, Method: GET.",
+      "expected_fix": "Verify token added to Authorization header, check interceptor order"
+    },
+    "example_3_state_update": {
+      "symptom": "UI not updating after state change",
+      "prompt": "State change for data.toilets is not updating UI. Component: HomePage. Observer subscribed in setupStateObservers(). Check observer subscriptions, state update method, and component re-render logic.",
+      "expected_fix": "Verify observer callback triggers update(), check state path filtering"
+    }
+  }
+}
+

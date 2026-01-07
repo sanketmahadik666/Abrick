@@ -18,6 +18,8 @@ export class BaseApiService {
         };
         this.requestInterceptors = [];
         this.responseInterceptors = [];
+        this.cache = new Map();
+        this.inflightRequests = new Map();
     }
 
     /**
@@ -52,22 +54,65 @@ export class BaseApiService {
             processedOptions = await interceptor(processedOptions);
         }
 
-        try {
-            console.log(`[API] ${processedOptions.method || 'GET'} ${url}`);
+        const method = processedOptions.method || 'GET';
+        const cacheKey = `${method}:${url}`;
 
-            const response = await this.makeRequest(url, processedOptions);
-            const result = await this.handleResponse(response);
-
-            // Apply response interceptors
-            let processedResult = result;
-            for (const interceptor of this.responseInterceptors) {
-                processedResult = await interceptor(processedResult, response);
+        // 1. Check Cache (GET only)
+        if (method === 'GET' && options.cache !== false) {
+            const cached = this.cache.get(cacheKey);
+            if (cached && cached.expiry > Date.now()) {
+                console.log(`[API] Serving from cache: ${url}`);
+                return cached.data;
             }
+        }
 
-            return processedResult;
-        } catch (error) {
-            console.error(`[API] Request failed:`, error);
-            throw this.handleError(error);
+        // 2. Request Deduplication (GET only)
+        if (method === 'GET' && this.inflightRequests.has(cacheKey)) {
+            console.log(`[API] Deduplicating request: ${url}`);
+            return this.inflightRequests.get(cacheKey);
+        }
+
+        const requestPromise = (async () => {
+            try {
+                console.log(`[API] ${processedOptions.method || 'GET'} ${url}`);
+
+                const response = await this.makeRequest(url, processedOptions);
+                const result = await this.handleResponse(response);
+
+                // Apply response interceptors
+                let processedResult = result;
+                for (const interceptor of this.responseInterceptors) {
+                    processedResult = await interceptor(processedResult, response);
+                }
+
+                return processedResult;
+            } catch (error) {
+                console.error(`[API] Request failed:`, error);
+                throw this.handleError(error);
+            }
+        })();
+
+        // Store promise for deduplication
+        if (method === 'GET') {
+            this.inflightRequests.set(cacheKey, requestPromise);
+        }
+
+        try {
+            const data = await requestPromise;
+            
+            // 3. Store in Cache (if TTL provided or default cache enabled)
+            // Default TTL: 60 seconds if cache is not disabled
+            const ttl = options.ttl || (options.cache !== false ? 60000 : 0);
+            if (method === 'GET' && ttl > 0) {
+                this.cache.set(cacheKey, {
+                    data,
+                    expiry: Date.now() + ttl
+                });
+            }
+            
+            return data;
+        } finally {
+            this.inflightRequests.delete(cacheKey);
         }
     }
 
@@ -126,8 +171,10 @@ export class BaseApiService {
 
             // Retry logic
             if (retryCount < AppConfig.api.retries) {
-                console.log(`[API] Retrying request (${retryCount + 1}/${AppConfig.api.retries})`);
-                await this.delay(AppConfig.api.retryDelay * (retryCount + 1));
+                // Exponential backoff: delay * 2^retryCount
+                const delay = AppConfig.api.retryDelay * Math.pow(2, retryCount);
+                console.log(`[API] Retrying request (${retryCount + 1}/${AppConfig.api.retries}) in ${delay}ms`);
+                await this.delay(delay);
                 return this.makeRequest(url, options, retryCount + 1);
             }
 

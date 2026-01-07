@@ -7,7 +7,7 @@ import { BasePage } from '../shared/page.base.js';
 import appStore from '../../state/store/app.store.js';
 import { toiletApiService } from '../../services/api/toilet-api.service.js';
 import { reviewApiService } from '../../services/api/review-api.service.js';
-import { $ } from '../../core/utils/dom.utils.js';
+import { $, loadScript } from '../../core/utils/dom.utils.js';
 
 /**
  * ReviewPage Class
@@ -60,6 +60,9 @@ export class ReviewPage extends BasePage {
     /**
      * Initialize QR code scanner
      */
+    /**
+     * Initialize QR code scanner
+     */
     async initializeQRScanner() {
         console.log('[ReviewPage] Initializing QR scanner...');
 
@@ -72,9 +75,15 @@ export class ReviewPage extends BasePage {
         }
 
         try {
-            // Check if Html5Qrcode is available
+            // Lazy load Html5Qrcode
             if (typeof Html5Qrcode === 'undefined') {
-                throw new Error('QR scanner library not loaded');
+                console.log('[ReviewPage] Lazy loading Html5Qrcode...');
+                await loadScript('https://unpkg.com/html5-qrcode', 'html5-qrcode-js');
+            }
+
+            // check again if loaded
+            if (typeof Html5Qrcode === 'undefined') {
+                 throw new Error('QR scanner library failed to load');
             }
 
             // Initialize QR scanner
@@ -99,7 +108,7 @@ export class ReviewPage extends BasePage {
 
         } catch (error) {
             console.error('[ReviewPage] Error initializing QR scanner:', error);
-            this.showScannerError('Failed to initialize camera. Please ensure camera permissions are granted.');
+            this.showScannerError('Failed to initialize camera or library. Please ensure camera permissions are granted.');
         }
     }
 

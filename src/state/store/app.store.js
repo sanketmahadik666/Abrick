@@ -58,7 +58,9 @@ export class AppStore {
 
         this.observers = new Map();
         this.history = [];
-        this.maxHistorySize = 10;
+        this.maxHistorySize = 5; // Reduced for memory optimization
+        this.batching = false;
+        this.pendingChanges = [];
 
         // Bind methods
         this.subscribe = this.subscribe.bind(this);
@@ -121,6 +123,10 @@ export class AppStore {
      * @returns {object} Current state
      */
     getState() {
+        // Use structuredClone for better performance and support for more types
+        if (typeof structuredClone === 'function') {
+            return structuredClone(this.state);
+        }
         return JSON.parse(JSON.stringify(this.state));
     }
 
@@ -148,6 +154,11 @@ export class AppStore {
             return;
         }
 
+        // Optimization: Check if state actually changed
+        if (prevState === newState) {
+            return;
+        }
+
         this.state = newState;
 
         // Add to history
@@ -155,34 +166,68 @@ export class AppStore {
 
         // Notify observers
         if (options.silent !== true) {
-            this.notify('state:changed', {
+            const changeEvent = {
                 prevState,
                 newState,
                 changes: this.getStateChanges(prevState, newState)
-            });
+            };
+
+            if (this.batching) {
+                this.pendingChanges.push(changeEvent);
+            } else {
+                this.notify('state:changed', changeEvent);
+            }
         }
 
         console.log(`[STORE] State updated:`, options.description || 'State change');
     }
 
     /**
-     * Deep merge objects
+     * Deep merge objects with structural sharing
+     * Only creates new references when values actually change
      * @param {object} target - Target object
      * @param {object} source - Source object
      * @returns {object} Merged object
      */
     deepMerge(target, source) {
+        // If identical, return target
+        if (target === source) return target;
+
+        // If source is not an object or null, return source (replacement)
+        if (!source || typeof source !== 'object') return source;
+
+        // If target is not an object, return source
+        if (!target || typeof target !== 'object') return source;
+        
+        // Handle arrays: replace (simpler) or merge? usually replace in state updates
+        if (Array.isArray(source)) return source;
+
         const result = { ...target };
+        let hasChanges = false;
 
         Object.keys(source).forEach(key => {
-            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                result[key] = this.deepMerge(target[key] || {}, source[key]);
+            const sourceVal = source[key];
+            const targetVal = target[key];
+
+            let mergedVal;
+
+            if (sourceVal && typeof sourceVal === 'object' && !Array.isArray(sourceVal)) {
+                // Recursively merge objects
+                mergedVal = this.deepMerge(targetVal || {}, sourceVal);
             } else {
-                result[key] = source[key];
+                // Primitive value or array
+                mergedVal = sourceVal;
+            }
+
+            // If value changed, update result and mark flag
+            if (mergedVal !== targetVal) {
+                result[key] = mergedVal;
+                hasChanges = true;
             }
         });
 
-        return result;
+        // If nothing changed, return original target to preserve structure/references
+        return hasChanges ? result : target;
     }
 
     /**
@@ -231,10 +276,13 @@ export class AppStore {
      * @param {object} options - Change options
      */
     addToHistory(prevState, newState, options) {
+        // Only store if debug mode or dev environment (simulated check)
+        // For production, maybe we don't need full history
+        
         this.history.push({
             timestamp: new Date(),
-            prevState,
-            newState,
+            // Don't store full state copies if not needed to save memory
+            // phases: 'prevState', 'newState'
             description: options.description || 'State change',
             changes: this.getStateChanges(prevState, newState)
         });
@@ -395,6 +443,43 @@ export class AppStore {
                 reviews: reviews || []
             }
         }), { description: 'Reviews updated' });
+    }
+
+    /**
+     * Start batching state updates
+     * Notifications will be suppressed until endBatch is called
+     */
+    startBatch() {
+        this.batching = true;
+    }
+
+    /**
+     * End batching and notify observers of all changes
+     */
+    endBatch() {
+        this.batching = false;
+        
+        if (this.pendingChanges.length > 0) {
+            // Merge all pending changes into one notification
+            // We use the initial prevState from the first change and the final newState
+            const firstChange = this.pendingChanges[0];
+            const lastChange = this.pendingChanges[this.pendingChanges.length - 1];
+            
+            // Consolidate changes map
+            const allChanges = {};
+            this.pendingChanges.forEach(change => {
+                Object.assign(allChanges, change.changes);
+            });
+
+            this.notify('state:changed', {
+                prevState: firstChange.prevState,
+                newState: lastChange.newState,
+                changes: allChanges,
+                batched: true
+            });
+            
+            this.pendingChanges = [];
+        }
     }
 }
 

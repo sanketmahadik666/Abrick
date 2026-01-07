@@ -5,7 +5,9 @@
  */
 
 import appStore from '../../state/store/app.store.js';
-import { $ } from '../../core/utils/dom.utils.js';
+import appStore from '../../state/store/app.store.js';
+import { $, addEventListener } from '../../core/utils/dom.utils.js';
+import AppConfig from '../../core/config/app.config.js';
 import AppConfig from '../../core/config/app.config.js';
 
 /**
@@ -23,6 +25,7 @@ export class BasePage {
         this.initialized = false;
         this.destroyed = false;
         this.eventListeners = new Map();
+        this.activeRequests = new Set();
 
         // Bind methods to preserve context
         this.init = this.init.bind(this);
@@ -87,6 +90,7 @@ export class BasePage {
             this.preDestroy();
             this.cleanupEventListeners();
             this.cleanupStateObservers();
+            this.cancelAllRequests();
             this.cleanupDOM();
             this.postDestroy();
 
@@ -393,9 +397,7 @@ export class BasePage {
      * @returns {string} Listener ID for removal
      */
     addEventListener(element, event, handler, options = {}) {
-        // Import synchronously since dom.utils is already loaded
-        const { addEventListener: addListener } = require('../../core/utils/dom.utils.js');
-        const cleanup = addListener(element, event, handler, options);
+        const cleanup = addEventListener(element, event, handler, options);
 
         const listenerId = `${event}_${Date.now()}_${Math.random()}`;
         this.eventListeners.set(listenerId, { cleanup, element, event, handler });
@@ -493,6 +495,43 @@ export class BasePage {
      */
     getPageName() {
         return this.constructor.name.replace('Page', '').toLowerCase();
+    }
+
+    /**
+     * Create an AbortController for a request and track it
+     * @returns {AbortController} The created controller
+     */
+    createRequestController() {
+        const controller = new AbortController();
+        this.activeRequests.add(controller);
+        return controller;
+    }
+
+    /**
+     * Remove a request controller from tracking
+     * @param {AbortController} controller - The controller to remove
+     */
+    removeRequestController(controller) {
+        if (this.activeRequests.has(controller)) {
+            this.activeRequests.delete(controller);
+        }
+    }
+
+    /**
+     * Cancel all active requests
+     */
+    cancelAllRequests() {
+        if (this.activeRequests.size > 0) {
+            console.log(`[PAGE] Cancelling ${this.activeRequests.size} active requests for ${this.constructor.name}`);
+            this.activeRequests.forEach(controller => {
+                try {
+                    controller.abort();
+                } catch (e) {
+                    // Ignore
+                }
+            });
+            this.activeRequests.clear();
+        }
     }
 
     /**

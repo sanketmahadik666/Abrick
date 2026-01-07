@@ -6,9 +6,10 @@
 
 import { BasePage } from '../shared/page.base.js';
 import appStore from '../../state/store/app.store.js';
-import { $ } from '../../core/utils/dom.utils.js';
+import { $, loadScript } from '../../core/utils/dom.utils.js';
 import AppConfig from '../../core/config/app.config.js';
 import { SearchComponent } from '../../components/ui/search.component.js';
+
 
 /**
  * Home Page Class
@@ -72,11 +73,33 @@ export class HomePage extends BasePage {
      */
     setupStateObservers() {
         // Observe toilet data changes
-        appStore.subscribe('state:changed', (event, data) => {
+        this.subscribeToState('state:changed', (event, data) => {
             if (data.changes['data.toilets']) {
                 this.updateMapWithToilets(data.changes['data.toilets'].to);
             }
         });
+    }
+
+    /**
+     * Destroy the home page
+     */
+    destroy() {
+        console.log('[HOME] Destroying home page...');
+
+        // Stop QR scanner
+        if (this.qrScanner) {
+            this.qrScanner.clear().catch(console.error);
+            this.qrScanner = null;
+        }
+
+        // Remove map
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+            this.markers = null;
+        }
+
+        super.destroy();
     }
 
     /**
@@ -115,6 +138,10 @@ export class HomePage extends BasePage {
      * Initialize the map
      * @returns {Promise} Initialization promise
      */
+    /**
+     * Initialize the map
+     * @returns {Promise} Initialization promise
+     */
     async initializeMap() {
         console.log('[HOME] Initializing map...');
 
@@ -131,9 +158,16 @@ export class HomePage extends BasePage {
         mapElement.style.width = '100%';
 
         try {
-            // Check if Leaflet is available
+            // Lazy load Leaflet
             if (typeof L === 'undefined') {
-                throw new Error('Leaflet library not loaded');
+                console.log('[HOME] Lazy loading Leaflet...');
+                await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', 'leaflet-js');
+            }
+
+            // Lazy load MarkerCluster
+            if (typeof L.markerClusterGroup === 'undefined') {
+                console.log('[HOME] Lazy loading MarkerCluster...');
+                await loadScript('https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js', 'leaflet-markercluster');
             }
 
             // Initialize Leaflet map
@@ -195,7 +229,11 @@ export class HomePage extends BasePage {
             console.log('[HOME] Map initialized successfully');
 
             // Load initial toilet data
-            await this.loadToilets();
+            if (window.requestIdleCallback) {
+                window.requestIdleCallback(() => this.loadToilets());
+            } else {
+                setTimeout(() => this.loadToilets(), 100);
+            }
 
         } catch (error) {
             console.error('[HOME] Map initialization failed:', error);
@@ -296,7 +334,7 @@ export class HomePage extends BasePage {
             const searchContainer = $('#search-container');
             if (searchContainer) {
                 searchContainer.innerHTML = `
-                    <div style="color: #dc3545; padding: 1rem; text-align: center; border: 1px solid #dc3545; border-radius: 4px;">
+                    <div class="search-error">
                         Search temporarily unavailable. Map functionality still works.
                     </div>
                 `;
@@ -407,15 +445,7 @@ export class HomePage extends BasePage {
     createMarker(toilet) {
         const markerIcon = L.divIcon({
             className: 'toilet-marker',
-            html: `<div style="
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background-color: ${this.getMarkerColor(toilet.averageRating)};
-                border: 3px solid white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                transition: all 0.3s ease;
-            "></div>`,
+            html: `<div class="toilet-marker-icon" style="background-color: ${this.getMarkerColor(toilet.averageRating)}"></div>`,
             iconSize: [20, 20],
             iconAnchor: [10, 10]
         });
@@ -671,8 +701,8 @@ export class HomePage extends BasePage {
     /**
      * Initialize QR scanner
      */
-    initializeQRScanner() {
-        console.log('[HOME] Initializing QR scanner');
+    async initializeQRScanner() {
+        console.log('[HOME] Initializing QR scanner...');
 
         const qrReader = $('#qr-reader');
         if (!qrReader) {
@@ -680,14 +710,13 @@ export class HomePage extends BasePage {
             return;
         }
 
-        // Check if Html5Qrcode is available
-        if (typeof Html5Qrcode === 'undefined') {
-            console.error('[HOME] Html5Qrcode library not loaded');
-            qrReader.innerHTML = '<p>QR scanner library not available. Please refresh the page.</p>';
-            return;
-        }
-
         try {
+            // Lazy load Html5Qrcode
+            if (typeof Html5QrcodeScanner === 'undefined') {
+                console.log('[HOME] Lazy loading Html5Qrcode...');
+                await loadScript('https://unpkg.com/html5-qrcode', 'html5-qrcode-js');
+            }
+
             this.qrScanner = new Html5QrcodeScanner(
                 "qr-reader",
                 {
