@@ -59,6 +59,8 @@ export class AppStore {
         this.observers = new Map();
         this.history = [];
         this.maxHistorySize = 10;
+        this.batching = false;
+        this.pendingChanges = [];
 
         // Bind methods
         this.subscribe = this.subscribe.bind(this);
@@ -121,6 +123,10 @@ export class AppStore {
      * @returns {object} Current state
      */
     getState() {
+        // Use structuredClone for better performance and support for more types
+        if (typeof structuredClone === 'function') {
+            return structuredClone(this.state);
+        }
         return JSON.parse(JSON.stringify(this.state));
     }
 
@@ -154,12 +160,19 @@ export class AppStore {
         this.addToHistory(prevState, newState, options);
 
         // Notify observers
+        // Notify observers
         if (options.silent !== true) {
-            this.notify('state:changed', {
+            const changeEvent = {
                 prevState,
                 newState,
                 changes: this.getStateChanges(prevState, newState)
-            });
+            };
+
+            if (this.batching) {
+                this.pendingChanges.push(changeEvent);
+            } else {
+                this.notify('state:changed', changeEvent);
+            }
         }
 
         console.log(`[STORE] State updated:`, options.description || 'State change');
