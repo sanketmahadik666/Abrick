@@ -128,7 +128,7 @@ export class ReviewPage extends BasePage {
             // Hide scanner section
             const qrReaderSection = document.getElementById('qr-reader-section');
             if (qrReaderSection) {
-                qrReaderSection.style.display = 'none';
+                qrReaderSection.classList.add('hidden');
             }
 
             // Process the scanned data
@@ -200,7 +200,8 @@ export class ReviewPage extends BasePage {
                     <p>Loading toilet information...</p>
                 </div>
             `;
-            toiletInfo.style.display = 'block';
+            toiletInfo.style.display = '';
+            toiletInfo.classList.remove('hidden');
 
             // Fetch toilet data
             const toilet = await this.toiletApiService.getToiletById(toiletId);
@@ -218,7 +219,8 @@ export class ReviewPage extends BasePage {
             // Show review form
             const reviewFormSection = document.getElementById('reviewFormSection');
             if (reviewFormSection) {
-                reviewFormSection.style.display = 'block';
+                reviewFormSection.style.display = '';
+                reviewFormSection.classList.remove('hidden');
             }
 
         } catch (error) {
@@ -287,6 +289,9 @@ export class ReviewPage extends BasePage {
     async handleReviewSubmit(event) {
         event.preventDefault();
 
+        if (this.isSubmitting) return;
+        this.isSubmitting = true;
+
         if (!this.currentToiletId) {
             this.showError('No toilet selected. Please scan a QR code first.');
             return;
@@ -317,6 +322,9 @@ export class ReviewPage extends BasePage {
             // Submit review
             await this.reviewApiService.submitReview(reviewData);
 
+            // Reset form
+            event.target.reset();
+
             // Show success message
             this.showSuccess();
 
@@ -325,6 +333,7 @@ export class ReviewPage extends BasePage {
             this.showError(error.message || 'Failed to submit review. Please try again.');
         } finally {
             this.setButtonLoading(submitBtn, false);
+            this.isSubmitting = false;
         }
     }
 
@@ -336,13 +345,13 @@ export class ReviewPage extends BasePage {
         const toiletInfo = document.getElementById('toiletInfo');
         const reviewFormSection = document.getElementById('reviewFormSection');
 
-        if (toiletInfo) toiletInfo.style.display = 'none';
-        if (reviewFormSection) reviewFormSection.style.display = 'none';
+        if (toiletInfo) toiletInfo.classList.add('hidden');
+        if (reviewFormSection) reviewFormSection.classList.add('hidden');
 
         // Show success message
         const successMessage = document.getElementById('successMessage');
         if (successMessage) {
-            successMessage.style.display = 'block';
+            successMessage.classList.remove('hidden');
 
             // Create confetti effect
             this.createConfetti();
@@ -389,7 +398,7 @@ export class ReviewPage extends BasePage {
         const sections = ['toiletInfo', 'reviewFormSection', 'successMessage'];
         sections.forEach(sectionId => {
             const element = document.getElementById(sectionId);
-            if (element) element.style.display = 'none';
+            if (element) element.classList.add('hidden');
         });
 
         // Reset form
@@ -399,7 +408,7 @@ export class ReviewPage extends BasePage {
         // Show scanner section
         const qrReaderSection = document.getElementById('qr-reader-section');
         if (qrReaderSection) {
-            qrReaderSection.style.display = 'block';
+            qrReaderSection.classList.remove('hidden');
             qrReaderSection.innerHTML = `
                 <h2 class="scanner-section__title">Scan QR Code</h2>
                 <div id="qr-reader" class="scanner-section__reader" role="application" aria-label="QR code scanner"></div>

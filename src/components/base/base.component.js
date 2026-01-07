@@ -139,7 +139,7 @@ export class BaseComponent {
      */
     show() {
         if (this.element) {
-            this.element.style.display = '';
+            this.element.classList.remove('hidden');
             this.onShow();
         }
     }
@@ -149,7 +149,7 @@ export class BaseComponent {
      */
     hide() {
         if (this.element) {
-            this.element.style.display = 'none';
+            this.element.classList.add('hidden');
             this.onHide();
         }
     }

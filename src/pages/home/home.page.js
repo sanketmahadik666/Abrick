@@ -239,7 +239,7 @@ export class HomePage extends BasePage {
             console.error('[HOME] Map initialization failed:', error);
             if (mapError) {
                 mapError.textContent = `Failed to initialize map: ${error.message}`;
-                mapError.style.display = 'block';
+                mapError.classList.remove('hidden');
             }
         }
     }
@@ -350,8 +350,11 @@ export class HomePage extends BasePage {
         const mapLoading = $('#map-loading');
         const mapError = $('#map-error');
 
-        if (mapLoading) mapLoading.style.display = 'flex';
-        if (mapError) mapError.style.display = 'none';
+        if (mapLoading) {
+            mapLoading.classList.remove('hidden');
+            mapLoading.classList.add('flex');
+        }
+        if (mapError) mapError.classList.add('hidden');
 
         appStore.setLoading('toilets', true);
 
@@ -392,11 +395,14 @@ export class HomePage extends BasePage {
             console.error('[HOME] Error loading toilets:', error);
             if (mapError) {
                 mapError.textContent = `Error loading toilets: ${error.message}`;
-                mapError.style.display = 'block';
+                mapError.classList.remove('hidden');
             }
         } finally {
             appStore.setLoading('toilets', false);
-            if (mapLoading) mapLoading.style.display = 'none';
+            if (mapLoading) {
+                mapLoading.classList.add('hidden');
+                mapLoading.classList.remove('flex');
+            }
         }
     }
 
@@ -758,7 +764,7 @@ export class HomePage extends BasePage {
 
             // Hide scanner
             const qrReader = $('#qr-reader');
-            if (qrReader) qrReader.style.display = 'none';
+            if (qrReader) qrReader.classList.add('hidden');
 
             console.log('[HOME] Scanned QR code data:', decodedText);
 
@@ -841,11 +847,11 @@ export class HomePage extends BasePage {
         const successMessage = $('#successMessage');
         const qrReader = $('#qr-reader');
 
-        if (toiletInfoPanel) toiletInfoPanel.style.display = 'none';
-        if (reviewFormSection) reviewFormSection.style.display = 'none';
-        if (successMessage) successMessage.style.display = 'none';
+        if (toiletInfoPanel) toiletInfoPanel.classList.add('hidden');
+        if (reviewFormSection) reviewFormSection.classList.add('hidden');
+        if (successMessage) successMessage.classList.add('hidden');
         if (qrReader) {
-            qrReader.style.display = 'block';
+            qrReader.classList.remove('hidden');
             qrReader.innerHTML = ''; // Clear any existing content
         }
 
@@ -873,7 +879,7 @@ export class HomePage extends BasePage {
 
         // Show loading state
         if (toiletInfoPanel) {
-            toiletInfoPanel.style.display = 'block';
+            toiletInfoPanel.classList.remove('hidden');
             toiletInfoPanel.innerHTML = `
                 <div style="text-align: center; padding: 2rem;">
                     <div class="loading-spinner"></div>
@@ -905,7 +911,7 @@ export class HomePage extends BasePage {
 
             // Show review form
             if (reviewFormSection) {
-                reviewFormSection.style.display = 'block';
+                reviewFormSection.classList.remove('hidden');
             }
 
         } catch (error) {
