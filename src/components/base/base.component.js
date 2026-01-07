@@ -27,6 +27,7 @@ export class BaseComponent {
         this.children = new Map();
         this.eventListeners = new Map();
         this.activeRequests = new Set();
+        this.stateUnsubscribers = new Set(); // Added for state observer tracking
         this.destroyed = false;
 
         // Bind methods
@@ -298,7 +299,11 @@ export class BaseComponent {
      * Cleanup state observers
      */
     cleanupStateObservers() {
-        // Override in subclass if needed
+        if (this.stateUnsubscribers.size > 0) {
+            console.log(`[COMPONENT] Cleaning up ${this.stateUnsubscribers.size} state observers for ${this.constructor.name}`);
+            this.stateUnsubscribers.forEach(unsubscribe => unsubscribe());
+            this.stateUnsubscribers.clear();
+        }
     }
 
     /**
@@ -457,7 +462,12 @@ export class BaseComponent {
      * @returns {Function} Unsubscribe function
      */
     subscribeToState(event, observer) {
-        return appStore.subscribe(event, observer);
+        const unsubscribe = appStore.subscribe(event, observer);
+        this.stateUnsubscribers.add(unsubscribe);
+        return () => {
+            unsubscribe();
+            this.stateUnsubscribers.delete(unsubscribe);
+        };
     }
 
     /**

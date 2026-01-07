@@ -73,11 +73,33 @@ export class HomePage extends BasePage {
      */
     setupStateObservers() {
         // Observe toilet data changes
-        appStore.subscribe('state:changed', (event, data) => {
+        this.subscribeToState('state:changed', (event, data) => {
             if (data.changes['data.toilets']) {
                 this.updateMapWithToilets(data.changes['data.toilets'].to);
             }
         });
+    }
+
+    /**
+     * Destroy the home page
+     */
+    destroy() {
+        console.log('[HOME] Destroying home page...');
+
+        // Stop QR scanner
+        if (this.qrScanner) {
+            this.qrScanner.clear().catch(console.error);
+            this.qrScanner = null;
+        }
+
+        // Remove map
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+            this.markers = null;
+        }
+
+        super.destroy();
     }
 
     /**
@@ -312,7 +334,7 @@ export class HomePage extends BasePage {
             const searchContainer = $('#search-container');
             if (searchContainer) {
                 searchContainer.innerHTML = `
-                    <div style="color: #dc3545; padding: 1rem; text-align: center; border: 1px solid #dc3545; border-radius: 4px;">
+                    <div class="search-error">
                         Search temporarily unavailable. Map functionality still works.
                     </div>
                 `;
@@ -423,15 +445,7 @@ export class HomePage extends BasePage {
     createMarker(toilet) {
         const markerIcon = L.divIcon({
             className: 'toilet-marker',
-            html: `<div style="
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background-color: ${this.getMarkerColor(toilet.averageRating)};
-                border: 3px solid white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                transition: all 0.3s ease;
-            "></div>`,
+            html: `<div class="toilet-marker-icon" style="background-color: ${this.getMarkerColor(toilet.averageRating)}"></div>`,
             iconSize: [20, 20],
             iconAnchor: [10, 10]
         });

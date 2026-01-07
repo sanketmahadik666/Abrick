@@ -584,28 +584,18 @@
         <div class="footer__content">
           <div class="footer__map-section">
             <div id="footer-map-error" class="map-error"></div>
-            <div
-              style="
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 8px;
-              "
-            >
-              <div style="text-align: center; color: #666">
+            <div class="footer-map-placeholder-container">
+              <div class="footer-map-content">
                 <div
-                  style="font-size: 3rem; margin-bottom: 1rem"
+                  class="footer-map-icon"
                   aria-hidden="true"
                 >
                   🗺️
                 </div>
-                <h3 style="margin: 0 0 0.5rem 0; color: #333">
+                <h3 class="footer-map-title">
                   Interactive Map
                 </h3>
-                <p style="margin: 0; font-size: 0.9rem">
+                <p class="footer-map-text">
                   Available in the main map section above
                 </p>
               </div>
@@ -615,19 +605,19 @@
             <h3>Rating Guide</h3>
             <div class="map-legend">
               <div class="legend-item">
-                <div class="legend-color" style="background: #4caf50"></div>
+                <div class="legend-color legend-color--high"></div>
                 <span>High Rating (4-5)</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #ffc107"></div>
+                <div class="legend-color legend-color--medium"></div>
                 <span>Medium Rating (3-4)</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #f44336"></div>
+                <div class="legend-color legend-color--low"></div>
                 <span>Low Rating (0-3)</span>
               </div>
               <div class="legend-item">
-                <div class="legend-color" style="background: #808080"></div>
+                <div class="legend-color legend-color--none"></div>
                 <span>No Ratings Yet</span>
               </div>
             </div>
