@@ -409,6 +409,43 @@ export class AppStore {
             }
         }), { description: 'Reviews updated' });
     }
+
+    /**
+     * Start batching state updates
+     * Notifications will be suppressed until endBatch is called
+     */
+    startBatch() {
+        this.batching = true;
+    }
+
+    /**
+     * End batching and notify observers of all changes
+     */
+    endBatch() {
+        this.batching = false;
+        
+        if (this.pendingChanges.length > 0) {
+            // Merge all pending changes into one notification
+            // We use the initial prevState from the first change and the final newState
+            const firstChange = this.pendingChanges[0];
+            const lastChange = this.pendingChanges[this.pendingChanges.length - 1];
+            
+            // Consolidate changes map
+            const allChanges = {};
+            this.pendingChanges.forEach(change => {
+                Object.assign(allChanges, change.changes);
+            });
+
+            this.notify('state:changed', {
+                prevState: firstChange.prevState,
+                newState: lastChange.newState,
+                changes: allChanges,
+                batched: true
+            });
+            
+            this.pendingChanges = [];
+        }
+    }
 }
 
 // Create singleton instance

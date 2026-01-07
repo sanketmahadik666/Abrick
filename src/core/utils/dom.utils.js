@@ -308,3 +308,36 @@ export function focusElement(element) {
         console.error(`[DOM] Error focusing element:`, error);
     }
 }
+
+/**
+ * Dynamically load a script
+ * @param {string} src - Script source URL
+ * @param {string} id - Script ID to prevent duplicates
+ * @returns {Promise} Load promise
+ */
+export function loadScript(src, id) {
+    return new Promise((resolve, reject) => {
+        if (id && document.getElementById(id)) {
+            console.log(`[DOM] Script ${id} already loaded`);
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        if (id) script.id = id;
+        script.src = src;
+        script.async = true;
+
+        script.onload = () => {
+            console.log(`[DOM] Script ${src} loaded successfully`);
+            resolve();
+        };
+
+        script.onerror = (error) => {
+            console.error(`[DOM] Error loading script ${src}:`, error);
+            reject(new Error(`Failed to load script: ${src}`));
+        };
+
+        document.body.appendChild(script);
+    });
+}

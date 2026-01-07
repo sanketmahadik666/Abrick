@@ -1,406 +1,657 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Toilet Review System</title>
 
     <!-- Bundled CSS from webpack (direct loading) -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="js/css/css/base.0289d2102da9baec409e.css">
-    <link rel="stylesheet" href="js/css/css/components.f7a25e9b232c36b75b16.css">
-    <link rel="stylesheet" href="js/css/css/home.a56e832817c9de9927e0.css">
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="js/css/css/base.0289d2102da9baec409e.css" />
+    <link
+      rel="stylesheet"
+      href="js/css/css/components.f7a25e9b232c36b75b16.css"
+    />
+    <link rel="stylesheet" href="js/css/css/home.a56e832817c9de9927e0.css" />
 
     <!-- External Libraries -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
+    />
 
     <!-- Preload critical resources -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="//unpkg.com">
-</head>
-<body>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="//unpkg.com" />
+  </head>
+  <body>
     <!-- Skip to main content link for accessibility -->
-    <a href="#main-content" class="sr-only focus-visible">Skip to main content</a>
+    <a href="#main-content" class="sr-only focus-visible"
+      >Skip to main content</a
+    >
 
     <!-- Global Loading Overlay -->
-    <div id="globalLoading" class="global-loading" role="status" aria-live="polite">
-        <div class="global-loading-spinner" aria-hidden="true"></div>
-        <div class="global-loading-text">Loading Toilet Review System...</div>
+    <div
+      id="globalLoading"
+      class="global-loading"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="global-loading-spinner" aria-hidden="true"></div>
+      <div class="global-loading-text">Loading Toilet Review System...</div>
     </div>
 
     <!-- Navigation -->
     <nav class="nav" role="navigation" aria-label="Main navigation">
-        <div class="nav__container">
-            <h1 class="nav__brand">Toilet Review System</h1>
-            <div class="nav__links">
-                <a href="index.html" class="nav__link nav__link--active" aria-current="page">Home</a>
-                <a href="admin.html" class="nav__link">Admin Login</a>
-            </div>
+      <div class="nav__container">
+        <h1 class="nav__brand">Toilet Review System</h1>
+        <div class="nav__links">
+          <a
+            href="index.html"
+            class="nav__link nav__link--active"
+            aria-current="page"
+            >Home</a
+          >
+          <a href="admin.html" class="nav__link">Admin Login</a>
         </div>
+      </div>
     </nav>
 
     <!-- Main Content -->
     <main class="main" id="main-content" role="main">
-        <!-- Hero Section -->
-        <section class="hero" aria-labelledby="hero-title">
-            <div class="hero__container">
-                <h1 id="hero-title" class="hero__title">Welcome to Toilet Review System</h1>
-                <p class="hero__subtitle">Help improve public facilities by sharing your experience</p>
+      <!-- Hero Section -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__container">
+          <h1 id="hero-title" class="hero__title">
+            Welcome to Toilet Review System
+          </h1>
+          <p class="hero__subtitle">
+            Help improve public facilities by sharing your experience
+          </p>
 
-                <div class="hero__stats" role="region" aria-labelledby="stats-heading">
-                    <h2 id="stats-heading" class="sr-only">Statistics</h2>
-                    <div class="hero__stat">
-                        <div class="hero__stat-number" id="totalToiletsCount">80,000+</div>
-                        <div class="hero__stat-label">Available Toilets Near You</div>
-                    </div>
-                    <div class="hero__stat">
-                        <div class="hero__stat-number" id="citiesCovered">15+ Cities</div>
-                        <div class="hero__stat-label">Covered Across India</div>
-                    </div>
-                    <div class="hero__stat">
-                        <div class="hero__stat-number" id="reviewsCount">2,500+</div>
-                        <div class="hero__stat-label">Community Reviews</div>
-                    </div>
-                </div>
+          <div
+            class="hero__stats"
+            role="region"
+            aria-labelledby="stats-heading"
+          >
+            <h2 id="stats-heading" class="sr-only">Statistics</h2>
+            <div class="hero__stat">
+              <div class="hero__stat-number" id="totalToiletsCount">
+                80,000+
+              </div>
+              <div class="hero__stat-label">Available Toilets Near You</div>
             </div>
-        </section>
-
-        <!-- Content Section -->
-        <div class="content">
-            <!-- Search Section -->
-            <section class="search-section" aria-labelledby="search-title">
-                <h2 id="search-title" class="search-section__title">Find Toilets Near You</h2>
-                <div id="search-container" class="search-container"></div>
-            </section>
-
-            <!-- Map Section -->
-            <section class="map-section" aria-labelledby="map-title">
-                <h2 id="map-title" class="map-section__title">Toilet Data Map - Live from External APIs</h2>
-
-                <div id="map-error" class="map-section__error" role="alert" aria-live="polite" aria-atomic="true"></div>
-
-                <div class="map-section__container">
-                    <div id="map" class="map-section__map" role="application" aria-label="Interactive toilet map"></div>
-
-                    <div class="map-section__controls" role="group" aria-label="Map controls">
-                        <button class="btn btn-primary btn-small" onclick="map.locate({setView: true, maxZoom: 16})" aria-label="Find my location on map">
-                            📍 Find Near Me
-                        </button>
-                        <button class="btn btn-success btn-small" onclick="syncAllDataSources()" aria-label="Sync data from all external APIs">
-                            🔄 Sync All APIs
-                        </button>
-                    </div>
-
-                    <div class="map-section__filters" role="group" aria-label="Map filters">
-                        <label class="map-section__filter">
-                            <input type="checkbox" id="showPublicToilets" checked onchange="updateToiletFilters()">
-                            <span class="map-section__filter-label">🏛️ Public Toilets</span>
-                        </label>
-                        <label class="map-section__filter">
-                            <input type="checkbox" id="showPrivateToilets" checked onchange="updateToiletFilters()">
-                            <span class="map-section__filter-label">🏢 Private Toilets</span>
-                        </label>
-                    </div>
-
-                    <div id="map-loading" class="map-section__loading" role="status" aria-live="polite">
-                        <div class="loading-spinner" aria-hidden="true"></div>
-                        <span class="loading-text">Loading toilet data from APIs...</span>
-                    </div>
-                </div>
-
-                <!-- Data Sources Legend -->
-                <div class="data-sources-legend" role="region" aria-labelledby="legend-title">
-                    <h3 id="legend-title">Data Sources</h3>
-                    <div class="legend-grid">
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🌐</span>
-                            <div class="legend-info">
-                                <strong>Overpass API</strong>
-                                <small>Real-time worldwide queries</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">📊</span>
-                            <div class="legend-info">
-                                <strong>Geofabrik OSM</strong>
-                                <small>High-quality regional extracts</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🏛️</span>
-                            <div class="legend-info">
-                                <strong>City CKAN</strong>
-                                <small>Official urban data portals</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🌍</span>
-                            <div class="legend-info">
-                                <strong>Planet OSM</strong>
-                                <small>Complete global database</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🇮🇳</span>
-                            <div class="legend-info">
-                                <strong>Government APIs</strong>
-                                <small>Official Indian sources</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🏖️</span>
-                            <div class="legend-info">
-                                <strong>Tourism Boards</strong>
-                                <small>State tourism facilities</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🚉</span>
-                            <div class="legend-info">
-                                <strong>Transport Hubs</strong>
-                                <small>Railways and airports</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🏬</span>
-                            <div class="legend-info">
-                                <strong>Commercial Centers</strong>
-                                <small>Malls and complexes</small>
-                            </div>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-icon" aria-hidden="true">🎓</span>
-                            <div class="legend-info">
-                                <strong>Educational</strong>
-                                <small>Universities and colleges</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Map Statistics -->
-                <div class="map-stats" role="region" aria-labelledby="stats-title">
-                    <h3 id="stats-title">API Data Statistics</h3>
-                    <div id="map-stats-content" aria-live="polite">
-                        Loading API statistics...
-                    </div>
-                </div>
-            </section>
-
-            <!-- Scanner Section -->
-            <section class="scanner-section" aria-labelledby="scanner-title">
-                <h2 id="scanner-title">Scan QR Code</h2>
-
-                <div id="qr-reader" class="scanner-section__reader" role="application" aria-label="QR code scanner"></div>
-                <div id="qr-reader-results" class="scanner-section__results" role="status" aria-live="polite" aria-atomic="true"></div>
-
-                <!-- Toilet Info Panel -->
-                <div id="toiletInfoPanel" class="toilet-info-panel" style="display: none;" role="region" aria-labelledby="toilet-info-title">
-                    <h2 id="toilet-info-title" class="toilet-info-panel__title">Toilet Information</h2>
-                    <div class="toilet-details">
-                        <div class="info-group">
-                            <h3 id="toiletName"></h3>
-                            <p id="toiletLocation"></p>
-                        </div>
-                        <div class="info-group">
-                            <h4>Current Ratings</h4>
-                            <div class="rating-summary">
-                                <div class="rating-item">
-                                    <span>Overall Rating:</span>
-                                    <span id="overallRating" class="rating-stars"></span>
-                                </div>
-                                <div class="rating-item">
-                                    <span>Total Reviews:</span>
-                                    <span id="totalReviews"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-group">
-                            <h4>Facilities</h4>
-                            <div id="facilitiesList" class="facilities-list"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review Form -->
-                <div id="reviewFormSection" class="review-form" style="display: none;" role="region" aria-labelledby="review-form-title">
-                    <h2 id="review-form-title">Submit Your Review</h2>
-                    <form id="reviewForm" class="form" aria-labelledby="review-form-title">
-                        <div class="form__group">
-                            <label class="form__label" for="rating">Overall Rating:</label>
-                            <div class="rating-input" role="radiogroup" aria-labelledby="rating">
-                                <input type="radio" name="rating" value="5" id="rating5" required>
-                                <label for="rating5">5 ⭐</label>
-                                <input type="radio" name="rating" value="4" id="rating4">
-                                <label for="rating4">4 ⭐</label>
-                                <input type="radio" name="rating" value="3" id="rating3">
-                                <label for="rating3">3 ⭐</label>
-                                <input type="radio" name="rating" value="2" id="rating2">
-                                <label for="rating2">2 ⭐</label>
-                                <input type="radio" name="rating" value="1" id="rating1">
-                                <label for="rating1">1 ⭐</label>
-                            </div>
-                        </div>
-
-                        <div class="form__group">
-                            <label class="form__label" for="cleanliness">Cleanliness:</label>
-                            <div class="rating-input" role="radiogroup" aria-labelledby="cleanliness">
-                                <input type="radio" name="cleanliness" value="5" id="clean5" required>
-                                <label for="clean5">5 ⭐</label>
-                                <input type="radio" name="cleanliness" value="4" id="clean4">
-                                <label for="clean4">4 ⭐</label>
-                                <input type="radio" name="cleanliness" value="3" id="clean3">
-                                <label for="clean3">3 ⭐</label>
-                                <input type="radio" name="cleanliness" value="2" id="clean2">
-                                <label for="clean2">2 ⭐</label>
-                                <input type="radio" name="cleanliness" value="1" id="clean1">
-                                <label for="clean1">1 ⭐</label>
-                            </div>
-                        </div>
-
-                        <div class="form__group">
-                            <label class="form__label" for="maintenance">Maintenance:</label>
-                            <div class="rating-input" role="radiogroup" aria-labelledby="maintenance">
-                                <input type="radio" name="maintenance" value="5" id="main5" required>
-                                <label for="main5">5 ⭐</label>
-                                <input type="radio" name="maintenance" value="4" id="main4">
-                                <label for="main4">4 ⭐</label>
-                                <input type="radio" name="maintenance" value="3" id="main3">
-                                <label for="main3">3 ⭐</label>
-                                <input type="radio" name="maintenance" value="2" id="main2">
-                                <label for="main2">2 ⭐</label>
-                                <input type="radio" name="maintenance" value="1" id="main1">
-                                <label for="main1">1 ⭐</label>
-                            </div>
-                        </div>
-
-                        <div class="form__group">
-                            <label class="form__label" for="accessibility">Accessibility:</label>
-                            <div class="rating-input" role="radiogroup" aria-labelledby="accessibility">
-                                <input type="radio" name="accessibility" value="5" id="acc5" required>
-                                <label for="acc5">5 ⭐</label>
-                                <input type="radio" name="accessibility" value="4" id="acc4">
-                                <label for="acc4">4 ⭐</label>
-                                <input type="radio" name="accessibility" value="3" id="acc3">
-                                <label for="acc3">3 ⭐</label>
-                                <input type="radio" name="accessibility" value="2" id="acc2">
-                                <label for="acc2">2 ⭐</label>
-                                <input type="radio" name="accessibility" value="1" id="acc1">
-                                <label for="acc1">1 ⭐</label>
-                            </div>
-                        </div>
-
-                        <div class="form__group">
-                            <label for="comments" class="form__label">Comments:</label>
-                            <textarea id="comments" class="form__textarea" rows="4" placeholder="Share your experience..." aria-describedby="comments-help"></textarea>
-                            <small id="comments-help" class="sr-only">Optional: Share additional details about your experience</small>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Submit Review</button>
-                    </form>
-                </div>
-
-                <!-- Success Message -->
-                <div id="successMessage" class="success-message" style="display: none;" role="alert" aria-live="assertive">
-                    <h3>Thank you for your review!</h3>
-                    <p>Your feedback helps improve public facilities.</p>
-                    <button id="scanNewQR" class="btn btn-secondary">Scan Another QR Code</button>
-                </div>
-
-                <!-- Instructions -->
-                <div class="instructions" role="region" aria-labelledby="instructions-title">
-                    <h2 id="instructions-title">How to use:</h2>
-                    <ol>
-                        <li>Allow camera access when prompted</li>
-                        <li>Point your camera at the toilet's QR code</li>
-                        <li>Hold steady until the QR code is scanned</li>
-                        <li>You'll be redirected to submit your review</li>
-                    </ol>
-                </div>
-            </section>
+            <div class="hero__stat">
+              <div class="hero__stat-number" id="citiesCovered">15+ Cities</div>
+              <div class="hero__stat-label">Covered Across India</div>
+            </div>
+            <div class="hero__stat">
+              <div class="hero__stat-number" id="reviewsCount">2,500+</div>
+              <div class="hero__stat-label">Community Reviews</div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <!-- Features Section -->
-        <section class="features" aria-labelledby="features-title">
-            <h2 id="features-title" class="sr-only">Features</h2>
-            <div class="features__grid">
-                <article class="feature-card">
-                    <div class="feature-card__icon" aria-hidden="true">📱</div>
-                    <h3 class="feature-card__title">Easy to Use</h3>
-                    <p class="feature-card__description">Simply scan the QR code at any registered toilet facility to start your review</p>
-                </article>
-                <article class="feature-card">
-                    <div class="feature-card__icon" aria-hidden="true">⭐</div>
-                    <h3 class="feature-card__title">Rate & Review</h3>
-                    <p class="feature-card__description">Share your experience and rate cleanliness, maintenance, and accessibility</p>
-                </article>
-                <article class="feature-card">
-                    <div class="feature-card__icon" aria-hidden="true">📊</div>
-                    <h3 class="feature-card__title">Help Others</h3>
-                    <p class="feature-card__description">Your feedback helps maintain and improve public toilet facilities</p>
-                </article>
-            </div>
+      <!-- Content Section -->
+      <div class="content">
+        <!-- Search Section -->
+        <section class="search-section" aria-labelledby="search-title">
+          <h2 id="search-title" class="search-section__title">
+            Find Toilets Near You
+          </h2>
+          <div id="search-container" class="search-container"></div>
         </section>
+
+        <!-- Map Section -->
+        <section class="map-section" aria-labelledby="map-title">
+          <h2 id="map-title" class="map-section__title">
+            Toilet Data Map - Live from External APIs
+          </h2>
+
+          <div
+            id="map-error"
+            class="map-section__error"
+            role="alert"
+            aria-live="polite"
+            aria-atomic="true"
+          ></div>
+
+          <div class="map-section__container">
+            <div
+              id="map"
+              class="map-section__map"
+              role="application"
+              aria-label="Interactive toilet map"
+            ></div>
+
+            <div
+              class="map-section__controls"
+              role="group"
+              aria-label="Map controls"
+            >
+              <button
+                class="btn btn-primary btn-small"
+                onclick="map.locate({setView: true, maxZoom: 16})"
+                aria-label="Find my location on map"
+              >
+                📍 Find Near Me
+              </button>
+              <button
+                class="btn btn-success btn-small"
+                onclick="syncAllDataSources()"
+                aria-label="Sync data from all external APIs"
+              >
+                🔄 Sync All APIs
+              </button>
+            </div>
+
+            <div
+              class="map-section__filters"
+              role="group"
+              aria-label="Map filters"
+            >
+              <label class="map-section__filter">
+                <input
+                  type="checkbox"
+                  id="showPublicToilets"
+                  checked
+                  onchange="updateToiletFilters()"
+                />
+                <span class="map-section__filter-label">🏛️ Public Toilets</span>
+              </label>
+              <label class="map-section__filter">
+                <input
+                  type="checkbox"
+                  id="showPrivateToilets"
+                  checked
+                  onchange="updateToiletFilters()"
+                />
+                <span class="map-section__filter-label"
+                  >🏢 Private Toilets</span
+                >
+              </label>
+            </div>
+
+            <div
+              id="map-loading"
+              class="map-section__loading"
+              role="status"
+              aria-live="polite"
+            >
+              <div class="loading-spinner" aria-hidden="true"></div>
+              <span class="loading-text">Loading toilet data from APIs...</span>
+            </div>
+          </div>
+
+          <!-- Data Sources Legend -->
+          <div
+            class="data-sources-legend"
+            role="region"
+            aria-labelledby="legend-title"
+          >
+            <h3 id="legend-title">Data Sources</h3>
+            <div class="legend-grid">
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🌐</span>
+                <div class="legend-info">
+                  <strong>Overpass API</strong>
+                  <small>Real-time worldwide queries</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">📊</span>
+                <div class="legend-info">
+                  <strong>Geofabrik OSM</strong>
+                  <small>High-quality regional extracts</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🏛️</span>
+                <div class="legend-info">
+                  <strong>City CKAN</strong>
+                  <small>Official urban data portals</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🌍</span>
+                <div class="legend-info">
+                  <strong>Planet OSM</strong>
+                  <small>Complete global database</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🇮🇳</span>
+                <div class="legend-info">
+                  <strong>Government APIs</strong>
+                  <small>Official Indian sources</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🏖️</span>
+                <div class="legend-info">
+                  <strong>Tourism Boards</strong>
+                  <small>State tourism facilities</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🚉</span>
+                <div class="legend-info">
+                  <strong>Transport Hubs</strong>
+                  <small>Railways and airports</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🏬</span>
+                <div class="legend-info">
+                  <strong>Commercial Centers</strong>
+                  <small>Malls and complexes</small>
+                </div>
+              </div>
+              <div class="legend-item">
+                <span class="legend-icon" aria-hidden="true">🎓</span>
+                <div class="legend-info">
+                  <strong>Educational</strong>
+                  <small>Universities and colleges</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Map Statistics -->
+          <div class="map-stats" role="region" aria-labelledby="stats-title">
+            <h3 id="stats-title">API Data Statistics</h3>
+            <div id="map-stats-content" aria-live="polite">
+              Loading API statistics...
+            </div>
+          </div>
+        </section>
+
+        <!-- Scanner Section -->
+        <section class="scanner-section" aria-labelledby="scanner-title">
+          <h2 id="scanner-title">Scan QR Code</h2>
+
+          <div
+            id="qr-reader"
+            class="scanner-section__reader"
+            role="application"
+            aria-label="QR code scanner"
+          ></div>
+          <div
+            id="qr-reader-results"
+            class="scanner-section__results"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></div>
+
+          <!-- Toilet Info Panel -->
+          <div
+            id="toiletInfoPanel"
+            class="toilet-info-panel"
+            style="display: none"
+            role="region"
+            aria-labelledby="toilet-info-title"
+          >
+            <h2 id="toilet-info-title" class="toilet-info-panel__title">
+              Toilet Information
+            </h2>
+            <div class="toilet-details">
+              <div class="info-group">
+                <h3 id="toiletName"></h3>
+                <p id="toiletLocation"></p>
+              </div>
+              <div class="info-group">
+                <h4>Current Ratings</h4>
+                <div class="rating-summary">
+                  <div class="rating-item">
+                    <span>Overall Rating:</span>
+                    <span id="overallRating" class="rating-stars"></span>
+                  </div>
+                  <div class="rating-item">
+                    <span>Total Reviews:</span>
+                    <span id="totalReviews"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="info-group">
+                <h4>Facilities</h4>
+                <div id="facilitiesList" class="facilities-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Form -->
+          <div
+            id="reviewFormSection"
+            class="review-form"
+            style="display: none"
+            role="region"
+            aria-labelledby="review-form-title"
+          >
+            <h2 id="review-form-title">Submit Your Review</h2>
+            <form
+              id="reviewForm"
+              class="form"
+              aria-labelledby="review-form-title"
+            >
+              <div class="form__group">
+                <label class="form__label" for="rating">Overall Rating:</label>
+                <div
+                  class="rating-input"
+                  role="radiogroup"
+                  aria-labelledby="rating"
+                >
+                  <input
+                    type="radio"
+                    name="rating"
+                    value="5"
+                    id="rating5"
+                    required
+                  />
+                  <label for="rating5">5 ⭐</label>
+                  <input type="radio" name="rating" value="4" id="rating4" />
+                  <label for="rating4">4 ⭐</label>
+                  <input type="radio" name="rating" value="3" id="rating3" />
+                  <label for="rating3">3 ⭐</label>
+                  <input type="radio" name="rating" value="2" id="rating2" />
+                  <label for="rating2">2 ⭐</label>
+                  <input type="radio" name="rating" value="1" id="rating1" />
+                  <label for="rating1">1 ⭐</label>
+                </div>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="cleanliness"
+                  >Cleanliness:</label
+                >
+                <div
+                  class="rating-input"
+                  role="radiogroup"
+                  aria-labelledby="cleanliness"
+                >
+                  <input
+                    type="radio"
+                    name="cleanliness"
+                    value="5"
+                    id="clean5"
+                    required
+                  />
+                  <label for="clean5">5 ⭐</label>
+                  <input
+                    type="radio"
+                    name="cleanliness"
+                    value="4"
+                    id="clean4"
+                  />
+                  <label for="clean4">4 ⭐</label>
+                  <input
+                    type="radio"
+                    name="cleanliness"
+                    value="3"
+                    id="clean3"
+                  />
+                  <label for="clean3">3 ⭐</label>
+                  <input
+                    type="radio"
+                    name="cleanliness"
+                    value="2"
+                    id="clean2"
+                  />
+                  <label for="clean2">2 ⭐</label>
+                  <input
+                    type="radio"
+                    name="cleanliness"
+                    value="1"
+                    id="clean1"
+                  />
+                  <label for="clean1">1 ⭐</label>
+                </div>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="maintenance"
+                  >Maintenance:</label
+                >
+                <div
+                  class="rating-input"
+                  role="radiogroup"
+                  aria-labelledby="maintenance"
+                >
+                  <input
+                    type="radio"
+                    name="maintenance"
+                    value="5"
+                    id="main5"
+                    required
+                  />
+                  <label for="main5">5 ⭐</label>
+                  <input type="radio" name="maintenance" value="4" id="main4" />
+                  <label for="main4">4 ⭐</label>
+                  <input type="radio" name="maintenance" value="3" id="main3" />
+                  <label for="main3">3 ⭐</label>
+                  <input type="radio" name="maintenance" value="2" id="main2" />
+                  <label for="main2">2 ⭐</label>
+                  <input type="radio" name="maintenance" value="1" id="main1" />
+                  <label for="main1">1 ⭐</label>
+                </div>
+              </div>
+
+              <div class="form__group">
+                <label class="form__label" for="accessibility"
+                  >Accessibility:</label
+                >
+                <div
+                  class="rating-input"
+                  role="radiogroup"
+                  aria-labelledby="accessibility"
+                >
+                  <input
+                    type="radio"
+                    name="accessibility"
+                    value="5"
+                    id="acc5"
+                    required
+                  />
+                  <label for="acc5">5 ⭐</label>
+                  <input
+                    type="radio"
+                    name="accessibility"
+                    value="4"
+                    id="acc4"
+                  />
+                  <label for="acc4">4 ⭐</label>
+                  <input
+                    type="radio"
+                    name="accessibility"
+                    value="3"
+                    id="acc3"
+                  />
+                  <label for="acc3">3 ⭐</label>
+                  <input
+                    type="radio"
+                    name="accessibility"
+                    value="2"
+                    id="acc2"
+                  />
+                  <label for="acc2">2 ⭐</label>
+                  <input
+                    type="radio"
+                    name="accessibility"
+                    value="1"
+                    id="acc1"
+                  />
+                  <label for="acc1">1 ⭐</label>
+                </div>
+              </div>
+
+              <div class="form__group">
+                <label for="comments" class="form__label">Comments:</label>
+                <textarea
+                  id="comments"
+                  class="form__textarea"
+                  rows="4"
+                  placeholder="Share your experience..."
+                  aria-describedby="comments-help"
+                ></textarea>
+                <small id="comments-help" class="sr-only"
+                  >Optional: Share additional details about your
+                  experience</small
+                >
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                Submit Review
+              </button>
+            </form>
+          </div>
+
+          <!-- Success Message -->
+          <div
+            id="successMessage"
+            class="success-message"
+            style="display: none"
+            role="alert"
+            aria-live="assertive"
+          >
+            <h3>Thank you for your review!</h3>
+            <p>Your feedback helps improve public facilities.</p>
+            <button id="scanNewQR" class="btn btn-secondary">
+              Scan Another QR Code
+            </button>
+          </div>
+
+          <!-- Instructions -->
+          <div
+            class="instructions"
+            role="region"
+            aria-labelledby="instructions-title"
+          >
+            <h2 id="instructions-title">How to use:</h2>
+            <ol>
+              <li>Allow camera access when prompted</li>
+              <li>Point your camera at the toilet's QR code</li>
+              <li>Hold steady until the QR code is scanned</li>
+              <li>You'll be redirected to submit your review</li>
+            </ol>
+          </div>
+        </section>
+      </div>
+
+      <!-- Features Section -->
+      <section class="features" aria-labelledby="features-title">
+        <h2 id="features-title" class="sr-only">Features</h2>
+        <div class="features__grid">
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">📱</div>
+            <h3 class="feature-card__title">Easy to Use</h3>
+            <p class="feature-card__description">
+              Simply scan the QR code at any registered toilet facility to start
+              your review
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">⭐</div>
+            <h3 class="feature-card__title">Rate & Review</h3>
+            <p class="feature-card__description">
+              Share your experience and rate cleanliness, maintenance, and
+              accessibility
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">📊</div>
+            <h3 class="feature-card__title">Help Others</h3>
+            <p class="feature-card__description">
+              Your feedback helps maintain and improve public toilet facilities
+            </p>
+          </article>
+        </div>
+      </section>
     </main>
 
     <!-- Footer -->
     <footer class="footer" role="contentinfo">
-        <div class="footer__container">
-            <h2 class="footer__title">Available Toilets Near You</h2>
-            <div class="footer__content">
-                <div class="footer__map-section">
-                    <div id="footer-map-error" class="map-error"></div>
-                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                        <div style="text-align: center; color: #666;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;" aria-hidden="true">🗺️</div>
-                            <h3 style="margin: 0 0 0.5rem 0; color: #333;">Interactive Map</h3>
-                            <p style="margin: 0; font-size: 0.9rem;">Available in the main map section above</p>
-                        </div>
-                    </div>
+      <div class="footer__container">
+        <h2 class="footer__title">Available Toilets Near You</h2>
+        <div class="footer__content">
+          <div class="footer__map-section">
+            <div id="footer-map-error" class="map-error"></div>
+            <div
+              style="
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+              "
+            >
+              <div style="text-align: center; color: #666">
+                <div
+                  style="font-size: 3rem; margin-bottom: 1rem"
+                  aria-hidden="true"
+                >
+                  🗺️
                 </div>
-                <div class="footer__info">
-                    <h3>Rating Guide</h3>
-                    <div class="map-legend">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #4caf50"></div>
-                            <span>High Rating (4-5)</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #ffc107"></div>
-                            <span>Medium Rating (3-4)</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #f44336"></div>
-                            <span>Low Rating (0-3)</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #808080"></div>
-                            <span>No Ratings Yet</span>
-                        </div>
-                    </div>
-                    <div class="map-stats" role="region" aria-labelledby="footer-stats-title">
-                        <h3 id="footer-stats-title">Statistics</h3>
-                        <div id="footer-map-stats-content" aria-live="polite">
-                            Loading statistics...
-                        </div>
-                    </div>
-                </div>
+                <h3 style="margin: 0 0 0.5rem 0; color: #333">
+                  Interactive Map
+                </h3>
+                <p style="margin: 0; font-size: 0.9rem">
+                  Available in the main map section above
+                </p>
+              </div>
             </div>
-            <div class="footer__bottom">
-                <p>© 2024 Toilet Review System. All rights reserved, Powered by SANKET.</p>
+          </div>
+          <div class="footer__info">
+            <h3>Rating Guide</h3>
+            <div class="map-legend">
+              <div class="legend-item">
+                <div class="legend-color" style="background: #4caf50"></div>
+                <span>High Rating (4-5)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #ffc107"></div>
+                <span>Medium Rating (3-4)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #f44336"></div>
+                <span>Low Rating (0-3)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #808080"></div>
+                <span>No Ratings Yet</span>
+              </div>
             </div>
+            <div
+              class="map-stats"
+              role="region"
+              aria-labelledby="footer-stats-title"
+            >
+              <h3 id="footer-stats-title">Statistics</h3>
+              <div id="footer-map-stats-content" aria-live="polite">
+                Loading statistics...
+              </div>
+            </div>
+          </div>
         </div>
+        <div class="footer__bottom">
+          <p>
+            © 2024 Toilet Review System. All rights reserved, Powered by SANKET.
+          </p>
+        </div>
+      </div>
     </footer>
 
     <!-- External Libraries -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <!-- Legacy Scripts Removed - Using Modern Webpack Bundle Only -->
 
@@ -408,5 +659,5 @@
 
     <!-- Modular Application (Bundled) -->
     <script src="js/app.2b1c67e5b93c0f89c098.js"></script>
-</body>
+  </body>
 </html>
