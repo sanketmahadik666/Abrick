@@ -9,19 +9,6 @@ const qrReaderSection = document.getElementById('qr-reader-section');
 let currentToiletId = null;
 let qrScanner = null;
 
-<<<<<<< HEAD
-// Add debugging utility
-const debug = {
-    log: (message, data) => {
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[DEBUG] ${message}`, data || '');
-        }
-    },
-    error: (message, error) => {
-        console.error(`[ERROR] ${message}`, error);
-    }
-};
-=======
 // Loading functions (using shared utilities to avoid conflicts)
 function hideReviewLoading() {
     const loading = document.getElementById('reviewLoading');
@@ -39,7 +26,6 @@ function showReviewLoading() {
 
 // Use shared button loading utility
 const setButtonLoading = ToiletReviewUtils.setButtonLoading;
->>>>>>> master
 
 // Initialize QR Scanner
 function initializeQRScanner() {
@@ -132,11 +118,7 @@ async function loadToiletInfo(toiletId) {
             throw new Error(data.message || 'Failed to load toilet information');
         }
 
-<<<<<<< HEAD
-        debug.log('Toilet data loaded:', data);
-=======
         console.log(`[REVIEW] Loaded toilet: ${data.name} at ${data.location}`);
->>>>>>> master
 
         toiletInfo.innerHTML = `
             <h2>${data.name}</h2>
@@ -153,11 +135,7 @@ async function loadToiletInfo(toiletId) {
         reviewFormSection.style.display = 'block';
         console.log(`[REVIEW] Toilet info displayed, review form ready`);
     } catch (error) {
-<<<<<<< HEAD
-        debug.error('Error loading toilet info:', error);
-=======
         console.error('[REVIEW] Error loading toilet info:', error);
->>>>>>> master
         alert('Could not load toilet information. Please try scanning again.');
         // Show scanner again if loading fails
         qrReaderSection.style.display = 'block';
@@ -244,20 +222,11 @@ reviewForm.addEventListener('submit', async (e) => {
         createConfetti();
 
     } catch (error) {
-<<<<<<< HEAD
-        console.error('Error submitting review:', error);
-        alert(error.message || 'Failed to submit review. Please try again.');
-    } finally {
-        // Re-enable form
-        submitButton.disabled = false;
-        submitButton.textContent = 'Submit Review';
-=======
         console.error('[REVIEW] Error submitting review:', error);
         alert('Failed to submit review. Please try again.');
     } finally {
         setButtonLoading(submitBtn, false);
         console.log(`[REVIEW] Submit process completed`);
->>>>>>> master
     }
 });
 
