@@ -1,6 +1,16 @@
+/**
+ * Scanner Module
+ * Wraps Html5QrcodeScanner for QR code detection.
+ */
 export const Scanner = {
     html5QrcodeScanner: null,
 
+    /**
+     * Initialize and render the QR scanner.
+     * @param {string} elementId - DOM ID of the container element.
+     * @param {function} onScanSuccess - Callback for successful scan (decodedText, decodedResult).
+     * @param {function} onScanFailure - Callback for scan failure/error.
+     */
     init(elementId, onScanSuccess, onScanFailure) {
         // We use Html5QrcodeScanner for a UI-embedded scanner
         // checking if the library is loaded
@@ -18,6 +28,9 @@ export const Scanner = {
         this.html5QrcodeScanner.render(onScanSuccess, onScanFailure);
     },
 
+    /**
+     * Clear and stop the scanner.
+     */
     clear() {
         if (this.html5QrcodeScanner) {
             this.html5QrcodeScanner.clear().catch(error => {

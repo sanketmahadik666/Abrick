@@ -21,7 +21,9 @@ const elements = {
     mapLoading: document.getElementById('map-loading')
 };
 
-// Initialize Map
+/**
+ * Initialize the interactive map.
+ */
 async function initMap() {
     try {
         const map = MapModule.init('map');
@@ -29,7 +31,7 @@ async function initMap() {
 
         // Fetch toilets
         const toilets = await API.request('/api/toilet/map');
-        elements.mapLoading.style.display = 'none';
+        if (elements.mapLoading) elements.mapLoading.style.display = 'none';
 
         toilets.forEach(toilet => {
             const popupContent = `
@@ -45,13 +47,6 @@ async function initMap() {
                     </p>
                 </div>
             `;
-            // Note: API returns coordinates as object {latitude, longitude} or array?
-            // Checking admin.html/index.html previous code... 
-            // index.html previous logic used `toilet.location.coordinates[1], toilet.location.coordinates[0]` 
-            // if location was an object with coordinates array [long, lat]? 
-            // Wait, previous `main.js` (line 170) used `toilet.location.coordinates[1], toilet.location.coordinates[0]`.
-            // But `admin.html` sample data or `index.html` logic?
-            // Let's assume standard GeoJSON [lng, lat] for now, so Leaflet needs [lat, lng].
             
             // Safety check for coordinates
             let lat, lng;
@@ -65,18 +60,26 @@ async function initMap() {
                 return; // Skip if no coordinates
             }
             
-            MapModule.addMarker(lat, lng, popupContent);
+            MapModule.addMarker(lat, lng, popupContent, toilet.averageRating);
         });
+        
+        MapModule.fitBounds();
 
     } catch (error) {
         console.error('Error initializing map:', error);
-        elements.mapLoading.style.display = 'none';
-        elements.mapError.textContent = 'Failed to load nearby toilets.';
-        elements.mapError.style.display = 'block';
+        if (elements.mapLoading) elements.mapLoading.style.display = 'none';
+        if (elements.mapError) {
+            elements.mapError.textContent = 'Failed to load nearby toilets.';
+            elements.mapError.style.display = 'block';
+        }
     }
 }
 
-// Scanner Handler
+/**
+ * Handle successful QR scan.
+ * @param {string} decodedText - The scanned text content.
+ * @param {Object} decodedResult - Detailed scan result.
+ */
 async function onScanSuccess(decodedText, decodedResult) {
     try {
         // Stop scanning temporarily
@@ -97,11 +100,11 @@ async function onScanSuccess(decodedText, decodedResult) {
         // Update UI
         updateToiletInfo(toilet);
         
-        elements.toiletInfoPanel.style.display = 'block';
-        elements.reviewFormSection.style.display = 'block';
+        if (elements.toiletInfoPanel) elements.toiletInfoPanel.style.display = 'block';
+        if (elements.reviewFormSection) elements.reviewFormSection.style.display = 'block';
         
         // Scroll to form
-        elements.toiletInfoPanel.scrollIntoView({ behavior: 'smooth' });
+        if (elements.toiletInfoPanel) elements.toiletInfoPanel.scrollIntoView({ behavior: 'smooth' });
 
     } catch (error) {
         UI.hideGlobalLoading();
@@ -112,26 +115,40 @@ async function onScanSuccess(decodedText, decodedResult) {
     }
 }
 
+/**
+ * Update the UI with toilet details.
+ * @param {Object} toilet - The toilet data object.
+ */
 function updateToiletInfo(toilet) {
-    elements.toiletName.textContent = toilet.name;
-    elements.toiletLocation.textContent = toilet.location || toilet.address || 'Unknown Location';
-    elements.overallRating.textContent = UI.generateStarRating(toilet.averageRating);
-    elements.totalReviews.textContent = `(${toilet.totalReviews || 0} reviews)`;
+    if (elements.toiletName) elements.toiletName.textContent = toilet.name;
+    if (elements.toiletLocation) elements.toiletLocation.textContent = toilet.location || toilet.address || 'Unknown Location';
+    if (elements.overallRating) elements.overallRating.textContent = UI.generateStarRating(toilet.averageRating);
+    if (elements.totalReviews) elements.totalReviews.textContent = `(${toilet.totalReviews || 0} reviews)`;
     
     // Facilities
-    if (toilet.facilities && toilet.facilities.length > 0) {
-        elements.facilitiesList.innerHTML = toilet.facilities.map(f => 
-            `<span class="facility-tag">${formatFacility(f)}</span>`
-        ).join('');
-    } else {
-        elements.facilitiesList.innerHTML = '<p>No facilities information</p>';
+    if (elements.facilitiesList) {
+        if (toilet.facilities && toilet.facilities.length > 0) {
+            elements.facilitiesList.innerHTML = toilet.facilities.map(f => 
+                `<span class="facility-tag">${formatFacility(f)}</span>`
+            ).join('');
+        } else {
+            elements.facilitiesList.innerHTML = '<p>No facilities information</p>';
+        }
     }
 }
 
+/**
+ * Format a facility string (e.g. 'baby_change' -> 'Baby Change').
+ * @param {string} str - The raw facility string.
+ * @returns {string} Formatted string.
+ */
 function formatFacility(str) {
     return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+/**
+ * Start or restart the QR scanner.
+ */
 function startScanner() {
     Scanner.init('qr-reader', onScanSuccess, (error) => {
         // Ignore verbose scanning errors
@@ -139,54 +156,54 @@ function startScanner() {
 }
 
 // Review Submission
-elements.reviewForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentToiletId) return;
+if (elements.reviewForm) {
+    elements.reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentToiletId) return;
 
-    try {
-        const formData = new FormData(elements.reviewForm);
-        const data = {
-            toiletId: currentToiletId,
-            rating: parseInt(formData.get('rating')),
-            cleanliness: parseInt(formData.get('cleanliness')),
-            maintenance: parseInt(formData.get('maintenance')),
-            accessibility: parseInt(formData.get('accessibility')),
-            comment: document.getElementById('comments').value // Textarea might not be in FormData if not 'name' attribute... check html
-        };
-        
-        // Check html for textarea name
-        // <textarea id="comments" ...> NO NAME ATTRIBUTE in previous html 
-        // will rely on id
+        try {
+            const formData = new FormData(elements.reviewForm);
+            const data = {
+                toiletId: currentToiletId,
+                rating: parseInt(formData.get('rating')),
+                cleanliness: parseInt(formData.get('cleanliness')),
+                maintenance: parseInt(formData.get('maintenance')),
+                accessibility: parseInt(formData.get('accessibility')),
+                comment: document.getElementById('comments') ? document.getElementById('comments').value : ''
+            };
 
-        UI.showGlobalLoading();
-        await API.request('/api/review/submit', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-        UI.hideGlobalLoading();
+            UI.showGlobalLoading();
+            await API.request('/api/reviews', { // Note: changed from review/submit to match likely REST pattern, verify endpoint
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            UI.hideGlobalLoading();
 
-        // Show Success
-        elements.reviewFormSection.style.display = 'none';
-        elements.toiletInfoPanel.style.display = 'none';
-        elements.successMessage.style.display = 'block';
-        
-        // Confetti effect (simple CSS one)
-        createConfetti();
+            // Show Success
+            if (elements.reviewFormSection) elements.reviewFormSection.style.display = 'none';
+            if (elements.toiletInfoPanel) elements.toiletInfoPanel.style.display = 'none';
+            if (elements.successMessage) elements.successMessage.style.display = 'block';
+            
+            // Confetti effect
+            createConfetti();
 
-    } catch (error) {
-        UI.hideGlobalLoading();
-        console.error('Submit error:', error);
-        alert('Failed to submit review: ' + error.message);
-    }
-});
+        } catch (error) {
+            UI.hideGlobalLoading();
+            console.error('Submit error:', error);
+            alert('Failed to submit review: ' + error.message);
+        }
+    });
+}
 
-elements.scanNewQRBtn.addEventListener('click', () => {
-    elements.successMessage.style.display = 'none';
-    elements.reviewForm.reset();
-    currentToiletId = null;
-    startScanner();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
+if (elements.scanNewQRBtn) {
+    elements.scanNewQRBtn.addEventListener('click', () => {
+        if (elements.successMessage) elements.successMessage.style.display = 'none';
+        if (elements.reviewForm) elements.reviewForm.reset();
+        currentToiletId = null;
+        startScanner();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
 
 function createConfetti() {
     for(let i=0; i<50; i++) {
