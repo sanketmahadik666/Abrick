@@ -218,7 +218,14 @@ function createConfetti() {
 }
 
 // Init
-document.addEventListener('DOMContentLoaded', () => {
-    initMap();
-    startScanner();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await initMap();
+        startScanner();
+    } catch (error) {
+        console.error('Initialization error:', error);
+    } finally {
+        // Hide initial loading screen regardless of success/failure
+        UI.hideGlobalLoading();
+    }
 });
